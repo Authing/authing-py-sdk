@@ -22,17 +22,17 @@ class Authing():
 
         pass
 
-    def initService(self, url, headers={}):
+    def _initService(self, url, headers={}):
         # headers = {'Authorization': 'bearer TOKEN'}
         variables = {'clientId': '59f86b4832eb28071bdd9214'}
         endpoint = HTTPEndpoint(url, headers)
         return endpoint
 
-    def initOAuth(self, headers={}):
+    def _initOAuth(self, headers={}):
         self.oauth = self.initService(self.servies['oauth'], headers=headers)
         return self.oauth
 
-    def initUsers(self, headers={}):
+    def _initUsers(self, headers={}):
         self.users = self.initService(self.servies['users'], headers=headers)
         return self.users
 

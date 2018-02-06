@@ -2,7 +2,7 @@
 
 ----------
 
-Authing Python SDk目前只支持Python3+。
+Authing Python SDK目前只支持Python3+。
 
 [官方文档请点击这里](https://docs.authing.cn)。
 
