@@ -34,12 +34,12 @@ authing = Authing(clientId, secret)
 auth_result = authing.auth()
 
 if auth_result:
-    
     try:
         user = authing.login({
             'email': 'test@testmail.com',
             'password': 'testpassword'
         })
+        #取得用户的登录信息
     except Exception as e:
         #登录失败
         raise e
