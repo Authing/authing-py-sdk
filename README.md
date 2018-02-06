@@ -23,12 +23,7 @@ $ pip install authing
 
 ----------
 
-##### 使用方法
-
-在```ES5```中我们使用 **Promise** 处理异步编程。
-
 ``` python
-    
 from authing import Authing
 
 clientId = 'your_client_id'
