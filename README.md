@@ -39,10 +39,12 @@ if auth_result:
             'email': 'test@testmail.com',
             'password': 'testpassword'
         })
-        #取得用户的登录信息
+        # 取得用户的登录信息
     except Exception as e:
-        #登录失败
+        # 登录失败
         raise e
+else:
+    # clientId和secret认证失败
 
 ```
 
