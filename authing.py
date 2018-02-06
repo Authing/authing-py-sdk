@@ -25,3 +25,18 @@ endpoint = HTTPEndpoint(url, headers)
 data = endpoint(query, variables)
 
 print(json.dumps(data))
+
+class Authing():
+
+    """docstring for Authing"""
+
+    def __init__(self, clientId, secret):
+        self.clientId = clientId
+        self.secret = secret
+
+    def auth():
+        
+    
+
+
+

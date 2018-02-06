@@ -53,3 +53,5 @@ else:
 了解更多报错的详情，请查看[错误代码](https://docs.authing.cn/#/quick_start/error_code)。
 
 获取Client ID和Client Secret，请[点击这里](https://docs.authing.cn/#/quick_start/howto)。
+
+[完整官方文档请点击这里](https://docs.authing.cn)。
