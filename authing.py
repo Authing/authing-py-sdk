@@ -402,11 +402,18 @@ GKl64GDcIq3au+aqJQIDAQAB
         return this.users(query)        
 
     def logout(self, uid):
-        pass
+
+        if not uid:
+            raise Exception('请提供用户id：uid')
+            
+        return self.update({
+            "_id": uid,
+            "tokenExpiredAt": 0
+        })
 
     def remove(self, uid):
 
-        if not email: 
+        if not uid:
             raise Exception('请提供用户id：uid')        
 
         query = """
@@ -447,7 +454,81 @@ GKl64GDcIq3au+aqJQIDAQAB
             isDeleted: Boolean        
         }
         '''
-        pass
+
+        if not options.get('_id'):
+            raise Exception('请提供用户id: { "_id": "xxxxxxxx" }')
+
+        query = """
+            mutation UpdateUser(
+                _id: String!,
+                email: String,
+                emailVerified: Boolean,
+                username: String,
+                nickname: String,
+                company: String,
+                photo: String,
+                browser: String,
+                password: String,
+                oldPassword: String,
+                registerInClient: String!,
+                token: String,
+                tokenExpiredAt: String,
+                loginsCount: Int,
+                lastLogin: String,
+                lastIP: String,
+                signedUp: String,
+                blocked: Boolean,
+                isDeleted: Boolean
+            ){
+              updateUser(options: {
+                _id: $_id,
+                email: $email,
+                emailVerified: $emailVerified,
+                username: $username,
+                nickname: $nickname,
+                company: $company,
+                photo: $photo,
+                browser: $browser,
+                password: $password,
+                oldPassword: $oldPassword,
+                registerInClient: $registerInClient,
+                token: $token,
+                tokenExpiredAt: $tokenExpiredAt,
+                loginsCount: $loginsCount,
+                lastLogin: $lastLogin,
+                lastIP: $lastIP,
+                signedUp: $signedUp,
+                blocked: $blocked,
+                isDeleted: $isDeleted
+              }) {
+                _id
+                email
+                emailVerified
+                username
+                nickname
+                company
+                photo
+                browser
+                registerInClient
+                registerMethod
+                oauth
+                token
+                tokenExpiredAt
+                loginsCount
+                lastLogin
+                lastIP
+                signedUp
+                blocked
+                isDeleted
+              }
+            }
+        """
+
+        variables = {
+            "_id": options['_id']
+        }
+
+        return this.authService(query, variables)
 
     def sendResetPasswordEmail(self, options={"email": ''}):
         '''
