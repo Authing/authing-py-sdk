@@ -405,7 +405,7 @@ GKl64GDcIq3au+aqJQIDAQAB
 
         if not uid:
             raise Exception('请提供用户id：uid')
-            
+
         return self.update({
             "_id": uid,
             "tokenExpiredAt": 0
@@ -458,48 +458,34 @@ GKl64GDcIq3au+aqJQIDAQAB
         if not options.get('_id'):
             raise Exception('请提供用户id: { "_id": "xxxxxxxx" }')
 
+        typeList = {
+            '_id': 'String!',
+            'email': 'String',
+            'emailVerified': 'Boolean',
+            'username': 'String',
+            'nickname': 'String',
+            'company': 'String',
+            'photo': 'String',
+            'browser': 'String',
+            'password': 'String',
+            'oldPassword': 'String',
+            'registerInClient': 'String!',
+            'token': 'String',
+            'tokenExpiredAt': 'String',
+            'loginsCount': 'Int',
+            'lastLogin': 'String',
+            'lastIP': 'String',
+            'signedUp': 'String',
+            'blocked': 'Boolean',
+            'isDeleted': 'Boolean'
+        }
+
         query = """
             mutation UpdateUser(
-                _id: String!,
-                email: String,
-                emailVerified: Boolean,
-                username: String,
-                nickname: String,
-                company: String,
-                photo: String,
-                browser: String,
-                password: String,
-                oldPassword: String,
-                registerInClient: String!,
-                token: String,
-                tokenExpiredAt: String,
-                loginsCount: Int,
-                lastLogin: String,
-                lastIP: String,
-                signedUp: String,
-                blocked: Boolean,
-                isDeleted: Boolean
+                {0}
             ){
               updateUser(options: {
-                _id: $_id,
-                email: $email,
-                emailVerified: $emailVerified,
-                username: $username,
-                nickname: $nickname,
-                company: $company,
-                photo: $photo,
-                browser: $browser,
-                password: $password,
-                oldPassword: $oldPassword,
-                registerInClient: $registerInClient,
-                token: $token,
-                tokenExpiredAt: $tokenExpiredAt,
-                loginsCount: $loginsCount,
-                lastLogin: $lastLogin,
-                lastIP: $lastIP,
-                signedUp: $signedUp,
-                blocked: $blocked,
-                isDeleted: $isDeleted
+                {1}
               }) {
                 _id
                 email
@@ -524,9 +510,34 @@ GKl64GDcIq3au+aqJQIDAQAB
             }
         """
 
-        variables = {
-            "_id": options['_id']
-        }
+        variables = options
+        variables['registerInClient'] = self.clientId
+
+        def genParams(variables):
+
+            resultTpl = []
+            tpl = "{}: {}"            
+
+            for key in variables:
+                if typeList.get(key):
+                    _type = typeList.get(key)
+                    resultTpl.append(tpl.format(key, _type))
+
+            return ','.join(resultTpl)
+
+        def genSecondParams(variables):
+
+            resultTpl = []
+            tpl = "{}: ${}"            
+
+            for key in variables:
+                if typeList.get(key):
+                    resultTpl.append(tpl.format(key, key))
+
+            return ','.join(resultTpl)        
+
+        _query = query.replace('{0}', genParams(variables))
+        _query = _query.replace('{1}', genSecondParams(variables))
 
         return this.authService(query, variables)
 
@@ -611,7 +622,7 @@ GKl64GDcIq3au+aqJQIDAQAB
         '''
 
         if options.get('email'):
-            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"'}')            
+            raise Exception("""请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"'}""")            
 
         if options.get('verifyCode'):
             raise Exception('请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"}')            

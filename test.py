@@ -8,17 +8,24 @@ if __name__ == '__main__':
     authing = Authing(clientId, secret)
 
     #------- oauth test -------#
-    oauthList = authing.readOauthList()
-    print(oauthList)
+    # oauthList = authing.readOauthList()
+    # print(oauthList)
     #------- oauth test -------#
 
     #------- register test -------#
-    _reg = authing.register('xieyang@dodora.cn', '123456')
-    print(_reg)
+    # _reg = authing.register('xieyang@dodora.cn', '123456')
+    # print(_reg)
     #------- register test -------#
 
     #------- login test -------#
 
     #------- login test -------#
 
-    # test_auth()
+    #------- update test -------#
+
+    authing.update({
+        "_id": 'xxx',
+        "nickname": 'xxxxx'
+    })
+
+    #------- update test -------#
