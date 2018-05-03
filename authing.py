@@ -66,9 +66,53 @@ class AuthingEndPoint(HTTPEndpoint):
                         return data['errors'][0]['message']
                     return data
                 except json.JSONDecodeError as exc:
-                    return self._log_json_error(body, exc)
+                    return {'data': None, 'errors': [{
+                        'message': exc,
+                        'exception': exc,
+                        'body': body,
+                    }]}
         except urllib.error.HTTPError as exc:
             return self._log_http_error(query, req, exc)        
+
+    def _log_http_error(self, query, req, exc):
+        '''Log :exc:`urllib.error.HTTPError`, converting to
+        GraphQL's ``{"data": null, "errors": [{"message": str(exc)...}]}``
+
+        :param query: the GraphQL query that triggered the result.
+        :type query: str
+
+        :param req: :class:`urllib.request.Request` instance that was opened.
+        :type req: :class:`urllib.request.Request`
+
+        :param exc: :exc:`urllib.error.HTTPError` instance
+        :type exc: :exc:`urllib.error.HTTPError`
+
+        :return: GraphQL-compliant dict with keys ``data`` and ``errors``.
+        :rtype: dict
+        '''
+        body = exc.read().decode('utf-8')
+        content_type = exc.headers.get('Content-Type', '')
+        if not content_type.startswith('application/json'):
+            return {'data': None, 'errors': [{
+                'message': exc,
+                'exception': exc,
+                'status': exc.code,
+                'headers': exc.headers,
+                'body': body,
+            }]}
+        else:
+            # GraphQL servers return 400 and {'errors': [...]}
+            # if only errors was returned, no {'data': ...}
+            data = json.loads(body)
+            if data and data.get('errors'):
+                return data.get('errors')
+            return {'data': None, 'errors': [{
+                'message': exc,
+                'exception': exc,
+                'status': exc.code,
+                'headers': exc.headers,
+                'body': body,
+            }]}
 
 class Authing():
 
@@ -112,8 +156,7 @@ class Authing():
                 self.users = self._initUsers();
 
     def _initService(self, url, headers={}):
-        endpoint = AuthingEndPoint(url, headers)
-        return endpoint            
+        return AuthingEndPoint(url, headers)
 
     def _initOAuth(self, headers={}):
         self.oauth = self._initService(self.servies['oauth'], headers=headers)
@@ -123,11 +166,72 @@ class Authing():
         self.users = self._initService(self.servies['users'], headers=headers)
         return self.users
 
-    def login(self, email, password):
+    def login(self, email=None, password=None):
+
         pass
 
-    def register(self, email, password):
-        pass
+    def register(self, email=None, password=None):
+
+        if not email: 
+            raise Exception('请提供邮箱帐号：email')
+
+        if not password: 
+            raise Exception('请提供密码：password')
+
+        registerQuery = """
+            mutation register(
+                $unionid: String,
+                $email: String, 
+                $password: String, 
+                $lastIP: String, 
+                $forceLogin: Boolean,
+                $registerInClient: String!,
+                $oauth: String,
+                $username: String,
+                $nickname: String,
+                $registerMethod: String,
+                $photo: String
+            ) {
+                register(userInfo: {
+                    unionid: $unionid,
+                    email: $email,
+                    password: $password,
+                    lastIP: $lastIP,
+                    forceLogin: $forceLogin,
+                    registerInClient: $registerInClient,
+                    oauth: $oauth,
+                    registerMethod: $registerMethod,
+                    photo: $photo,
+                    username: $username,
+                    nickname: $nickname
+                }) {
+                    _id,
+                    email,
+                    emailVerified,
+                    username,
+                    nickname,
+                    company,
+                    photo,
+                    browser,
+                    password,
+                    token,
+                    group {
+                        name
+                    },
+                    blocked
+                }
+            }
+        """
+
+        variables = {
+            'userInfo': {
+                'email': email,
+                'password': password,
+                'registerInClient': self.clientId
+            }
+        }
+
+        return self.users(registerQuery, variables)
 
     def user(self, options):
         '''
