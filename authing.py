@@ -321,45 +321,107 @@ GKl64GDcIq3au+aqJQIDAQAB
     def list(self, page=1, count=10):
 
         query = '''
-            query user($id: String!, $registerInClient: String!){
-                user(id: $id, registerInClient: $registerInClient) {
+            query users($registerInClient: String, $page: Int, $count: Int){
+              users(registerInClient: $registerInClient, page: $page, count: $count) {
+                totalCount
+                list {
+                  _id
+                  email
+                  emailVerified
+                  username
+                  nickname
+                  company
+                  photo
+                  browser
+                  password
+                  registerInClient
+                  token
+                  tokenExpiredAt
+                  loginsCount
+                  lastLogin
+                  lastIP
+                  signedUp
+                  blocked
+                  isDeleted
+                  group {
                     _id
-                    email
-                    emailVerified
-                    username
-                    nickname
-                    company
-                    photo
-                    browser
-                    registerInClient
-                    registerMethod
-                    oauth
-                    token
-                    tokenExpiredAt
-                    loginsCount
-                    lastLogin
-                    lastIP
-                    signedUp
-                    blocked
-                    isDeleted
+                    name
+                    descriptions
+                    createdAt
+                  }
+                  clientType {
+                    _id
+                    name
+                    description
+                    image
+                    example
+                  }
+                  userLocation {
+                    _id
+                    when
+                    where
+                  }
+                  userLoginHistory {
+                    totalCount
+                    list{
+                      _id
+                      when
+                      success
+                      ip
+                      result
+                    }
+                  }
+                  systemApplicationType {
+                    _id
+                    name
+                    descriptions
+                    price
+                  }
                 }
+              }
             }
         '''
         variables = {
-            "id": options['id'],
+            "page": page,
+            "count": count,            
             "registerInClient": self.clientId
         }
         
         return this.authService(query, variables)        
 
     def checkLoginStatus(self):
-        pass
+        query = """
+            query checkLoginStatus {
+                checkLoginStatus {
+                    status
+                    code
+                    message
+                }
+            }        
+        """
+        return this.users(query)        
 
     def logout(self, uid):
         pass
 
     def remove(self, uid):
-        pass
+
+        if not email: 
+            raise Exception('请提供用户id：uid')        
+
+        query = """
+            mutation removeUsers($ids: [String], $registerInClient: String, $operator: String){
+              removeUsers(ids: $ids, registerInClient: $registerInClient, operator: $operator) {
+                _id
+              }
+            }        
+        """
+        variables = {
+            "removeUsers": [uid],
+            "registerInClient": self.clientId
+        }
+        
+        return this.authService(query, variables)        
 
     def update(self, options):
 
