@@ -173,14 +173,57 @@ GKl64GDcIq3au+aqJQIDAQAB
         self.users = self._initService(self.servies['users'], headers=headers)
         return self.users
 
-    def login(self, email=None, password=None):
+    def login(self, email=None, password=None, verifyCode=None):
 
-        pass
+        if not email: 
+            raise Exception('请提供邮箱：email')
+
+        if not password: 
+            raise Exception('请提供密码：password')
+
+        loginQuery = """
+mutation login($unionid: String, $email: String, $password: String, $lastIP: String, $registerInClient: String!, $verifyCode: String) {
+    login(unionid: $unionid, email: $email, password: $password, lastIP: $lastIP, registerInClient: $registerInClient, verifyCode: $verifyCode) {
+        _id
+        email
+        emailVerified
+        username
+        nickname
+        company
+        photo
+        browser
+        token
+        tokenExpiredAt
+        loginsCount
+        lastLogin
+        lastIP
+        signedUp
+        blocked
+        isDeleted
+    }
+}
+        """
+
+        variables = {
+            "email": email,
+            "password": password,
+            "registerInClient": self.clientId,
+            "verifyCode": verifyCode
+        }
+
+        loginResult = this.users(loginQuery, variables)
+
+        if not loginResult.get('errors'):
+            self.users = self._initUsers({
+                "Authorization": 'Bearer {}'.format(loginResult['token'])    
+            })
+
+        return loginResult
 
     def register(self, email=None, password=None):
 
         if not email: 
-            raise Exception('请提供邮箱帐号：email')
+            raise Exception('请提供邮箱：email')
 
         if not password: 
             raise Exception('请提供密码：password')
