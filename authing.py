@@ -182,26 +182,26 @@ GKl64GDcIq3au+aqJQIDAQAB
             raise Exception('请提供密码：password')
 
         loginQuery = """
-mutation login($unionid: String, $email: String, $password: String, $lastIP: String, $registerInClient: String!, $verifyCode: String) {
-    login(unionid: $unionid, email: $email, password: $password, lastIP: $lastIP, registerInClient: $registerInClient, verifyCode: $verifyCode) {
-        _id
-        email
-        emailVerified
-        username
-        nickname
-        company
-        photo
-        browser
-        token
-        tokenExpiredAt
-        loginsCount
-        lastLogin
-        lastIP
-        signedUp
-        blocked
-        isDeleted
-    }
-}
+            mutation login($unionid: String, $email: String, $password: String, $lastIP: String, $registerInClient: String!, $verifyCode: String) {
+                login(unionid: $unionid, email: $email, password: $password, lastIP: $lastIP, registerInClient: $registerInClient, verifyCode: $verifyCode) {
+                    _id
+                    email
+                    emailVerified
+                    username
+                    nickname
+                    company
+                    photo
+                    browser
+                    token
+                    tokenExpiredAt
+                    loginsCount
+                    lastLogin
+                    lastIP
+                    signedUp
+                    blocked
+                    isDeleted
+                }
+            }
         """
 
         variables = {
@@ -282,15 +282,75 @@ mutation login($unionid: String, $email: String, $password: String, $lastIP: Str
         return self.users(registerQuery, variables)
 
     def user(self, options):
-        '''
-            options: {
-                "id": 'xxxxxxxxxx'
+
+        if not options.get('id'):
+            raise Exception('请提供用户id: { "id": "xxxxxxxx" }')            
+
+        query = '''
+            query user($id: String!, $registerInClient: String!){
+                user(id: $id, registerInClient: $registerInClient) {
+                    _id
+                    email
+                    emailVerified
+                    username
+                    nickname
+                    company
+                    photo
+                    browser
+                    registerInClient
+                    registerMethod
+                    oauth
+                    token
+                    tokenExpiredAt
+                    loginsCount
+                    lastLogin
+                    lastIP
+                    signedUp
+                    blocked
+                    isDeleted
+                }
             }
         '''
-        pass
+        variables = {
+            "id": options['id'],
+            "registerInClient": self.clientId
+        }
 
-    def list(self, page, count):
-        pass
+        return this.authService(query, variables)
+
+    def list(self, page=1, count=10):
+
+        query = '''
+            query user($id: String!, $registerInClient: String!){
+                user(id: $id, registerInClient: $registerInClient) {
+                    _id
+                    email
+                    emailVerified
+                    username
+                    nickname
+                    company
+                    photo
+                    browser
+                    registerInClient
+                    registerMethod
+                    oauth
+                    token
+                    tokenExpiredAt
+                    loginsCount
+                    lastLogin
+                    lastIP
+                    signedUp
+                    blocked
+                    isDeleted
+                }
+            }
+        '''
+        variables = {
+            "id": options['id'],
+            "registerInClient": self.clientId
+        }
+        
+        return this.authService(query, variables)        
 
     def checkLoginStatus(self):
         pass
