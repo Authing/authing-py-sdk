@@ -449,24 +449,78 @@ GKl64GDcIq3au+aqJQIDAQAB
         '''
         pass
 
-    def sendResetPasswordEmail(self, options):
+    def sendResetPasswordEmail(self, options={"email": ''}):
         '''
             options = {
                 "email": 'xxxxx'
             }
         '''
-        pass
 
-    def verifyResetPasswordVerifyCode(self, options):
+        if options.get('email'):
+            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com"}')            
+
+        query = """
+            mutation sendResetPasswordEmail(
+                $email: String!,
+                $client: String!
+            ){
+                sendResetPasswordEmail(
+                    email: $email,
+                    client: $client
+                ) {
+                      message
+                      code
+                }
+            }
+        """
+
+        variables = {
+            "email": options['email'],
+            "client": self.clientId
+        }
+
+        return this.authService(query, variables)
+
+    def verifyResetPasswordVerifyCode(self, options={'email': '', 'verifyCode': ''}):
         '''
             options = {
                 email: email,
                 verifyCode: verifyCode
             }
         '''
-        pass
 
-    def changePassword(self, options):
+        if options.get('email'):
+            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx"}')            
+
+        if options.get('verifyCode'):
+            raise Exception('请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx"}')            
+
+        query = """
+            mutation verifyResetPasswordVerifyCode(
+                $email: String!,
+                $client: String!,
+                $verifyCode: String!
+            ) {
+                verifyResetPasswordVerifyCode(
+                    email: $email,
+                    client: $client,
+                    verifyCode: $verifyCode
+                ) {
+                      message
+                      code
+                }
+            }
+        """
+
+        variables = {
+            "email": options['email'],
+            "verifyCode": options['verifyCode'],
+            "client": self.clientId
+        }
+
+        return this.authService(query, variables)        
+
+    def changePassword(self, options={'email': '', 'verifyCode': '', 'password': ''}):
         '''
             options = {
                 email: email,
@@ -474,7 +528,57 @@ GKl64GDcIq3au+aqJQIDAQAB
                 verifyCode: verifyCode
             }
         '''
-        pass
+
+        if options.get('email'):
+            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"'}')            
+
+        if options.get('verifyCode'):
+            raise Exception('请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"}')            
+
+        query = """
+            mutation changePassword(
+                $email: String!,
+                $client: String!,
+                $password: String!,
+                $verifyCode: String!
+            ){
+                changePassword(
+                    email: $email,
+                    client: $client,
+                    password: $password,
+                    verifyCode: $verifyCode
+                ) {
+                    _id
+                    email
+                    emailVerified
+                    username
+                    nickname
+                    company
+                    photo
+                    browser
+                    registerInClient
+                    registerMethod
+                    oauth
+                    token
+                    tokenExpiredAt
+                    loginsCount
+                    lastLogin
+                    lastIP
+                    signedUp
+                    blocked
+                    isDeleted
+                }
+            }
+        """
+
+        variables = {
+            "email": options['email'],
+            "verifyCode": options['verifyCode'],
+            "password": options['password'],
+            "client": self.clientId
+        }
+
+        return this.authService(query, variables)          
 
     def sendVerifyEmail(self, options):
         '''
