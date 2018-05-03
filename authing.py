@@ -580,14 +580,39 @@ GKl64GDcIq3au+aqJQIDAQAB
 
         return this.authService(query, variables)          
 
-    def sendVerifyEmail(self, options):
+    def sendVerifyEmail(self, options={"email": ''}):
         '''
             options = {
                 client: clientId,
                 email: email
             }
         '''
-        pass
+
+        if options.get('email'):
+            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com"}')            
+
+        query = """
+            mutation sendVerifyEmail(
+                $email: String!,
+                $client: String!
+            ){
+                sendVerifyEmail(
+                    email: $email,
+                    client: $client
+                ) {
+                    message,
+                    code,
+                    status
+                }
+            }
+        """
+
+        variables = {
+            "email": options['email'],
+            "client": self.clientId
+        }
+
+        return this.authService(query, variables)           
 
     def readOauthList(self):
 
