@@ -13,6 +13,7 @@ Authing Python SDK目前只支持Python3+。
 #### pip
 
 当构建大规模应用时，我们推荐使用```pip```进行安装， 它可以与一些模块打包工具很好地配合使用。
+注意，authing目前仅能从pip3以上安装。
 
 ``` shell
 # latest stable
