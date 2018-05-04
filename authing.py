@@ -120,9 +120,10 @@ class Authing():
 
     """docstring for Authing"""
 
-    def __init__(self, clientId, secret):
+    def __init__(self, clientId, secret, userToken=None):
         self.clientId = clientId
         self.secret = secret
+        self.userToken = userToken
 
         self.servies = {
             "oauth": 'https://oauth.authing.cn/graphql',
@@ -159,7 +160,13 @@ class Authing():
                     'Authorization': 'Bearer {}'.format(self.accessToken)
                 });
 
-                self.users = self._initUsers();
+                if self.userToken:
+                    self.users = self._initUsers({
+                        "Authorization": 'Bearer {}'.format(self.userToken)    
+                    })
+                else:
+                    self.users = self._initUsers();
+
 
     def _initService(self, url, headers={}):
         return AuthingEndPoint(url, headers)
@@ -283,7 +290,12 @@ class Authing():
             'registerInClient': self.clientId
         }
 
-        return self.users(registerQuery, variables)
+        result = self.users(registerQuery, variables)
+
+        if not result.get('errors'):
+            return result['data']['register']
+        else:
+            return result        
 
     def encrypt(self, data):
         _data = rsa.encrypt(data.encode('utf8'), self.pubKey)
@@ -324,7 +336,12 @@ class Authing():
             "registerInClient": self.clientId
         }
 
-        return self.authService(query, variables)
+        result = self.authService(query, variables)
+
+        if not result.get('errors'):
+            return result['data']['user']
+        else:
+            return result        
 
     def list(self, page=1, count=10):
 
@@ -395,7 +412,12 @@ class Authing():
             "registerInClient": self.clientId
         }
         
-        return self.authService(query, variables)        
+        result = self.authService(query, variables)        
+
+        if not result.get('errors'):
+            return result['data']['users']
+        else:
+            return result 
 
     def checkLoginStatus(self):
         query = """
@@ -407,7 +429,12 @@ class Authing():
                 }
             }        
         """
-        return self.users(query)        
+        result = self.users(query)        
+
+        if not result.get('errors'):
+            return result['data']['checkLoginStatus']
+        else:
+            return result     
 
     def logout(self, uid):
 
@@ -436,7 +463,12 @@ class Authing():
             "registerInClient": self.clientId
         }
         
-        return self.authService(query, variables)        
+        result = self.authService(query, variables)        
+
+        if not result.get('errors'):
+            return result['data']['removeUsers']
+        else:
+            return result        
 
     def update(self, options):
 
@@ -553,7 +585,12 @@ class Authing():
         if 'oldPassword' in variables:
             variables['oldPassword'] = self.encrypt(variables['oldPassword'])
 
-        return self.authService(query, variables)
+        result = self.authService(query, variables)
+
+        if not result.get('errors'):
+            return result['data']['updateUser']
+        else:
+            return result         
 
     def sendResetPasswordEmail(self, options={"email": ''}):
         '''
@@ -585,7 +622,12 @@ class Authing():
             "client": self.clientId
         }
 
-        return self.authService(query, variables)
+        result = self.authService(query, variables)
+
+        if not result.get('errors'):
+            return result['data']['sendResetPasswordEmail']
+        else:
+            return result         
 
     def verifyResetPasswordVerifyCode(self, options={'email': '', 'verifyCode': ''}):
         '''
@@ -624,7 +666,12 @@ class Authing():
             "client": self.clientId
         }
 
-        return self.authService(query, variables)        
+        result = self.authService(query, variables)        
+
+        if not result.get('errors'):
+            return result['data']['verifyResetPasswordVerifyCode']
+        else:
+            return result         
 
     def changePassword(self, options={'email': '', 'verifyCode': '', 'password': ''}):
         '''
@@ -684,7 +731,12 @@ class Authing():
             "client": self.clientId
         }
 
-        return self.authService(query, variables)          
+        result = self.authService(query, variables)          
+
+        if not result.get('errors'):
+            return result['data']['changePassword']
+        else:
+            return result        
 
     def sendVerifyEmail(self, options={"email": ''}):
         '''
@@ -718,7 +770,12 @@ class Authing():
             "client": self.clientId
         }
 
-        return self.authService(query, variables)           
+        result = self.authService(query, variables)           
+
+        if not result.get('errors'):
+            return result['data']['sendVerifyEmail']
+        else:
+            return result                
 
     def readOauthList(self):
 
@@ -738,5 +795,9 @@ class Authing():
         '''
         variables = {'clientId': self.clientId}
 
-        return self.oauth(query, variables)
+        result = self.oauth(query, variables)
 
+        if not result.get('errors'):
+            return result['data']['ReadOauthList']
+        else:
+            return result                

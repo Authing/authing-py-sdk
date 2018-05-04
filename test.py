@@ -18,8 +18,11 @@ if __name__ == '__main__':
         print('')
 
     print('')
+
+    token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImVtYWlsIjoieGlleWFuZ0Bkb2RvcmEuY24iLCJpZCI6IjVhZWMxZWE2MTBlY2I4MDAwMThkYjE3NiIsImNsaWVudElkIjoiNWFlYWI5MTQxMGVjYjgwMDAxOGRiMTY1In0sImlhdCI6MTUyNTQyNDU3MSwiZXhwIjoxNTI2NzIwNTcxfQ.8Bi2mwZzJg2wIqhWxBxQlr5NcJoXVjzwC3nIjtAst9Y'
+
     log_tester_name('AccessToken')
-    authing = Authing(clientId, secret)
+    authing = Authing(clientId, secret, userToken=token)
     log_test_result(authing.accessToken)
 
     #------- oauth test -------#
@@ -38,15 +41,35 @@ if __name__ == '__main__':
     log_tester_name('跳过login')
     # _login = authing.login('xieyang@dodora.cn', '123456')
     # log_test_result(_login)
-    token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImVtYWlsIjoieGlleWFuZ0Bkb2RvcmEuY24iLCJpZCI6IjVhZWMxZWE2MTBlY2I4MDAwMThkYjE3NiIsImNsaWVudElkIjoiNWFlYWI5MTQxMGVjYjgwMDAxOGRiMTY1In0sImlhdCI6MTUyNTQyNDU3MSwiZXhwIjoxNTI2NzIwNTcxfQ.8Bi2mwZzJg2wIqhWxBxQlr5NcJoXVjzwC3nIjtAst9Y'
     print('现有token：{}'.format(token))
+    print('')
     #------- login test -------#
+
+    #------- user test -------#
+    log_tester_name('user')    
+    info = authing.user({
+        "id": '5aec1ea610ecb800018db176'
+    })
+    log_test_result(info)
+    log_tester_name('user error')
+    info = authing.user({
+        "id": '5aec1ea610ecb800018db176xx'
+    })
+    log_test_result(info)    
+    #------- user test -------#
+
+    #------- list test -------#
+    log_tester_name('list')    
+    _list = authing.list()
+    log_test_result(_list)
+    #------- list test -------#    
+
 
     #------- update test -------#
 
-    authing.update({
-        "_id": 'xxx',
-        "nickname": 'xxxxx'
-    });
+    # authing.update({
+    #     "_id": 'xxx',
+    #     "nickname": 'xxxxx'
+    # });
 
     #------- update test -------#
