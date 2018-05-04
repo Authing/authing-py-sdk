@@ -62,14 +62,25 @@ if __name__ == '__main__':
     log_tester_name('list')    
     _list = authing.list()
     log_test_result(_list)
-    #------- list test -------#    
+    #------- list test -------#
 
+    #------- list test -------#
+    log_tester_name('list')    
+    _list = authing.list()
+    log_test_result(_list)
+    #------- list test -------#
+
+    #------- checkLoginStatus test -------#
+    log_tester_name('checkLoginStatus')    
+    _list = authing.checkLoginStatus()
+    log_test_result(_list)
+    #------- checkLoginStatus test -------#
 
     #------- update test -------#
-
-    # authing.update({
-    #     "_id": 'xxx',
-    #     "nickname": 'xxxxx'
-    # });
-
+    log_tester_name('update')
+    authing.update({
+        "_id": '5aec1ea610ecb800018db176',
+        "username": 'alter-by-py'
+    });
+    log_test_result('update')
     #------- update test -------#

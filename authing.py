@@ -107,7 +107,8 @@ class AuthingEndPoint(HTTPEndpoint):
             # if only errors was returned, no {'data': ...}
             data = json.loads(body)
             if data and data.get('errors'):
-                return data.get('errors')
+                data.get('errors')[0]['message']['errors'] = True
+                return data.get('errors')[0]['message']
             return {'data': None, 'errors': [{
                 'message': exc,
                 'exception': exc,
@@ -586,6 +587,8 @@ class Authing():
             variables['oldPassword'] = self.encrypt(variables['oldPassword'])
 
         result = self.authService(query, variables)
+
+        print(result)
 
         if not result.get('errors'):
             return result['data']['updateUser']
