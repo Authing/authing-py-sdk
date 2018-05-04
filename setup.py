@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
   
 setup(  
       name='authing',   #名称  
-      version='0.1.3',  #版本  
+      version='0.1.4',  #版本  
       description="Authing SDK for Python", #描述  
       keywords='authing sso AaaS IdaaS',  
       author='authing',  #作者  
@@ -12,6 +12,7 @@ setup(
       include_package_data=True,  
       zip_safe=False,  
       install_requires=[      #需求的第三方模块  
-        'sgqlc'
+        'sgqlc',
+        'rsa'
       ], 
 )  
