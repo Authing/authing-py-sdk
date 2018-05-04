@@ -1,3 +1,5 @@
 env/*
 __pycahce__/*
 .DS_Store
+dist/*
+*.egg-info
