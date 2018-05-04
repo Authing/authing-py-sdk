@@ -1,6 +1,8 @@
 from sgqlc.endpoint.http import HTTPEndpoint
 import json
 import urllib
+import rsa
+import base64
 
 class AuthingEndPoint(HTTPEndpoint):
 
@@ -127,12 +129,9 @@ class Authing():
             "users": 'https://users.authing.cn/graphql'
         }
 
-        self.pubKey = """-----BEGIN PUBLIC KEY-----
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4xKeUgQ+Aoz7TLfAfs9+paePb
-5KIofVthEopwrXFkp8OCeocaTHt9ICjTT2QeJh6cZaDaArfZ873GPUn00eOIZ7Ae
-+TiA2BKHbCvloW3w5Lnqm70iSsUi5Fmu9/2+68GZRH9L7Mlh8cFksCicW2Y2W2uM
-GKl64GDcIq3au+aqJQIDAQAB
------END PUBLIC KEY-----"""
+        with open('./pub.pem', mode='rb') as pubFile:
+            keyData = pubFile.read()
+            self.pubKey = rsa.PublicKey.load_pkcs1_openssl_pem(keyData)
 
         self.auth()
 
@@ -204,9 +203,11 @@ GKl64GDcIq3au+aqJQIDAQAB
             }
         """
 
+        _password = self.encrypt(password)
+
         variables = {
             "email": email,
-            "password": password,
+            "password": _password,
             "registerInClient": self.clientId,
             "verifyCode": verifyCode
         }
@@ -273,13 +274,19 @@ GKl64GDcIq3au+aqJQIDAQAB
             }
         """
 
+        _password = self.encrypt(password)
+
         variables = {
             'email': email,
-            'password': password,
+            'password': _password,
             'registerInClient': self.clientId
         }
 
         return self.users(registerQuery, variables)
+
+    def encrypt(self, data):
+        _data = rsa.encrypt(data.encode('utf8'), self.pubKey)
+        return base64.b64encode(_data).decode()
 
     def user(self, options):
 
@@ -539,6 +546,12 @@ GKl64GDcIq3au+aqJQIDAQAB
         _query = query.replace('{0}', genParams(variables))
         _query = _query.replace('{1}', genSecondParams(variables))
 
+        if 'password' in variables:
+            variables['password'] = self.encrypt(variables['password'])
+
+        if 'oldPassword' in variables:
+            variables['oldPassword'] = self.encrypt(variables['oldPassword'])
+
         return self.authService(query, variables)
 
     def sendResetPasswordEmail(self, options={"email": ''}):
@@ -666,7 +679,7 @@ GKl64GDcIq3au+aqJQIDAQAB
         variables = {
             "email": options['email'],
             "verifyCode": options['verifyCode'],
-            "password": options['password'],
+            "password": self.encrypt(options['password']),
             "client": self.clientId
         }
 
