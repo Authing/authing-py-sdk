@@ -86,8 +86,8 @@ if __name__ == '__main__':
     #------- update test -------#
 
     #------- remove test -------#
-    log_tester_name('remove')
-    result = authing.remove('5aec2e9610ecb800018db182')
-    log_test_result(result)
+    log_tester_name('跳过 remove （已测试过）')
+    # result = authing.remove('5aec2e9610ecb800018db182')
+    # log_test_result(result)
     #------- remove test -------#
-    
+
