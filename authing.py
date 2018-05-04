@@ -460,7 +460,7 @@ class Authing():
             }        
         """
         variables = {
-            "removeUsers": [uid],
+            "ids": [uid],
             "registerInClient": self.clientId
         }
         
@@ -564,7 +564,7 @@ class Authing():
                     _type = typeList.get(key)
                     resultTpl.append(tpl.format(key, _type))
 
-            return ','.join(resultTpl)
+            return ',\r\n                '.join(resultTpl)
 
         def genSecondParams(variables):
 
@@ -575,7 +575,7 @@ class Authing():
                 if typeList.get(key):
                     resultTpl.append(tpl.format(key, key))
 
-            return ','.join(resultTpl)        
+            return ',\r\n                '.join(resultTpl)        
 
         _query = query.replace('{0}', genParams(variables))
         _query = _query.replace('{1}', genSecondParams(variables))
@@ -586,9 +586,9 @@ class Authing():
         if 'oldPassword' in variables:
             variables['oldPassword'] = self.encrypt(variables['oldPassword'])
 
-        result = self.authService(query, variables)
+        result = self.authService(_query, variables)
 
-        print(result)
+        print(_query)
 
         if not result.get('errors'):
             return result['data']['updateUser']

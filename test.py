@@ -78,9 +78,16 @@ if __name__ == '__main__':
 
     #------- update test -------#
     log_tester_name('update')
-    authing.update({
+    update = authing.update({
         "_id": '5aec1ea610ecb800018db176',
         "username": 'alter-by-py'
     });
-    log_test_result('update')
+    log_test_result(update)
     #------- update test -------#
+
+    #------- remove test -------#
+    log_tester_name('remove')
+    result = authing.remove('5aec2e9610ecb800018db182')
+    log_test_result(result)
+    #------- remove test -------#
+    
