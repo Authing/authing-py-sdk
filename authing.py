@@ -216,10 +216,11 @@ class Authing():
 
         if not loginResult.get('errors'):
             self.users = self._initUsers({
-                "Authorization": 'Bearer {}'.format(loginResult['token'])    
+                "Authorization": 'Bearer {}'.format(loginResult['data']['login']['token'])    
             })
-
-        return loginResult
+            return loginResult['data']['login']
+        else:
+            return loginResult
 
     def register(self, email=None, password=None):
 

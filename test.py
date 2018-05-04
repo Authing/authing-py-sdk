@@ -29,13 +29,17 @@ if __name__ == '__main__':
     #------- oauth test -------#
 
     #------- register test -------#
-    log_tester_name('测试register')    
-    _reg = authing.register('xieyang@dodora.cn', '123456')
-    log_test_result(_reg)
+    log_tester_name('跳过 register')    
+    # _reg = authing.register('xieyang@dodora.cn', '123456')
+    # log_test_result(_reg)
     #------- register test -------#
 
     #------- login test -------#
-
+    log_tester_name('跳过login')
+    # _login = authing.login('xieyang@dodora.cn', '123456')
+    # log_test_result(_login)
+    token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImVtYWlsIjoieGlleWFuZ0Bkb2RvcmEuY24iLCJpZCI6IjVhZWMxZWE2MTBlY2I4MDAwMThkYjE3NiIsImNsaWVudElkIjoiNWFlYWI5MTQxMGVjYjgwMDAxOGRiMTY1In0sImlhdCI6MTUyNTQyNDU3MSwiZXhwIjoxNTI2NzIwNTcxfQ.8Bi2mwZzJg2wIqhWxBxQlr5NcJoXVjzwC3nIjtAst9Y'
+    print('现有token：{}'.format(token))
     #------- login test -------#
 
     #------- update test -------#
