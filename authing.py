@@ -11,12 +11,12 @@ class AuthingEndPoint(HTTPEndpoint):
                  extra_headers=None, timeout=None):
         '''Calls the GraphQL endpoint.
         :param query: the GraphQL query or mutation to execute. Note
-          that this is converted using ``bytes()``, thus one may pass
+          that self is converted using ``bytes()``, thus one may pass
           an object implementing ``__bytes__()`` method to return the
           query, eventually in more compact form (no indentation, etc).
         :type query: :class:`str` or :class:`bytes`.
         :param variables: variables (dict) to use with
-          ``query``. This is only useful if the query or
+          ``query``. self is only useful if the query or
           mutation contains ``$variableName``.
         :type variables: dict
         :param operation_name: if more than one operation is listed in
@@ -211,7 +211,7 @@ GKl64GDcIq3au+aqJQIDAQAB
             "verifyCode": verifyCode
         }
 
-        loginResult = this.users(loginQuery, variables)
+        loginResult = self.users(loginQuery, variables)
 
         if not loginResult.get('errors'):
             self.users = self._initUsers({
@@ -316,7 +316,7 @@ GKl64GDcIq3au+aqJQIDAQAB
             "registerInClient": self.clientId
         }
 
-        return this.authService(query, variables)
+        return self.authService(query, variables)
 
     def list(self, page=1, count=10):
 
@@ -387,7 +387,7 @@ GKl64GDcIq3au+aqJQIDAQAB
             "registerInClient": self.clientId
         }
         
-        return this.authService(query, variables)        
+        return self.authService(query, variables)        
 
     def checkLoginStatus(self):
         query = """
@@ -399,7 +399,7 @@ GKl64GDcIq3au+aqJQIDAQAB
                 }
             }        
         """
-        return this.users(query)        
+        return self.users(query)        
 
     def logout(self, uid):
 
@@ -428,7 +428,7 @@ GKl64GDcIq3au+aqJQIDAQAB
             "registerInClient": self.clientId
         }
         
-        return this.authService(query, variables)        
+        return self.authService(query, variables)        
 
     def update(self, options):
 
@@ -539,7 +539,7 @@ GKl64GDcIq3au+aqJQIDAQAB
         _query = query.replace('{0}', genParams(variables))
         _query = _query.replace('{1}', genSecondParams(variables))
 
-        return this.authService(query, variables)
+        return self.authService(query, variables)
 
     def sendResetPasswordEmail(self, options={"email": ''}):
         '''
@@ -571,7 +571,7 @@ GKl64GDcIq3au+aqJQIDAQAB
             "client": self.clientId
         }
 
-        return this.authService(query, variables)
+        return self.authService(query, variables)
 
     def verifyResetPasswordVerifyCode(self, options={'email': '', 'verifyCode': ''}):
         '''
@@ -610,7 +610,7 @@ GKl64GDcIq3au+aqJQIDAQAB
             "client": self.clientId
         }
 
-        return this.authService(query, variables)        
+        return self.authService(query, variables)        
 
     def changePassword(self, options={'email': '', 'verifyCode': '', 'password': ''}):
         '''
@@ -670,7 +670,7 @@ GKl64GDcIq3au+aqJQIDAQAB
             "client": self.clientId
         }
 
-        return this.authService(query, variables)          
+        return self.authService(query, variables)          
 
     def sendVerifyEmail(self, options={"email": ''}):
         '''
@@ -704,7 +704,7 @@ GKl64GDcIq3au+aqJQIDAQAB
             "client": self.clientId
         }
 
-        return this.authService(query, variables)           
+        return self.authService(query, variables)           
 
     def readOauthList(self):
 
