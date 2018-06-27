@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
   
 setup(  
       name='authing',   #名称  
-      version='0.1.5',  #版本  
+      version='0.1.6',  #版本  
       description="Authing SDK for Python", #描述  
       keywords='authing sso AaaS IdaaS',  
       author='authing',  #作者  
