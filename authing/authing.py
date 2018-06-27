@@ -431,6 +431,8 @@ class Authing():
             }        
         """
 
+        result = None
+
         if not token:
             result = self.users(query)
         else:
