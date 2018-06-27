@@ -420,7 +420,7 @@ class Authing():
         else:
             return result 
 
-    def checkLoginStatus(self):
+    def checkLoginStatus(self, token=None):
         query = """
             query checkLoginStatus {
                 checkLoginStatus {
@@ -430,7 +430,15 @@ class Authing():
                 }
             }        
         """
-        result = self.users(query)        
+
+        result = None
+
+        if not token:
+            result = self.users(query)
+        else:
+            result = self.users(query, {
+                token: token
+            })
 
         if not result.get('errors'):
             return result['data']['checkLoginStatus']

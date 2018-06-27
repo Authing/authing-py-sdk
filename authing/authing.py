@@ -422,11 +422,11 @@ class Authing():
 
     def checkLoginStatus(self, token=None):
         query = """
-            query checkLoginStatus {
-                checkLoginStatus {
+            query checkLoginStatus($token: String) {
+                checkLoginStatus(token: $token) {
                     status
                     code
-                    message
+                        message
                 }
             }        
         """
