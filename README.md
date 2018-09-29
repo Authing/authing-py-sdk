@@ -2,7 +2,7 @@
 
 ----------
 
-Authing Python SDK目前只支持Python3+。
+Authing Python SDK 目前只支持 Python3+。
 
 [官方文档请点击这里](https://docs.authing.cn)。
 
@@ -13,7 +13,7 @@ Authing Python SDK目前只支持Python3+。
 #### pip
 
 当构建大规模应用时，我们推荐使用```pip```进行安装， 它可以与一些模块打包工具很好地配合使用。
-注意，authing目前仅能从pip3以上安装。
+注意，Authing 目前仅能从 pip3 以上安装。
 
 ``` shell
 # latest stable
@@ -32,7 +32,7 @@ secret = 'your_app_secret'
 
 authing = Authing(clientId, secret)
 
-# 如果authing验证clientId和secret失败，将会抛出一个错误。所以在初始化构造函数的时候，可以使用try...catch保证程序不会挂掉。
+# 如果 Authing 验证 clientId 和 secret 失败，将会抛出一个错误。所以在初始化构造函数的时候，可以使用 try...catch 保证程序不会挂掉。
 
 user = authing.login({
     'email': 'test@testmail.com',
@@ -46,15 +46,15 @@ else:
 
 ```
 
-[怎样获取client ID ?](https://docs.authing.cn/#/quick_start/howto)。
+[怎样获取 Client ID ?](https://docs.authing.cn/#/quick_start/howto)。
 
-获取Client ID和Client Secret，请[点击这里](https://docs.authing.cn/#/quick_start/howto)。
+获取 Client ID 和 Client Secret，请[点击这里](https://docs.authing.cn/#/quick_start/howto)。
 
 ## 错误处理
 
 ----------
 
-SDK中的接口返回数据若出错会存在"errors"字段，因此可以用如下代码检查是否出错：
+SDK 中的接口返回数据若出错会存在 "errors" 字段，因此可以用如下代码检查是否出错：
 
 ``` python
 
