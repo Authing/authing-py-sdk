@@ -46,9 +46,7 @@ else:
 
 ```
 
-[怎样获取 Client ID ?](https://docs.authing.cn/#/quick_start/howto)。
-
-获取 Client ID 和 Client Secret，请[点击这里](https://docs.authing.cn/#/quick_start/howto)。
+[如何获取 ClientId 和 Secret?](https://learn.authing.cn/authing/others/faq#ru-he-huo-qu-client-id-he-client-secret)。
 
 ## 错误处理
 
@@ -72,7 +70,7 @@ else:
     """
     
 ```
-了解更多报错的详情，请查看[错误代码列表](https://docs.authing.cn/#/quick_start/error_code)。
+了解更多报错的详情，请查看[错误代码列表](https://learn.authing.cn/authing/advanced/error-code)。
 
-[接口相关文档请点击这里](https://docs.authing.cn/#/user_service/add_user)。
+[接口相关文档请点击这里](https://learn.authing.cn/authing/sdk/authing-sdk-for-web/web-sdk-for-roles)。
 
