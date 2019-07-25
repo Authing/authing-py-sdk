@@ -811,4 +811,220 @@ class Authing():
         if not result.get('errors'):
             return result['data']['ReadOauthList']
         else:
-            return result                
+            return result      
+
+    def queryPermissions(self, userId):
+
+        query = '''
+            query QueryRoleByUserId($user: String!, $client: String!){
+                queryRoleByUserId(user: $user, client: $client) {
+                totalCount
+                list {
+                    group {
+                    name
+                    permissions
+                    }
+                }
+                }
+            }
+        '''
+        variables = {
+            'clientId': self.clientId,
+            'user': userId
+        }
+
+        result = self.authService(query, variables)
+
+        if not result.get('errors'):
+            return result['data']['queryRoleByUserId']
+        else:
+            return result  
+
+    def queryRoles(self, options):
+
+        query = '''
+            query ClientRoles(
+            $clientId: String!
+            $page: Int
+            $count: Int
+            ) {
+            clientRoles(
+                client: $clientId
+                page: $page
+                count: $count
+            ) {
+                totalCount
+                list {
+                _id
+                name
+                descriptions
+                client
+                createdAt
+                permissions
+                }
+            }
+            }
+        '''
+        variables = {
+            'clientId': self.clientId,
+            'page': options.page,
+            'count': options.count            
+        }
+
+        result = self.authService(query, variables)
+
+        if not result.get('errors'):
+            return result['data']['clientRoles']
+        else:
+            return result            
+
+    def createRole(self, options):
+
+        query = '''
+            mutation CreateRole(
+            $name: String!
+            $client: String!
+            $descriptions: String
+            ) {
+                createRole(
+                    name: $name
+                    client: $client
+                    descriptions: $descriptions
+                ) {
+                    _id,
+                    name,
+                    client,
+                    descriptions
+                }
+            }
+        '''
+        variables = {
+            'clientId': self.clientId,
+            'name': options.name,
+            'descriptions': options.descriptions
+        }
+
+        result = self.authService(query, variables)
+
+        if not result.get('errors'):
+            return result['data']['createRole']
+        else:
+            return result  
+
+    def updateRolePermissions(self, options):
+
+        query = '''
+            mutation UpdateRole(
+            $_id: String!
+            $name: String!
+            $client: String!
+            $descriptions: String
+            $permissions: String
+            ) {
+            updateRole(
+                _id: $_id
+                name: $name
+                client: $client
+                descriptions: $descriptions
+                permissions: $permissions
+            ) {
+                _id,
+                name,
+                client,
+                descriptions,
+                permissions
+            }
+            }
+        '''
+        variables = {
+            'clientId': self.clientId,
+            'name': options.name,
+            'permissions': options.permissions,
+            '_id': options.roleId            
+        }
+
+        result = self.authService(query, variables)
+
+        if not result.get('errors'):
+            return result['data']['updateRole']
+        else:
+            return result
+
+    def assignUserToRole(self, options):
+
+        query = '''
+            mutation AssignUserToRole(
+            $group: String!
+            $client: String!
+            $user: String!
+            ) {
+            assignUserToRole(
+                group: $group
+                client: $client
+                user: $user
+            ) {
+                totalCount,
+                list {
+                _id,
+                client {
+                    _id
+                },
+                user {
+                    _id
+                },
+                createdAt
+                }
+            }
+            }
+        '''
+        variables = {
+            'clientId': self.clientId,
+            'group': options.roleId,
+            'user': options.user
+        }
+
+        result = self.authService(query, variables)
+
+        if not result.get('errors'):
+            return result['data']['assignUserToRole']
+        else:
+            return result
+
+    def removeUserFromRole(self, options):
+
+        query = '''
+            mutation RemoveUserFromGroup(
+                $group: String!
+                $client: String!
+                $user: String!
+            ) {
+            removeUserFromGroup(
+                group: $group
+                client: $client
+                user: $user
+            ) {
+                _id,
+                group {
+                    _id
+                },
+                client {
+                    _id
+                },
+                user {
+                    _id
+                }
+            }
+            }
+        '''
+        variables = {
+            'clientId': self.clientId,
+            'group': options.roleId,
+            'user': options.user
+        }
+
+        result = self.authService(query, variables)
+
+        if not result.get('errors'):
+            return result['data']['removeUserFromGroup']
+        else:
+            return result  
