@@ -1,1 +1,1 @@
-from authing import *
+from . import authing

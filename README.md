@@ -24,6 +24,19 @@ $ pip install authing
 
 ----------
 
+首先在目录下新建一个 pub.pem 的文件，并将以下内容复制到文件中：
+
+``` shell
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4xKeUgQ+Aoz7TLfAfs9+paePb
+5KIofVthEopwrXFkp8OCeocaTHt9ICjTT2QeJh6cZaDaArfZ873GPUn00eOIZ7Ae
++TiA2BKHbCvloW3w5Lnqm70iSsUi5Fmu9/2+68GZRH9L7Mlh8cFksCicW2Y2W2uM
+GKl64GDcIq3au+aqJQIDAQAB
+-----END PUBLIC KEY-----
+```
+
+然后初始化 Authing：
+
 ``` python
 from authing.authing import Authing
 
