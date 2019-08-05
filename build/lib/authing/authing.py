@@ -127,7 +127,7 @@ class Authing():
 
         if options is None:
             options = {}
-            options["services"] = {
+            options = {
                 "oauth": 'https://oauth.authing.cn/graphql',
                 "users": 'https://users.authing.cn/graphql'
             }
@@ -138,7 +138,10 @@ class Authing():
 
         self.userToken = options["userToken"]
 
-        self.servies = options["services"]
+        self.servies = {
+            "oauth": options["oauth"],
+            "users": options["users"]
+        }
 
         with open('./pub.pem', mode='rb') as pubFile:
             keyData = pubFile.read()
@@ -160,6 +163,8 @@ class Authing():
             authResult = ''
 
             authResult = self.authService(authQuery, variables)                
+
+            print(authResult)
 
             if authResult.get('errors'):
                 raise Exception(authResult)
