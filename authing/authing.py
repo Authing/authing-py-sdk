@@ -489,8 +489,8 @@ class Authing():
 
         '''
         options = {
-            _id String MUST
-            email String
+            _id: String MUST
+            email: String
             emailVerified: Boolean
             username: String
             nickname: String
@@ -571,7 +571,7 @@ class Authing():
         def genParams(variables):
 
             resultTpl = []
-            tpl = "{}: {}"            
+            tpl = "${}: {}"            
 
             for key in variables:
                 if typeList.get(key):
@@ -593,6 +593,8 @@ class Authing():
 
         _query = query.replace('{0}', genParams(variables))
         _query = _query.replace('{1}', genSecondParams(variables))
+
+        print(_query)
 
         if 'password' in variables:
             variables['password'] = self.encrypt(variables['password'])
