@@ -83,6 +83,25 @@ else:
     """
     
 ```
+
+## 自定义请求链接
+
+----------
+
+如果你私有部署了 Authing，可以通过以下方式初始化 URL：
+
+``` python
+from authing.authing import Authing
+
+clientId = 'your_client_id'
+secret = 'your_app_secret'
+
+authing = Authing(clientId, secret, {
+    "oauth": 'https://oauth.your_url.com/graphql',
+    "users": 'https://users.your_url.com/graphql'
+})
+```
+
 了解更多报错的详情，请查看[错误代码列表](https://learn.authing.cn/authing/advanced/error-code)。
 
 [接口相关文档请点击这里](https://learn.authing.cn/authing/sdk/authing-sdk-for-web/web-sdk-for-roles)。
