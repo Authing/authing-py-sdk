@@ -124,7 +124,6 @@ class Authing():
     def __init__(self, clientId, secret, options=None):
         self.clientId = clientId
         self.secret = secret
-        self.userToken = userToken
 
         if options is None:
             options = {}
@@ -132,7 +131,10 @@ class Authing():
                 "oauth": 'https://oauth.authing.cn/graphql',
                 "users": 'https://users.authing.cn/graphql'
             }
-            
+            options["userToken"] = None
+
+        self.userToken = options["userToken"]
+
         self.servies = options["services"]
 
         with open('./pub.pem', mode='rb') as pubFile:

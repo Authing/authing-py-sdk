@@ -121,15 +121,21 @@ class Authing():
 
     """docstring for Authing"""
 
-    def __init__(self, clientId, secret, userToken=None):
+    def __init__(self, clientId, secret, options=None):
         self.clientId = clientId
         self.secret = secret
-        self.userToken = userToken
 
-        self.servies = {
-            "oauth": 'https://oauth.authing.cn/graphql',
-            "users": 'https://users.authing.cn/graphql'
-        }
+        if options is None:
+            options = {}
+            options["services"] = {
+                "oauth": 'https://oauth.authing.cn/graphql',
+                "users": 'https://users.authing.cn/graphql'
+            }
+            options["userToken"] = None
+
+        self.userToken = options["userToken"]
+
+        self.servies = options["services"]
 
         with open('./pub.pem', mode='rb') as pubFile:
             keyData = pubFile.read()
