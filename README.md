@@ -24,7 +24,7 @@ $ pip install authing
 
 ----------
 
-首先在目录下新建一个 pub.pem 的文件，并将以下内容复制到文件中：
+首先在目录下新建一个名为 `pub.pem` 的文件，并将以下内容复制到文件中：
 
 ``` shell
 -----BEGIN PUBLIC KEY-----
