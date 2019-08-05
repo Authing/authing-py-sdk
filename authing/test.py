@@ -23,8 +23,8 @@ if __name__ == '__main__':
 
     log_tester_name('AccessToken')
     authing = Authing(clientId, secret, {
-            "oauth": 'https://users.kingdomai.com/graphql',
-            "users": 'https://oauth.kingdomai.com/graphql'
+            "oauth": 'https://oauth.kingdomai.com/graphql',
+            "users": 'https://users.kingdomai.com/graphql'
     })
     log_test_result(authing.accessToken)
 
