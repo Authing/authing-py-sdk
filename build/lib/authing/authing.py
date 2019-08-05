@@ -133,6 +133,9 @@ class Authing():
             }
             options["userToken"] = None
 
+        if "userToken" not in options:
+            options["userToken"] = None
+
         self.userToken = options["userToken"]
 
         self.servies = options["services"]

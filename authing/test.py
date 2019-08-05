@@ -2,8 +2,8 @@ from authing import Authing
 
 if __name__ == '__main__':
 
-    clientId = '5aeab91410ecb800018db165' 
-    secret = '4822165c545486ffd32c2b9d62b11936'
+    clientId = '5d42991a437ff03e54dda130' 
+    secret = '7c7d2a45c02f435467d1e68d47260e33'
 
     test_name = ''
 
@@ -22,7 +22,10 @@ if __name__ == '__main__':
     token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImVtYWlsIjoieGlleWFuZ0Bkb2RvcmEuY24iLCJpZCI6IjVhZWMxZWE2MTBlY2I4MDAwMThkYjE3NiIsImNsaWVudElkIjoiNWFlYWI5MTQxMGVjYjgwMDAxOGRiMTY1In0sImlhdCI6MTUyNTQyNDU3MSwiZXhwIjoxNTI2NzIwNTcxfQ.8Bi2mwZzJg2wIqhWxBxQlr5NcJoXVjzwC3nIjtAst9Y'
 
     log_tester_name('AccessToken')
-    authing = Authing(clientId, secret)
+    authing = Authing(clientId, secret, {
+            "oauth": 'https://users.kingdomai.com/graphql',
+            "users": 'https://oauth.kingdomai.com/graphql'
+    })
     log_test_result(authing.accessToken)
 
     #------- oauth test -------#
