@@ -22,7 +22,7 @@ if __name__ == '__main__':
     token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImVtYWlsIjoieGlleWFuZ0Bkb2RvcmEuY24iLCJpZCI6IjVhZWMxZWE2MTBlY2I4MDAwMThkYjE3NiIsImNsaWVudElkIjoiNWFlYWI5MTQxMGVjYjgwMDAxOGRiMTY1In0sImlhdCI6MTUyNTQyNDU3MSwiZXhwIjoxNTI2NzIwNTcxfQ.8Bi2mwZzJg2wIqhWxBxQlr5NcJoXVjzwC3nIjtAst9Y'
 
     log_tester_name('AccessToken')
-    authing = Authing(clientId, secret, userToken=token)
+    authing = Authing(clientId, secret)
     log_test_result(authing.accessToken)
 
     #------- oauth test -------#
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     log_test_result(info)
     log_tester_name('user error')
     info = authing.user({
-        "id": '5aec1ea610ecb800018db176xx'
+        "id": '5aec1ea610ecb800018db176'
     })
     log_test_result(info)    
     #------- user test -------#
