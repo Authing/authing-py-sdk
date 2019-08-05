@@ -159,14 +159,20 @@ class Authing():
 
                 self.oauth = self._initOAuth(headers={
                     'Authorization': 'Bearer {}'.format(self.accessToken)
-                });
+                })
+
+                self.users = self._initUsers({
+                    "Authorization": 'Bearer {}'.format(self.userToken or self.accessToken)    
+                })
+
+                self.authService = self._initService(self.servies['users'], headers={
+                    "Authorization": 'Bearer {}'.format(self.userToken or self.accessToken)    
+                })
 
                 if self.userToken:
                     self.users = self._initUsers({
                         "Authorization": 'Bearer {}'.format(self.userToken)    
                     })
-                else:
-                    self.users = self._initUsers();
 
 
     def _initService(self, url, headers={}):
@@ -337,7 +343,7 @@ class Authing():
             "registerInClient": self.clientId
         }
 
-        result = self.authService(query, variables)
+        result = self.users(query, variables)
 
         if not result.get('errors'):
             return result['data']['user']
@@ -413,7 +419,7 @@ class Authing():
             "registerInClient": self.clientId
         }
         
-        result = self.authService(query, variables)        
+        result = self.users(query, variables)        
 
         if not result.get('errors'):
             return result['data']['users']
