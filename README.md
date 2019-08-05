@@ -25,7 +25,7 @@ $ pip install authing
 ----------
 
 ``` python
-from authing import Authing
+from authing.authing import Authing
 
 clientId = 'your_client_id'
 secret = 'your_app_secret'
