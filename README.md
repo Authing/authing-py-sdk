@@ -34,7 +34,7 @@ authing = Authing(clientId, secret)
 
 # 如果 Authing 验证 clientId 和 secret 失败，将会抛出一个错误。所以在初始化构造函数的时候，可以使用 try...catch 保证程序不会挂掉。
 
-user = authing.login({
+user = authing.login(**{
     'email': 'test@testmail.com',
     'password': 'testpassword'
 })
