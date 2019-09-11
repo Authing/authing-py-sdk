@@ -106,3 +106,7 @@ authing = Authing(clientId, secret, {
 
 [接口相关文档请点击这里](https://learn.authing.cn/authing/sdk/authing-sdk-for-web/web-sdk-for-roles)。
 
+## Get Help
+
+1. Join us on Gitter: [#authing-chat](https://gitter.im/authing-chat/community)
+
