@@ -302,8 +302,13 @@ mutation login($phone: String, $phoneCode: Int, $registerInClient: String!, $bro
         else:
             return loginResult
 
-    def getVerificationCode(self, phone):
-        send_sms_spi = "{}/send_smscode/{}/{}".format(
+    def getVerificationCode(self, phone: str) -> (bool, str):
+        """
+
+        :param phone: 手机号
+        :return: 返回一个二元组，第一个表示是否成功，第二个为文字提示
+        """
+        send_sms_spi = "htt{}/send_smscode/{}/{}".format(
             self.services['users'].replace("/graphql", ''),
             phone,
             self.clientId
@@ -312,9 +317,8 @@ mutation login($phone: String, $phoneCode: Int, $registerInClient: String!, $bro
         resp = urllib.request.urlopen(req)
         data = json.loads(resp.read())
         code, msg = data['code'], data['message']
-        if code != 200:
-            raise Exception(msg)
-        return data
+        success = code == 200
+        return success, msg
 
     def register(self, email=None, password=None):
 
