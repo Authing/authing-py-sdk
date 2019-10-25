@@ -6,9 +6,10 @@ if __name__ == '__main__':
 
     test_name = ''
 
-    username = ""
-    password = ""
-    phone = ""
+    email = "febwfb@gmail.com"
+    username = "dboehfoikjd"
+    password = "123456"
+    phone = "17670416754"
     phoneCode = 1234
 
 
@@ -36,6 +37,14 @@ if __name__ == '__main__':
     log_test_result(authing.accessToken)
 
     # ------- login test ---------- #
+    log_tester_name("使用邮箱密码登陆")
+    loginResult = authing.login(
+        email=email,
+        password=password
+    )
+    log_test_result(loginResult)
+
+    # ------- login test ---------- #
     log_tester_name("使用用户名密码登陆")
     loginResult = authing.login(
         username=username,
@@ -43,9 +52,14 @@ if __name__ == '__main__':
     )
     log_test_result(loginResult)
 
+    # ------- sms test ---------- #
+    log_tester_name("发送验证码")
+    verificationResult = authing.getVerificationCode(phone)
+    log_test_result(verificationResult)
+
     # ------- login test ---------- #
     log_tester_name("使用手机号登陆")
-    loginResult = authing.login(
+    loginResult = authing.loginByPhoneCode(
         phone=phone,
         phoneCode=phoneCode
     )
