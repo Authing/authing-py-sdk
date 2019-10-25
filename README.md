@@ -4,7 +4,9 @@
 
 Authing Python SDK 目前只支持 Python3+。
 
-[官方文档请点击这里](https://docs.authing.cn)。
+[Authing 官方文档请点击这里](https://docs.authing.cn/authing/)。
+
+[Python SDK 文档请点这里](https://docs.authing.cn/authing/sdk/sdk-for-python)。
 
 ## 安装
 
@@ -104,7 +106,7 @@ authing = Authing(clientId, secret, {
 
 了解更多报错的详情，请查看[错误代码列表](https://learn.authing.cn/authing/advanced/error-code)。
 
-[接口相关文档请点击这里](https://learn.authing.cn/authing/sdk/authing-sdk-for-web/web-sdk-for-roles)。
+[接口相关文档请点击这里](https://docs.authing.cn/authing/sdk/sdk-for-python)。
 
 ## Get Help
 
