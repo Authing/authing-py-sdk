@@ -3,3 +3,5 @@ __pycahce__/*
 .DS_Store
 dist/*
 *.egg-info
+.idea/
+*.pyc
