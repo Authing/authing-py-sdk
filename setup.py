@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='authing',  # 名称
-    version='0.15.0',  # 版本
+    version='0.15.1',  # 版本
     description="Authing SDK for Python",  # 描述
     long_description=long_description,
     long_description_content_type="text/markdown",
