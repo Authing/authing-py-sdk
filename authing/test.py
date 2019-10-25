@@ -1,21 +1,28 @@
 from authing import Authing
 
 if __name__ == '__main__':
-
-    clientId = '5d42991a437ff03e54dda130' 
-    secret = '7c7d2a45c02f435467d1e68d47260e33'
+    clientId = ''
+    secret = ''
 
     test_name = ''
+
+    username = ""
+    password = ""
+    phone = ""
+    phoneCode = 1234
+
 
     def log_tester_name(name):
         global test_name
         test_name = name
         print('>>> 测试 {}'.format(test_name))
 
+
     def log_test_result(result):
         print('>>> {} 测试结果'.format(test_name))
-        print('>>> {}'.format(result))        
+        print('>>> {}'.format(result))
         print('')
+
 
     print('')
 
@@ -23,33 +30,49 @@ if __name__ == '__main__':
 
     log_tester_name('AccessToken')
     authing = Authing(clientId, secret, {
-            "oauth": 'https://oauth.kingdomai.com/graphql',
-            "users": 'https://users.kingdomai.com/graphql'
+        "oauth": 'https://oauth.authing.cn/graphql',
+        "users": 'https://users.authing.cn/graphql'
     })
     log_test_result(authing.accessToken)
 
-    #------- oauth test -------#
+    # ------- login test ---------- #
+    log_tester_name("使用用户名密码登陆")
+    loginResult = authing.login(
+        username=username,
+        password=password
+    )
+    log_test_result(loginResult)
+
+    # ------- login test ---------- #
+    log_tester_name("使用手机号登陆")
+    loginResult = authing.login(
+        phone=phone,
+        phoneCode=phoneCode
+    )
+    log_test_result(loginResult)
+
+    # ------- oauth test -------#
     log_tester_name('readOAuthList')
     oauthList = authing.readOauthList()
     log_test_result(oauthList)
-    #------- oauth test -------#
+    # ------- oauth test -------#
 
-    #------- register test -------#
-    log_tester_name('跳过 register')    
+    # ------- register test -------#
+    log_tester_name('跳过 register')
     # _reg = authing.register('xieyang@dodora.cn', '123456')
     # log_test_result(_reg)
-    #------- register test -------#
+    # ------- register test -------#
 
-    #------- login test -------#
+    # ------- login test -------#
     log_tester_name('跳过login')
     # _login = authing.login('xieyang@dodora.cn', '123456')
     # log_test_result(_login)
     print('现有token：{}'.format(token))
     print('')
-    #------- login test -------#
+    # ------- login test -------#
 
-    #------- user test -------#
-    log_tester_name('user')    
+    # ------- user test -------#
+    log_tester_name('user')
     info = authing.user({
         "id": '5aec1ea610ecb800018db176'
     })
@@ -58,39 +81,38 @@ if __name__ == '__main__':
     info = authing.user({
         "id": '5aec1ea610ecb800018db176'
     })
-    log_test_result(info)    
-    #------- user test -------#
+    log_test_result(info)
+    # ------- user test -------#
 
-    #------- list test -------#
-    log_tester_name('list')    
+    # ------- list test -------#
+    log_tester_name('list')
     _list = authing.list()
     log_test_result(_list)
-    #------- list test -------#
+    # ------- list test -------#
 
-    #------- list test -------#
-    log_tester_name('list')    
+    # ------- list test -------#
+    log_tester_name('list')
     _list = authing.list()
     log_test_result(_list)
-    #------- list test -------#
+    # ------- list test -------#
 
-    #------- checkLoginStatus test -------#
-    log_tester_name('checkLoginStatus')    
+    # ------- checkLoginStatus test -------#
+    log_tester_name('checkLoginStatus')
     _list = authing.checkLoginStatus()
     log_test_result(_list)
-    #------- checkLoginStatus test -------#
+    # ------- checkLoginStatus test -------#
 
-    #------- update test -------#
+    # ------- update test -------#
     log_tester_name('update')
     update = authing.update({
         "_id": '5aec1ea610ecb800018db176',
         "username": 'alter-by-py'
     });
     log_test_result(update)
-    #------- update test -------#
+    # ------- update test -------#
 
-    #------- remove test -------#
+    # ------- remove test -------#
     log_tester_name('跳过 remove （已测试过）')
     # result = authing.remove('5aec2e9610ecb800018db182')
     # log_test_result(result)
-    #------- remove test -------#
-
+    # ------- remove test -------#

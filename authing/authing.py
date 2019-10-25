@@ -4,6 +4,11 @@ import urllib
 import rsa
 import base64
 
+LOGIN_METHOD_USING_EMAIL = "EMAIL"
+LOGIN_METHOD_USING_PHONE = "PHONE"
+LOGIN_METHOD_USING_USERNAME = "USERNAME"
+
+
 class AuthingEndPoint(HTTPEndpoint):
 
     def __init__(self, url, base_headers=None, timeout=None, urlopen=None):
@@ -74,7 +79,7 @@ class AuthingEndPoint(HTTPEndpoint):
                         'body': body,
                     }]}
         except urllib.error.HTTPError as exc:
-            return self._log_http_error(query, req, exc)        
+            return self._log_http_error(query, req, exc)
 
     def _log_http_error(self, query, req, exc):
         '''Log :exc:`urllib.error.HTTPError`, converting to
@@ -117,8 +122,8 @@ class AuthingEndPoint(HTTPEndpoint):
                 'body': body,
             }]}
 
-class Authing():
 
+class Authing():
     """docstring for Authing"""
 
     def __init__(self, clientId, secret, options=None):
@@ -158,11 +163,11 @@ class Authing():
                     getAccessTokenByAppSecret(secret: $secret, clientId: $clientId)
                 }
             '''
-            variables = { 'clientId': self.clientId, 'secret': self.secret }
+            variables = {'clientId': self.clientId, 'secret': self.secret}
 
             authResult = ''
 
-            authResult = self.authService(authQuery, variables)                
+            authResult = self.authService(authQuery, variables)
 
             print(authResult)
 
@@ -176,18 +181,17 @@ class Authing():
                 })
 
                 self.users = self._initUsers({
-                    "Authorization": 'Bearer {}'.format(self.userToken or self.accessToken)    
+                    "Authorization": 'Bearer {}'.format(self.userToken or self.accessToken)
                 })
 
                 self.authService = self._initService(self.servies['users'], headers={
-                    "Authorization": 'Bearer {}'.format(self.userToken or self.accessToken)    
+                    "Authorization": 'Bearer {}'.format(self.userToken or self.accessToken)
                 })
 
                 if self.userToken:
                     self.users = self._initUsers({
-                        "Authorization": 'Bearer {}'.format(self.userToken)    
+                        "Authorization": 'Bearer {}'.format(self.userToken)
                     })
-
 
     def _initService(self, url, headers={}):
         return AuthingEndPoint(url, headers)
@@ -200,51 +204,85 @@ class Authing():
         self.users = self._initService(self.servies['users'], headers=headers)
         return self.users
 
-    def login(self, email=None, password=None, verifyCode=None):
+    def login(self, email: str = None, password: str = None,
+              verifyCode: str = None, username: str = None,
+              phone: str = None, phoneCode: int = None
+              ):
 
-        if not email: 
-            raise Exception('请提供邮箱：email')
+        def detect_login_method():
+            if email and password:
+                return LOGIN_METHOD_USING_EMAIL
+            elif phone and phoneCode:
+                return LOGIN_METHOD_USING_PHONE
+            elif username and password:
+                return LOGIN_METHOD_USING_USERNAME
 
-        if not password: 
-            raise Exception('请提供密码：password')
+        login_method = detect_login_method()
+        if login_method is None:
+            raise Exception("登陆信息不全，查看文档 https://learn.authing.cn/authing/sdk/sdk-for-python 了解  Authing 支持的不同登陆方式。")
 
         loginQuery = """
-            mutation login($unionid: String, $email: String, $password: String, $lastIP: String, $registerInClient: String!, $verifyCode: String) {
-                login(unionid: $unionid, email: $email, password: $password, lastIP: $lastIP, registerInClient: $registerInClient, verifyCode: $verifyCode) {
-                    _id
-                    email
-                    emailVerified
-                    username
-                    nickname
-                    company
-                    photo
-                    browser
-                    token
-                    tokenExpiredAt
-                    loginsCount
-                    lastLogin
-                    lastIP
-                    signedUp
-                    blocked
-                    isDeleted
-                }
-            }
+ mutation login(
+  $email: String
+  $password: String
+  $lastIP: String
+  $registerInClient: String!
+  $verifyCode: String
+  $phone: String
+  $username: String
+  $browser: String
+  $phoneCode: Int
+) {
+  login(
+    email: $email
+    password: $password
+    lastIP: $lastIP
+    registerInClient: $registerInClient
+    verifyCode: $verifyCode
+    phone: $phone
+    phoneCode: $phoneCode
+    username: $username
+    browser: $browser
+  ) {
+    _id
+    email
+    emailVerified
+    username
+    nickname
+    company
+    photo
+    browser
+    password
+    token
+    loginsCount
+    group {
+      name
+    }
+    blocked
+  }
+}
         """
 
-        _password = self.encrypt(password)
-
+        if password:
+            password = self.encrypt(password)
         variables = {
-            "email": email,
-            "password": _password,
-            "registerInClient": self.clientId,
-            "verifyCode": verifyCode
+            "registerInClient": self.clientId
         }
-
+        if login_method == LOGIN_METHOD_USING_EMAIL:
+            variables['email'] = email
+            variables['password'] = password
+            variables['verifyCode'] = verifyCode
+        elif login_method == LOGIN_METHOD_USING_PHONE:
+            variables['phone'] = phone
+            variables['phoneCode'] = phoneCode
+        elif login_method == LOGIN_METHOD_USING_USERNAME:
+            variables['username'] = username
+            variables['password'] = password
         loginResult = self.users(loginQuery, variables)
 
         if not loginResult.get('errors'):
             self.users = self._initUsers({
-                "Authorization": 'Bearer {}'.format(loginResult['data']['login']['token'])    
+                "Authorization": 'Bearer {}'.format(loginResult['data']['login']['token'])
             })
             return loginResult['data']['login']
         else:
@@ -252,10 +290,10 @@ class Authing():
 
     def register(self, email=None, password=None):
 
-        if not email: 
+        if not email:
             raise Exception('请提供邮箱：email')
 
-        if not password: 
+        if not password:
             raise Exception('请提供密码：password')
 
         registerQuery = """
@@ -316,7 +354,7 @@ class Authing():
         if not result.get('errors'):
             return result['data']['register']
         else:
-            return result        
+            return result
 
     def encrypt(self, data):
         _data = rsa.encrypt(data.encode('utf8'), self.pubKey)
@@ -325,7 +363,7 @@ class Authing():
     def user(self, options):
 
         if not options.get('id'):
-            raise Exception('请提供用户id: { "id": "xxxxxxxx" }')            
+            raise Exception('请提供用户id: { "id": "xxxxxxxx" }')
 
         query = '''
             query user($id: String!, $registerInClient: String!){
@@ -362,7 +400,7 @@ class Authing():
         if not result.get('errors'):
             return result['data']['user']
         else:
-            return result        
+            return result
 
     def list(self, page=1, count=10):
 
@@ -429,16 +467,16 @@ class Authing():
         '''
         variables = {
             "page": page,
-            "count": count,            
+            "count": count,
             "registerInClient": self.clientId
         }
-        
-        result = self.users(query, variables)        
+
+        result = self.users(query, variables)
 
         if not result.get('errors'):
             return result['data']['users']
         else:
-            return result 
+            return result
 
     def checkLoginStatus(self, token=None):
         query = """
@@ -463,7 +501,7 @@ class Authing():
         if not result.get('errors'):
             return result['data']['checkLoginStatus']
         else:
-            return result     
+            return result
 
     def logout(self, uid):
 
@@ -478,7 +516,7 @@ class Authing():
     def remove(self, uid):
 
         if not uid:
-            raise Exception('请提供用户id：uid')        
+            raise Exception('请提供用户id：uid')
 
         query = """
             mutation removeUsers($ids: [String], $registerInClient: String, $operator: String){
@@ -491,13 +529,13 @@ class Authing():
             "ids": [uid],
             "registerInClient": self.clientId
         }
-        
-        result = self.authService(query, variables)        
+
+        result = self.authService(query, variables)
 
         if not result.get('errors'):
             return result['data']['removeUsers']
         else:
-            return result        
+            return result
 
     def update(self, options):
 
@@ -585,7 +623,7 @@ class Authing():
         def genParams(variables):
 
             resultTpl = []
-            tpl = "${}: {}"            
+            tpl = "${}: {}"
 
             for key in variables:
                 if typeList.get(key):
@@ -597,13 +635,13 @@ class Authing():
         def genSecondParams(variables):
 
             resultTpl = []
-            tpl = "{}: ${}"            
+            tpl = "{}: ${}"
 
             for key in variables:
                 if typeList.get(key):
                     resultTpl.append(tpl.format(key, key))
 
-            return ',\r\n                '.join(resultTpl)        
+            return ',\r\n                '.join(resultTpl)
 
         _query = query.replace('{0}', genParams(variables))
         _query = _query.replace('{1}', genSecondParams(variables))
@@ -623,7 +661,7 @@ class Authing():
         if not result.get('errors'):
             return result['data']['updateUser']
         else:
-            return result         
+            return result
 
     def sendResetPasswordEmail(self, options={"email": ''}):
         '''
@@ -633,7 +671,7 @@ class Authing():
         '''
 
         if options.get('email'):
-            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com"}')            
+            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com"}')
 
         query = """
             mutation sendResetPasswordEmail(
@@ -660,7 +698,7 @@ class Authing():
         if not result.get('errors'):
             return result['data']['sendResetPasswordEmail']
         else:
-            return result         
+            return result
 
     def verifyResetPasswordVerifyCode(self, options={'email': '', 'verifyCode': ''}):
         '''
@@ -671,10 +709,10 @@ class Authing():
         '''
 
         if options.get('email'):
-            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx"}')            
+            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx"}')
 
         if options.get('verifyCode'):
-            raise Exception('请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx"}')            
+            raise Exception('请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx"}')
 
         query = """
             mutation verifyResetPasswordVerifyCode(
@@ -699,12 +737,12 @@ class Authing():
             "client": self.clientId
         }
 
-        result = self.authService(query, variables)        
+        result = self.authService(query, variables)
 
         if not result.get('errors'):
             return result['data']['verifyResetPasswordVerifyCode']
         else:
-            return result         
+            return result
 
     def changePassword(self, options={'email': '', 'verifyCode': '', 'password': ''}):
         '''
@@ -716,10 +754,10 @@ class Authing():
         '''
 
         if options.get('email'):
-            raise Exception("""请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"'}""")            
+            raise Exception("""请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"'}""")
 
         if options.get('verifyCode'):
-            raise Exception('请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"}')            
+            raise Exception('请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"}')
 
         query = """
             mutation changePassword(
@@ -764,12 +802,12 @@ class Authing():
             "client": self.clientId
         }
 
-        result = self.authService(query, variables)          
+        result = self.authService(query, variables)
 
         if not result.get('errors'):
             return result['data']['changePassword']
         else:
-            return result        
+            return result
 
     def sendVerifyEmail(self, options={"email": ''}):
         '''
@@ -780,7 +818,7 @@ class Authing():
         '''
 
         if options.get('email'):
-            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com"}')            
+            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com"}')
 
         query = """
             mutation sendVerifyEmail(
@@ -803,12 +841,12 @@ class Authing():
             "client": self.clientId
         }
 
-        result = self.authService(query, variables)           
+        result = self.authService(query, variables)
 
         if not result.get('errors'):
             return result['data']['sendVerifyEmail']
         else:
-            return result                
+            return result
 
     def readOauthList(self):
 
@@ -833,7 +871,7 @@ class Authing():
         if not result.get('errors'):
             return result['data']['ReadOauthList']
         else:
-            return result      
+            return result
 
     def queryPermissions(self, userId):
 
@@ -860,7 +898,7 @@ class Authing():
         if not result.get('errors'):
             return result['data']['queryRoleByUserId']
         else:
-            return result  
+            return result
 
     def queryRoles(self, options):
 
@@ -890,7 +928,7 @@ class Authing():
         variables = {
             'clientId': self.clientId,
             'page': options.page,
-            'count': options.count            
+            'count': options.count
         }
 
         result = self.authService(query, variables)
@@ -898,7 +936,7 @@ class Authing():
         if not result.get('errors'):
             return result['data']['clientRoles']
         else:
-            return result            
+            return result
 
     def createRole(self, options):
 
@@ -931,7 +969,7 @@ class Authing():
         if not result.get('errors'):
             return result['data']['createRole']
         else:
-            return result  
+            return result
 
     def updateRolePermissions(self, options):
 
@@ -962,7 +1000,7 @@ class Authing():
             'clientId': self.clientId,
             'name': options.name,
             'permissions': options.permissions,
-            '_id': options.roleId            
+            '_id': options.roleId
         }
 
         result = self.authService(query, variables)
@@ -1049,4 +1087,4 @@ class Authing():
         if not result.get('errors'):
             return result['data']['removeUserFromGroup']
         else:
-            return result  
+            return result
