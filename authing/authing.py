@@ -1,8 +1,8 @@
 from sgqlc.endpoint.http import HTTPEndpoint
-import json
 import urllib
 import rsa
 import base64
+import json
 
 LOGIN_METHOD_USING_EMAIL = "EMAIL"
 LOGIN_METHOD_USING_PHONE = "PHONE"
@@ -143,7 +143,7 @@ class Authing():
 
         self.userToken = options["userToken"]
 
-        self.servies = {
+        self.services = {
             "oauth": options["oauth"],
             "users": options["users"]
         }
@@ -156,7 +156,7 @@ class Authing():
 
     def auth(self):
         if 'authService' not in self.__dict__:
-            self.authService = self._initService(self.servies['users'])
+            self.authService = self._initService(self.services['users'])
 
             authQuery = '''
                 query getAccessTokenByAppSecret($secret: String!, $clientId: String!){
@@ -184,7 +184,7 @@ class Authing():
                     "Authorization": 'Bearer {}'.format(self.userToken or self.accessToken)
                 })
 
-                self.authService = self._initService(self.servies['users'], headers={
+                self.authService = self._initService(self.services['users'], headers={
                     "Authorization": 'Bearer {}'.format(self.userToken or self.accessToken)
                 })
 
@@ -197,87 +197,56 @@ class Authing():
         return AuthingEndPoint(url, headers)
 
     def _initOAuth(self, headers={}):
-        self.oauth = self._initService(self.servies['oauth'], headers=headers)
+        self.oauth = self._initService(self.services['oauth'], headers=headers)
         return self.oauth
 
     def _initUsers(self, headers={}):
-        self.users = self._initService(self.servies['users'], headers=headers)
+        self.users = self._initService(self.services['users'], headers=headers)
         return self.users
 
-    def login(self, email: str = None, password: str = None,
-              verifyCode: str = None, username: str = None,
-              phone: str = None, phoneCode: int = None
-              ):
+    def login(self, email=None, username: str = None, password=None, verifyCode=None):
 
-        def detect_login_method():
-            if email and password:
-                return LOGIN_METHOD_USING_EMAIL
-            elif phone and phoneCode:
-                return LOGIN_METHOD_USING_PHONE
-            elif username and password:
-                return LOGIN_METHOD_USING_USERNAME
+        if not email and not username:
+            raise Exception('请提供邮箱 email 或用户名 username')
 
-        login_method = detect_login_method()
-        if login_method is None:
-            raise Exception("登陆信息不全，查看文档 https://learn.authing.cn/authing/sdk/sdk-for-python 了解  Authing 支持的不同登陆方式。")
+        if not password:
+            raise Exception('请提供密码：password')
 
         loginQuery = """
- mutation login(
-  $email: String
-  $password: String
-  $lastIP: String
-  $registerInClient: String!
-  $verifyCode: String
-  $phone: String
-  $username: String
-  $browser: String
-  $phoneCode: Int
-) {
-  login(
-    email: $email
-    password: $password
-    lastIP: $lastIP
-    registerInClient: $registerInClient
-    verifyCode: $verifyCode
-    phone: $phone
-    phoneCode: $phoneCode
-    username: $username
-    browser: $browser
-  ) {
-    _id
-    email
-    emailVerified
-    username
-    nickname
-    company
-    photo
-    browser
-    password
-    token
-    loginsCount
-    group {
-      name
-    }
-    blocked
-  }
-}
+            mutation login($unionid: String, $email: String, $password: String, $lastIP: String, $registerInClient: String!, $verifyCode: String) {
+                login(unionid: $unionid, email: $email, password: $password, lastIP: $lastIP, registerInClient: $registerInClient, verifyCode: $verifyCode) {
+                    _id
+                    email
+                    emailVerified
+                    username
+                    nickname
+                    company
+                    photo
+                    browser
+                    token
+                    tokenExpiredAt
+                    loginsCount
+                    lastLogin
+                    lastIP
+                    signedUp
+                    blocked
+                    isDeleted
+                }
+            }
         """
 
-        if password:
-            password = self.encrypt(password)
+        _password = self.encrypt(password)
+
         variables = {
-            "registerInClient": self.clientId
+            "password": _password,
+            "registerInClient": self.clientId,
+            "verifyCode": verifyCode
         }
-        if login_method == LOGIN_METHOD_USING_EMAIL:
+        if email:
             variables['email'] = email
-            variables['password'] = password
-            variables['verifyCode'] = verifyCode
-        elif login_method == LOGIN_METHOD_USING_PHONE:
-            variables['phone'] = phone
-            variables['phoneCode'] = phoneCode
-        elif login_method == LOGIN_METHOD_USING_USERNAME:
+        elif username:
             variables['username'] = username
-            variables['password'] = password
+
         loginResult = self.users(loginQuery, variables)
 
         if not loginResult.get('errors'):
@@ -287,6 +256,65 @@ class Authing():
             return loginResult['data']['login']
         else:
             return loginResult
+
+    def loginByPhoneCode(self, phone: str, phoneCode: int):
+
+        if not isinstance(phoneCode, int):
+            raise Exception("phoneCode 必须为 int 类型")
+
+        loginQuery = """
+mutation login($phone: String, $phoneCode: Int, $registerInClient: String!, $browser: String) {
+  login(phone: $phone, phoneCode: $phoneCode, registerInClient: $registerInClient, browser: $browser) {
+    _id
+    email
+    unionid
+    openid
+    emailVerified
+    username
+    nickname
+    phone
+    company
+    photo
+    browser
+    token
+    tokenExpiredAt
+    loginsCount
+    lastLogin
+    lastIP
+    signedUp
+    blocked
+    isDeleted
+  }
+}
+        """
+        variables = {
+            "registerInClient": self.clientId,
+            'phone': phone,
+            'phoneCode': phoneCode
+        }
+
+        loginResult = self.users(loginQuery, variables)
+        if not loginResult.get('errors'):
+            self.users = self._initUsers({
+                "Authorization": 'Bearer {}'.format(loginResult['data']['login']['token'])
+            })
+            return loginResult['data']['login']
+        else:
+            return loginResult
+
+    def getVerificationCode(self, phone):
+        send_sms_spi = "{}/send_smscode/{}/{}".format(
+            self.services['users'].replace("/graphql", ''),
+            phone,
+            self.clientId
+        )
+        req = urllib.request.Request(send_sms_spi)
+        resp = urllib.request.urlopen(req)
+        data = json.loads(resp.read())
+        code, msg = data['code'], data['message']
+        if code != 200:
+            raise Exception(msg)
+        return data
 
     def register(self, email=None, password=None):
 
