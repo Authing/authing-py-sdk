@@ -1,2 +1,3 @@
 sgqlc
 rsa
+pytest

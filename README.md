@@ -1,6 +1,6 @@
 # authing-py-sdk
 
-----------
+---
 
 Authing Python SDK 目前只支持 Python3+。
 
@@ -10,25 +10,25 @@ Authing Python SDK 目前只支持 Python3+。
 
 ## 安装
 
-----------
+---
 
 #### pip
 
-当构建大规模应用时，我们推荐使用```pip```进行安装， 它可以与一些模块打包工具很好地配合使用。
+当构建大规模应用时，我们推荐使用`pip`进行安装， 它可以与一些模块打包工具很好地配合使用。
 注意，Authing 目前仅能从 pip3 以上安装。
 
-``` shell
+```shell
 # latest stable
 $ pip install authing
 ```
 
 ## 开始使用
 
-----------
+---
 
 首先在目录下新建一个名为 `pub.pem` 的文件，并将以下内容复制到文件中：
 
-``` shell
+```shell
 -----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4xKeUgQ+Aoz7TLfAfs9+paePb
 5KIofVthEopwrXFkp8OCeocaTHt9ICjTT2QeJh6cZaDaArfZ873GPUn00eOIZ7Ae
@@ -39,7 +39,7 @@ GKl64GDcIq3au+aqJQIDAQAB
 
 然后初始化 Authing：
 
-``` python
+```python
 from authing.authing import Authing
 
 clientId = 'your_client_id'
@@ -65,16 +65,16 @@ else:
 
 ## 错误处理
 
-----------
+---
 
 SDK 中的接口返回数据若出错会存在 "errors" 字段，因此可以用如下代码检查是否出错：
 
-``` python
+```python
 
 result = authing.xxx() # 执行authing的某方法
 
 if result.get('errors'):
-    # 出错，如 
+    # 出错，如
     """
     {'code': 500, 'message': 'Cast to ObjectId failed for value "5aec1ea610ecb800018db176xx" at path "_id" for model "User"', 'data': None, 'errors': True}
     """
@@ -83,16 +83,16 @@ else:
     """
     {'_id': '5aec1ea610ecb800018db176', 'email': 'xieyang@dodora.cn', 'isDeleted': False}
     """
-    
+
 ```
 
 ## 自定义请求链接
 
-----------
+---
 
 如果你私有部署了 Authing，可以通过以下方式初始化 URL：
 
-``` python
+```python
 from authing.authing import Authing
 
 clientId = 'your_client_id'
@@ -108,7 +108,12 @@ authing = Authing(clientId, secret, {
 
 [接口相关文档请点击这里](https://docs.authing.cn/authing/sdk/sdk-for-python)。
 
+## 测试
+
+```python
+pytest authing/test.py
+```
+
 ## Get Help
 
 1. Join us on Gitter: [#authing-chat](https://gitter.im/authing-chat/community)
-
