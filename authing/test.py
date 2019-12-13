@@ -1,142 +1,99 @@
+import random
+import pytest
 from authing import Authing
 
+test_name = ''
+user_id = ''
+email = "fuergaosi@qq.com"
+username = "holegots"
+password = "123456"
+phone = "17624555576"
+phoneCode = 1234
+clientId = '5de935b82a709748e17681f0'
+secret = 'cfb8a38a52f3a0bec44602b0c0e4518d'
+code = ''
+authing = None
+authing = Authing(clientId, secret, {
+    "oauth": 'https://oauth.authing.cn/graphql',
+    "users": 'https://users.authing.cn/graphql',
+})
 
-def log_tester_name(name):
-    global test_name
-    test_name = name
-    print('>>> 测试 {}'.format(test_name))
+
+def test_list():
+    _list = authing.list()
+    assert not _list.get('errors')
 
 
-def log_test_result(result):
-    print('>>> {} 测试结果'.format(test_name))
-    print('>>> {}'.format(result))
-    print('')
-
-
-if __name__ == '__main__':
-    clientId = '5de935b82a709748e17681f0'
-    secret = 'cfb8a38a52f3a0bec44602b0c0e4518d'
-    test_name = ''
-
-    email = "921520348@qq.com"
-    username = "holegots"
-    password = "123456"
-    phone = "17624555576"
-    phoneCode = 1234
-
-    print('')
-
-    token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImVtYWlsIjoieGlleWFuZ0Bkb2RvcmEuY24iLCJpZCI6IjVhZWMxZWE2MTBlY2I4MDAwMThkYjE3NiIsImNsaWVudElkIjoiNWFlYWI5MTQxMGVjYjgwMDAxOGRiMTY1In0sImlhdCI6MTUyNTQyNDU3MSwiZXhwIjoxNTI2NzIwNTcxfQ.8Bi2mwZzJg2wIqhWxBxQlr5NcJoXVjzwC3nIjtAst9Y'
-
-    log_tester_name('AccessToken')
-    authing = Authing(clientId, secret, {
-        "oauth": 'https://oauth.authing.cn/graphql',
-        "users": 'https://users.authing.cn/graphql'
-    })
-    log_test_result(authing.accessToken)
-
-    # ------- login test ---------- #
-    log_tester_name("使用邮箱密码登陆")
+def test_loginResult_with_email():
     loginResult = authing.login(
         email=email,
         password=password
     )
-    log_test_result(loginResult)
+    assert not loginResult.get('errors')
+    global user_id
+    user_id = loginResult['_id']
 
-    # ------- login test ---------- #
-    log_tester_name("使用用户名密码登陆")
+
+def test_LoginResult_with_username():
     loginResult = authing.login(
         username=username,
         password=password
     )
-    log_test_result(loginResult)
+    assert user_id == loginResult['_id']
 
-    # ------- sms test ---------- #
-    log_tester_name("发送验证码")
+
+def test_getVerificationCode():
     verificationResult = authing.getVerificationCode(phone)
-    log_test_result(verificationResult)
+    if verificationResult[-1] == '请求过于频繁，请稍候再试':
+        assert not verificationResult[0]
+    else:
+        assert verificationResult[0]
 
-    # ------- login test ---------- #
-    log_tester_name("使用手机号登陆")
-    loginResult = authing.loginByPhoneCode(
-        phone=phone,
-        phoneCode=phoneCode
-    )
-    log_test_result(loginResult)
 
-    # ------- oauth test -------#
-    log_tester_name('readOAuthList')
+def test_readOauthList():
     oauthList = authing.readOauthList()
-    log_test_result(oauthList)
-    # ------- oauth test -------#
+    assert isinstance(oauthList, list)
 
-    # ------- register test -------#
-    log_tester_name('跳过 register')
-    # _reg = authing.register('xieyang@dodora.cn', '123456')
-    # log_test_result(_reg)
-    # ------- register test -------#
 
-    # ------- login test -------#
-    log_tester_name('跳过login')
-    # _login = authing.login('xieyang@dodora.cn', '123456')
-    # log_test_result(_login)
-    print('现有token：{}'.format(token))
-    print('')
-    # ------- login test -------#
-
-    # ------- user test -------#
-    log_tester_name('user')
+def test_User():
     info = authing.user({
-        "id": '5df089049d0df42ce076f53b'
+        "id": user_id
     })
-    log_test_result(info)
-    log_tester_name('user error')
+    assert not info.get('errors')
+    assert info['_id'] == user_id
+
+
+def test_Error_User():
     info = authing.user({
-        "id": '5df089049d0df42ce076f53b'
+        "id": '5aec1ea610ecb800018db176'
     })
-    log_test_result(info)
-    # ------- user test -------#
+    assert info is None
 
-    # ------- list test -------#
-    log_tester_name('list')
-    _list = authing.list()
-    log_test_result(_list)
-    # ------- list test -------#
 
-    # ------- checkLoginStatus test -------#
-    log_tester_name('checkLoginStatus')
-    _list = authing.checkLoginStatus()
-    log_test_result(_list)
-    # ------- checkLoginStatus test -------#
-
-    #------- sendEmailCode test -------#
-    log_tester_name('sendEmailCode')
+def test_sendEmailCode():
     code = authing.sendChangeEmailVerifyCode("fuergaosi@gmail.com")
-    log_test_result(code)
-    #------- sendEmailCode test -------#
+    assert not code.get('errors')
 
-    code = input('输入验证码:')
 
-    #------- updateEmail test -------#
-    log_tester_name('updateEmail')
+def test_updateEmail():
     result = authing.updateEmail(
-        {'email': 'fuergaosi@gmail.com', 'emailCode': code}
+        {'email': 'fuergaosi@gmail.com', 'emailCode': '12345'}
     )
-    log_test_result(result)
+    assert result.get('errors')
 
-    #------- sendEmailCode test -------#
 
-    # ------- update test -------#
-    log_tester_name('update')
+def test_update():
     update = authing.update({
         "_id": '5aec1ea610ecb800018db176',
         "username": 'alter-by-py'
     })
-    log_test_result(update)
-    # ------- update test -------#
+    assert update.get('errors')
 
-    # ------- remove test -------#
-    log_tester_name('跳过 remove （已测试过）')
-    # result = authing.remove('5aec2e9610ecb800018db182')
-    # log_test_result(result)
-    # ------- remove test -------#
+
+def test_checkLoginStatus():
+    res = authing.checkLoginStatus()
+    assert not res.get('errors')
+
+
+def test_remove():
+    pass

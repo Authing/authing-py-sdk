@@ -3,7 +3,7 @@ import urllib
 import rsa
 import base64
 import json
-
+import os
 LOGIN_METHOD_USING_EMAIL = "EMAIL"
 LOGIN_METHOD_USING_PHONE = "PHONE"
 LOGIN_METHOD_USING_USERNAME = "USERNAME"
@@ -12,7 +12,8 @@ LOGIN_METHOD_USING_USERNAME = "USERNAME"
 class AuthingEndPoint(HTTPEndpoint):
 
     def __init__(self, url, base_headers=None, timeout=None, urlopen=None):
-        HTTPEndpoint.__init__(self, url=url, base_headers=base_headers, timeout=timeout, urlopen=urlopen)
+        HTTPEndpoint.__init__(
+            self, url=url, base_headers=base_headers, timeout=timeout, urlopen=urlopen)
 
     def __call__(self, query, variables=None, operation_name=None,
                  extra_headers=None, timeout=None):
@@ -129,7 +130,7 @@ class Authing():
     def __init__(self, clientId, secret, options=None):
         self.clientId = clientId
         self.secret = secret
-
+        self.base_path = os.path.abspath(os.path.dirname(__file__))
         if options is None:
             options = {}
             options = {
@@ -148,7 +149,7 @@ class Authing():
             "users": options["users"]
         }
 
-        with open('./pub.pem', mode='rb') as pubFile:
+        with open(os.path.join(self.base_path, 'pub.pem'), mode='rb') as pubFile:
             keyData = pubFile.read()
             self.pubKey = rsa.PublicKey.load_pkcs1_openssl_pem(keyData)
 
@@ -263,29 +264,29 @@ class Authing():
             raise Exception("phoneCode 必须为 int 类型")
 
         loginQuery = """
-mutation login($phone: String, $phoneCode: Int, $registerInClient: String!, $browser: String) {
-  login(phone: $phone, phoneCode: $phoneCode, registerInClient: $registerInClient, browser: $browser) {
-    _id
-    email
-    unionid
-    openid
-    emailVerified
-    username
-    nickname
-    phone
-    company
-    photo
-    browser
-    token
-    tokenExpiredAt
-    loginsCount
-    lastLogin
-    lastIP
-    signedUp
-    blocked
-    isDeleted
-  }
-}
+            mutation login($phone: String, $phoneCode: Int, $registerInClient: String!, $browser: String) {
+                login(phone: $phone, phoneCode: $phoneCode, registerInClient: $registerInClient, browser: $browser) {
+                    _id
+                    email
+                    unionid
+                    openid
+                    emailVerified
+                    username
+                    nickname
+                    phone
+                    company
+                    photo
+                    browser
+                    token
+                    tokenExpiredAt
+                    loginsCount
+                    lastLogin
+                    lastIP
+                    signedUp
+                    blocked
+                    isDeleted
+                }
+            }
         """
         variables = {
             "registerInClient": self.clientId,
@@ -308,7 +309,7 @@ mutation login($phone: String, $phoneCode: Int, $registerInClient: String!, $bro
         :param phone: 手机号
         :return: 返回一个二元组，第一个表示是否成功，第二个为文字提示
         """
-        send_sms_spi = "htt{}/send_smscode/{}/{}".format(
+        send_sms_spi = "{}/send_smscode/{}/{}".format(
             self.services['users'].replace("/graphql", ''),
             phone,
             self.clientId
@@ -570,7 +571,6 @@ mutation login($phone: String, $phoneCode: Int, $registerInClient: String!, $bro
             return result
 
     def update(self, options):
-
         '''
         options = {
             _id: String MUST
@@ -741,10 +741,12 @@ mutation login($phone: String, $phoneCode: Int, $registerInClient: String!, $bro
         '''
 
         if options.get('email'):
-            raise Exception('请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx"}')
+            raise Exception(
+                '请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx"}')
 
         if options.get('verifyCode'):
-            raise Exception('请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx"}')
+            raise Exception(
+                '请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx"}')
 
         query = """
             mutation verifyResetPasswordVerifyCode(
@@ -786,10 +788,12 @@ mutation login($phone: String, $phoneCode: Int, $registerInClient: String!, $bro
         '''
 
         if options.get('email'):
-            raise Exception("""请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"'}""")
+            raise Exception(
+                """请提供用户邮箱：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"'}""")
 
         if options.get('verifyCode'):
-            raise Exception('请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"}')
+            raise Exception(
+                '请提供验证码：{"email": "xxxx@xxx.com", "verifyCode": "xxxx", "password": "xxxx"}')
 
         query = """
             mutation changePassword(
@@ -970,13 +974,103 @@ mutation login($phone: String, $phoneCode: Int, $registerInClient: String!, $bro
         else:
             return result
 
+    def updateEmail(self, options):
+        '''
+        options = {
+                email: email,
+                emailCode: emailCode,
+            }
+        '''
+        if not options.get('email', None):
+            raise Exception('email 不能为空')
+        if not options.get('emailCode', None):
+            raise Exception('emailCode 不能为空')
+        query = '''    
+            mutation updateEmail(
+                $userPoolId: String!
+                $email: String!
+                $emailCode: String!
+                $oldEmail: String
+                $oldEmailCode: String
+            ) {
+                updateEmail(
+                    userPoolId: $userPoolId
+                    email: $email
+                    emailCode: $emailCode
+                    oldEmail: $oldEmail
+                    oldEmailCode: $oldEmailCode
+                ) {
+                    _id
+                    email
+                    phone
+                    emailVerified
+                    username
+                    nickname
+                    company
+                    photo
+                    browser
+                    registerInClient
+                    registerMethod
+                    oauth
+                    token
+                    tokenExpiredAt
+                    loginsCount
+                    lastLogin
+                    lastIP
+                    signedUp
+                    blocked
+                    isDeleted
+                }
+            }
+        '''
+        variables = {
+            'email': options['email'],
+            'emailCode': options['emailCode'],
+            'oldEmail': options.get('oldEmail'),
+            'oldEmailCode': options.get('oldEmailCode'),
+            'userPoolId': self.clientId
+        }
+        result = self.authService(query, variables)
+        if not result.get('errors'):
+            return result['data']['updateEmail']
+        else:
+            return result
+
+    def sendChangeEmailVerifyCode(self, email: str):
+        if not email:
+            raise Exception('错误的邮箱')
+        query = """
+            mutation sendChangeEmailVerifyCode(
+                $email: String!,
+                $userPoolId: String!
+            ){
+                sendChangeEmailVerifyCode(
+                email: $email,
+                userPoolId: $userPoolId
+                ) {
+                    message
+                    code
+                    status
+                }
+            }
+        """
+        variables = {
+            'email': email,
+            'userPoolId': self.clientId,
+        }
+        result = self.authService(query, variables)
+        if not result.get('errors'):
+            return result['data']['sendChangeEmailVerifyCode']
+        else:
+            return result
+
     def createRole(self, options):
 
         query = '''
             mutation CreateRole(
-            $name: String!
-            $client: String!
-            $descriptions: String
+                $name: String!
+                $client: String!
+                $descriptions: String
             ) {
                 createRole(
                     name: $name
