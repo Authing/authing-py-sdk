@@ -1,5 +1,5 @@
 from ..common.codegen import QUERY
-from ..management import ManagementClientOptions
+from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
 
@@ -28,8 +28,7 @@ class PolicyManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        totalCount, _list = data['policies']['totalCount'], data['policies']['list']
-        return totalCount, _list
+        return data['policies']
 
     def create(self, code, statements, description=None):
         """创建策略
@@ -81,8 +80,7 @@ class PolicyManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['deletePolicy']['code'], data['deletePolicy']['message']
-        return code, message
+        return data['deletePolicy']
 
     def delete_many(self, code_list):
         """批量删除策略
@@ -94,8 +92,7 @@ class PolicyManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['deletePolicies']['code'], data['deletePolicies']['message']
-        return code, message
+        return data['deletePolicies']
 
     def list_assignments(self, code, page=1, limit=10):
         """获取授权记录
@@ -109,8 +106,7 @@ class PolicyManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        totalCount, _list = data['policyAssignments']['totalCount'], data['policyAssignments']['list']
-        return totalCount, _list
+        return data['policyAssignments']
 
     def add_assignments(self, policies, targetType, targetIdentifiers):
         """添加授权
@@ -124,8 +120,7 @@ class PolicyManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['addPolicyAssignments']['code'], data['addPolicyAssignments']['message']
-        return code, message
+        return data['addPolicyAssignments']
 
     def remove_assignments(self, policies, targetType, targetIdentifiers):
         """删除授权
@@ -139,5 +134,4 @@ class PolicyManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['removePolicyAssignments']['code'], data['removePolicyAssignments']['message']
-        return code, message
+        return data['removePolicyAssignments']

@@ -1,5 +1,5 @@
 from gql import Client, AIOHTTPTransport, gql
-from ..management import ManagementClientOptions
+from ..management.types import ManagementClientOptions
 from .. import __version__
 
 

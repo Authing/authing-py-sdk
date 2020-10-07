@@ -1,5 +1,5 @@
 from ..common.codegen import QUERY
-from . import ManagementClientOptions
+from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 
 

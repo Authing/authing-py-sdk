@@ -1,4 +1,4 @@
-from ..management import ManagementClientOptions
+from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
@@ -31,8 +31,7 @@ class RolesManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        totalCount, _list = data['roles']['totalCount'], data['roles']['list']
-        return totalCount, _list
+        return data['roles']
 
     def create(self,
                code: str,
@@ -104,8 +103,7 @@ class RolesManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['deleteRole']['code'], data['deleteRole']['message']
-        return code, message
+        return data['deleteRole']
 
     def delete_many(self, code_list):
         """批量删除角色
@@ -120,8 +118,7 @@ class RolesManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['deleteRoles']['code'], data['deleteRoles']['message']
-        return code, message
+        return data['deleteRoles']
 
     def list_users(self, code: str):
         """获取用户列表
@@ -133,9 +130,7 @@ class RolesManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        data = data['role']['users']
-        totalCount, _list = data['totalCount'], data['list']
-        return totalCount, _list
+        return data['role']['users']
 
     def add_users(self, code, userIds):
         """添加用户
@@ -148,8 +143,7 @@ class RolesManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['assignRole']['code'], data['assignRole']['message']
-        return code, message
+        return data['assignRole']
 
     def remove_users(self, code: str, userIds):
         """移除用户
@@ -162,8 +156,7 @@ class RolesManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['revokeRole']['code'], data['revokeRole']['message']
-        return code, message
+        return data['revokeRole']
 
     def list_policies(self, code: str, page=1, limit=10):
         """获取策略列表
@@ -178,8 +171,7 @@ class RolesManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        totalCount, _list = data['policyAssignments']['totalCount'], data['policyAssignments']['list']
-        return totalCount, _list
+        return data['policyAssignments']
 
     def add_policies(self, code, policies):
         """添加策略
@@ -193,8 +185,7 @@ class RolesManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['addPolicyAssignments']['code'], data['addPolicyAssignments']['message']
-        return code, message
+        return data['addPolicyAssignments']
 
     def remove_policies(self, code, policies):
         """移除策略
@@ -208,5 +199,4 @@ class RolesManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['removePolicyAssignments']['code'], data['removePolicyAssignments']['message']
-        return code, message
+        return data['removePolicyAssignments']

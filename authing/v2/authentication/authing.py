@@ -1,5 +1,5 @@
 from ..common.rest import RestClient
-from . import AuthenticationClientOptions
+from .types import AuthenticationClientOptions
 from ..common.graphql import GraphqlClient
 from ..common.utils import encrypt
 from ..common.codegen import QUERY

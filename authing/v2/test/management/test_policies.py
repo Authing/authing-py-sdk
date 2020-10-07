@@ -1,7 +1,7 @@
 from ...common.utils import get_random_string
 import unittest
 import os
-from ...management import ManagementClientOptions
+from ...management.types import ManagementClientOptions
 from ...management.authing import ManagementClient
 from dotenv import load_dotenv
 from deepdiff import DeepDiff

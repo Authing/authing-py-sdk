@@ -1,5 +1,5 @@
 from .policies import PolicyManagementClient
-from . import ManagementClientOptions
+from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from ..common.codegen import QUERY
 from ..common.utils import jwt_verify

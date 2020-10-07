@@ -1,4 +1,4 @@
-from ..management import ManagementClientOptions
+from ..management.types import ManagementClientOptions
 from ..management.authing import ManagementClient
 from dotenv import load_dotenv
 import os

@@ -1,11 +1,10 @@
-from ...management import ManagementClientOptions
+from ...management.types import ManagementClientOptions
 from ...management.authing import ManagementClient
 from ...common.utils import get_random_string
 import unittest
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
 
 management = ManagementClient(ManagementClientOptions(
     user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
@@ -18,7 +17,9 @@ class TestUsers(unittest.TestCase):
     pass
 
     def test_list(self):
-        totalCount, users = management.users.list()
+        data = management.users.list()
+        totalCount = data['totalCount']
+        users = data['list']
         self.assertTrue(totalCount)
         self.assertTrue(users)
 
@@ -82,7 +83,8 @@ class TestUsers(unittest.TestCase):
                 'nickname': nickname
             }
         )
-        _, _list = management.users.search(query=nickname)
+        data = management.users.search(query=nickname)
+        _list = data['list']
         userIds = list(map(lambda x: x['id'], _list))
         self.assertTrue(user['id'] in userIds)
 
@@ -93,7 +95,8 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        code, message = management.users.delete(userId=user['id'])
+        data = management.users.delete(userId=user['id'])
+        code = data['code']
         self.assertTrue(code == 200)
 
         newUser = management.users.detail(userId=user['id'])
@@ -106,9 +109,10 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        code, message = management.users.delete_many(
+        data = management.users.delete_many(
             userIds=[user['id']]
         )
+        code = data['code']
         self.assertTrue(code == 200)
         newUser = management.users.detail(userId=user['id'])
         self.assertTrue(newUser == None)
@@ -120,9 +124,10 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        totalCount, _list = management.users.list_roles(
+        data = management.users.list_roles(
             userId=user['id']
         )
+        totalCount = data['totalCount']
         self.assertTrue(totalCount == 0)
 
     def test_add_roles(self):
@@ -137,9 +142,11 @@ class TestUsers(unittest.TestCase):
             userId=user['id'],
             roles=list(map(lambda x: x['code'], roles))
         )
-        totalCount, _list = management.users.list_roles(
+        data = management.users.list_roles(
             userId=user['id']
         )
+        totalCount = data['totalCount']
+        _list = data['list']
         self.assertTrue(len(_list) == totalCount)
 
     def test_remove_roles(self):
@@ -158,9 +165,11 @@ class TestUsers(unittest.TestCase):
             userId=user['id'],
             roles=list(map(lambda x: x['code'], roles))
         )
-        totalCount, _list = management.users.list_roles(
+        data = management.users.list_roles(
             userId=user['id']
         )
+        totalCount = data['totalCount']
+        _list = data['list']
         self.assertTrue(totalCount == 0)
         self.assertTrue(len(_list) == 0)
 
@@ -171,9 +180,10 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        token, iat, exp = management.users.refresh_token(
+        data = management.users.refresh_token(
             userId=user['id']
         )
+        token, iat, exp = data['token'], data['iat'], data['exp']
         self.assertTrue(token)
         self.assertTrue(iat)
         self.assertTrue(exp)
@@ -206,9 +216,10 @@ class TestUsers(unittest.TestCase):
             policies=[policy['code']]
         )
 
-        totalCount, _list = management.users.list_policies(
+        data = management.users.list_policies(
             userId=user['id']
         )
+        totalCount = data['totalCount']
         self.assertTrue(totalCount == 1)
 
     def test_remove_policies(self):
@@ -237,7 +248,9 @@ class TestUsers(unittest.TestCase):
             userId=user['id'],
             policies=[policy['code']]
         )
-        totalCount, _list = management.users.list_policies(
+        data = management.users.list_policies(
             userId=user['id']
         )
+        totalCount = data['totalCount']
+        _list = data['list']
         self.assertTrue(totalCount == 0)

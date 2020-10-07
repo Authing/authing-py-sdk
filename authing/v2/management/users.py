@@ -1,4 +1,4 @@
-from ..management import ManagementClientOptions
+from .types import ManagementClientOptions
 from ..common.utils import encrypt
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
@@ -29,8 +29,7 @@ class UsersManagementClient(object):
                 'page': page,
                 'limit': limit
             }, token=self.tokenProvider.getAccessToken())
-        totalCount, _list = data['users']['totalCount'], data['users']['list']
-        return totalCount, _list
+        return data['users']
 
     def create(self, userInfo: object):
         """创建用户
@@ -102,8 +101,7 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        totalCount, _list = data['searchUser']['totalCount'], data['searchUser']['list']
-        return totalCount, _list
+        return data['searchUser']
 
     def batch(self, userIds):
         """批量获取用户详情
@@ -136,8 +134,7 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['deleteUser']['code'], data['deleteUser']['message']
-        return code, message
+        return data['deleteUser']
 
     def delete_many(self, userIds):
         """批量删除用户
@@ -152,8 +149,7 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['deleteUsers']['code'], data['deleteUsers']['message']
-        return code, message
+        return data['deleteUsers']
 
     def list_roles(self, userId: str):
         """获取用户的角色列表
@@ -168,8 +164,7 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        totalCount, _list = data['user']['roles']['totalCount'], data['user']['roles']['list']
-        return totalCount, _list
+        return data['user']['roles']
 
     def add_roles(self, userId: str, roles):
         """批量授权用户角色
@@ -186,8 +181,7 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['assignRole']['code'], data['assignRole']['message']
-        return code, message
+        return data['assignRole']
 
     def remove_roles(self, userId: str, roles):
         """批量撤销用户角色
@@ -204,8 +198,7 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['revokeRole']['code'], data['revokeRole']['message']
-        return code, message
+        return data['revokeRole']
 
     def refresh_token(self, userId: str):
         """刷新某个用户的 token
@@ -224,8 +217,7 @@ class UsersManagementClient(object):
             token=self.tokenProvider.getAccessToken()
         )
         data = data['refreshToken']
-        token, iat, exp = data['token'], data['iat'], data['exp']
-        return token, iat, exp
+        return data
 
     def list_policies(self, userId: str, page=1, limit=10):
         """获取策略列表
@@ -240,8 +232,7 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        totalCount, _list = data['policyAssignments']['totalCount'], data['policyAssignments']['list']
-        return totalCount, _list
+        return data['policyAssignments']
 
     def add_policies(self, userId, policies):
         """添加策略
@@ -255,8 +246,7 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['addPolicyAssignments']['code'], data['addPolicyAssignments']['message']
-        return code, message
+        return data['addPolicyAssignments']
 
     def remove_policies(self, userId, policies):
         """移除策略
@@ -270,5 +260,4 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        code, message = data['removePolicyAssignments']['code'], data['removePolicyAssignments']['message']
-        return code, message
+        return data['removePolicyAssignments']
