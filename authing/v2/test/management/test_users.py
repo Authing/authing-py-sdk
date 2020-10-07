@@ -132,7 +132,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        rolesTotalCount, roles = management.roles.list()
+        _, roles = management.roles.list()
         management.users.add_roles(
             userId=user['id'],
             roles=list(map(lambda x: x['code'], roles))
@@ -140,7 +140,6 @@ class TestUsers(unittest.TestCase):
         totalCount, _list = management.users.list_roles(
             userId=user['id']
         )
-        self.assertTrue(rolesTotalCount == totalCount)
         self.assertTrue(len(_list) == totalCount)
 
     def test_remove_roles(self):
@@ -183,3 +182,62 @@ class TestUsers(unittest.TestCase):
             token=token, fetchUserDetail=True)
         self.assertTrue(status)
         self.assertTrue(status['id'] == user['id'])
+
+    def test_add_policies(self):
+        policy = management.policies.create(
+            code=get_random_string(10),
+            statements=[
+                {
+                    'resource': 'book:123',
+                    'actions': ['books:read'],
+                    'effect': 'ALLOW'
+                }
+            ]
+        )
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+
+        management.users.add_policies(
+            userId=user['id'],
+            policies=[policy['code']]
+        )
+
+        totalCount, _list = management.users.list_policies(
+            userId=user['id']
+        )
+        self.assertTrue(totalCount == 1)
+
+    def test_remove_policies(self):
+        policy = management.policies.create(
+            code=get_random_string(10),
+            statements=[
+                {
+                    'resource': 'book:123',
+                    'actions': ['books:read'],
+                    'effect': 'ALLOW'
+                }
+            ]
+        )
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+
+        management.users.add_policies(
+            userId=user['id'],
+            policies=[policy['code']]
+        )
+        management.users.remove_policies(
+            userId=user['id'],
+            policies=[policy['code']]
+        )
+        totalCount, _list = management.users.list_policies(
+            userId=user['id']
+        )
+        self.assertTrue(totalCount == 0)

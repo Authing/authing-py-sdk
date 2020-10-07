@@ -108,6 +108,15 @@ mutation addNode($orgId: String!, $parentNodeId: String, $name: String!, $nameI1
 }
 
 """,
+    'addPolicyAssignments': """
+mutation addPolicyAssignments($policies: [String!]!, $targetType: PolicyAssignmentTargetType!, $targetIdentifiers: [String!]) {
+  addPolicyAssignments(policies: $policies, targetType: $targetType, targetIdentifiers: $targetIdentifiers) {
+    message
+    code
+  }
+}
+
+""",
     'addUdf': """
 mutation addUdf($targetType: UDFTargetType!, $key: String!, $dataType: UDFDataType!, $label: String!, $options: String) {
   addUdf(targetType: $targetType, key: $key, dataType: $dataType, label: $label, options: $options) {
@@ -291,12 +300,17 @@ mutation createOrg($name: String!, $code: String, $description: String) {
 
 """,
     'createPolicy': """
-mutation createPolicy($code: String!, $resource: String!, $actions: [String!]!, $effect: PolicyEffect!) {
-  createPolicy(code: $code, resource: $resource, actions: $actions, effect: $effect) {
+mutation createPolicy($code: String!, $description: String, $statements: [PolicyStatementInput!]!) {
+  createPolicy(code: $code, description: $description, statements: $statements) {
     code
-    resource
-    actions
-    effect
+    assignmentsCount
+    isDefault
+    description
+    statements {
+      resource
+      actions
+      effect
+    }
     createdAt
     updatedAt
   }
@@ -500,6 +514,24 @@ mutation deleteNode($orgId: String!, $nodeId: String!) {
     'deleteOrg': """
 mutation deleteOrg($id: String!) {
   deleteOrg(id: $id) {
+    message
+    code
+  }
+}
+
+""",
+    'deletePolicies': """
+mutation deletePolicies($codes: [String!]!) {
+  deletePolicies(codes: $codes) {
+    message
+    code
+  }
+}
+
+""",
+    'deletePolicy': """
+mutation deletePolicy($code: String!) {
+  deletePolicy(code: $code) {
     message
     code
   }
@@ -1178,6 +1210,15 @@ mutation removeMember($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChil
 }
 
 """,
+    'removePolicyAssignments': """
+mutation removePolicyAssignments($policies: [String!]!, $targetType: PolicyAssignmentTargetType!, $targetIdentifiers: [String!]) {
+  removePolicyAssignments(policies: $policies, targetType: $targetType, targetIdentifiers: $targetIdentifiers) {
+    message
+    code
+  }
+}
+
+""",
     'removeUdf': """
 mutation removeUdf($targetType: UDFTargetType!, $key: String!) {
   removeUdf(targetType: $targetType, key: $key) {
@@ -1530,6 +1571,24 @@ mutation updatePhone($phone: String!, $phoneCode: String!, $oldPhone: String, $o
     createdAt
     updatedAt
     customData
+  }
+}
+
+""",
+    'updatePolicy': """
+mutation updatePolicy($code: String!, $description: String, $statements: [PolicyStatementInput!]!) {
+  updatePolicy(code: $code, description: $description, statements: $statements) {
+    code
+    assignmentsCount
+    isDefault
+    description
+    statements {
+      resource
+      actions
+      effect
+    }
+    createdAt
+    updatedAt
   }
 }
 
@@ -2093,16 +2152,75 @@ query orgs($page: Int, $limit: Int, $sortBy: SortByEnum) {
 
 """,
     'policies': """
-query policies {
-  policies {
+query policies($page: Int, $limit: Int) {
+  policies(page: $page, limit: $limit) {
     totalCount
     list {
       code
+      assignmentsCount
+      isDefault
+      description
+      createdAt
+      updatedAt
+      statements {
+        resource
+        actions
+        effect
+      }
+    }
+  }
+}
+
+""",
+    'policy': """
+query policy($code: String!) {
+  policy(code: $code) {
+    code
+    assignmentsCount
+    isDefault
+    description
+    statements {
       resource
       actions
       effect
-      createdAt
-      updatedAt
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+""",
+    'policyAssignments': """
+query policyAssignments($code: String, $targetType: PolicyAssignmentTargetType, $targetIdentifier: String, $page: Int, $limit: Int) {
+  policyAssignments(code: $code, targetType: $targetType, targetIdentifier: $targetIdentifier, page: $page, limit: $limit) {
+    totalCount
+    list {
+      code
+      targetType
+      targetIdentifier
+    }
+  }
+}
+
+""",
+    'policyWithAssignments': """
+query policyWithAssignments($page: Int, $limit: Int, $code: String!) {
+  policy(code: $code) {
+    code
+    isDefault
+    description
+    statements {
+      resource
+      actions
+      effect
+    }
+    createdAt
+    updatedAt
+    assignmentsCount
+    assignments(page: $page, limit: $limit) {
+      code
+      targetType
+      targetIdentifier
     }
   }
 }
@@ -2141,8 +2259,12 @@ query role($code: String!) {
     isSystem
     createdAt
     updatedAt
+    users {
+      totalCount
+    }
     parent {
       code
+      arn
       description
       isSystem
       createdAt

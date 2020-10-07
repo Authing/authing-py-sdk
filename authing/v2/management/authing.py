@@ -1,3 +1,4 @@
+from authing.v2.management.policy import PolicyManagementClient
 from . import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from ..common.codegen import QUERY
@@ -33,6 +34,12 @@ class ManagementClient(object):
         )
 
         self.roles = RolesManagementClient(
+            options=self.options,
+            graphqlClient=self.graphqlClient,
+            tokenProvider=self.tokenProvider
+        )
+
+        self.policies = PolicyManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
             tokenProvider=self.tokenProvider

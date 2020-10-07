@@ -226,3 +226,49 @@ class UsersManagementClient(object):
         data = data['refreshToken']
         token, iat, exp = data['token'], data['iat'], data['exp']
         return token, iat, exp
+
+    def list_policies(self, userId: str, page=1, limit=10):
+        """获取策略列表
+        """
+        data = self.graphqlClient.request(
+            query=QUERY["policyAssignments"],
+            params={
+                'targetType': 'USER',
+                'targetIdentifier': userId,
+                'page': page,
+                'limit': limit
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        totalCount, _list = data['policyAssignments']['totalCount'], data['policyAssignments']['list']
+        return totalCount, _list
+
+    def add_policies(self, userId, policies):
+        """添加策略
+        """
+        data = self.graphqlClient.request(
+            query=QUERY["addPolicyAssignments"],
+            params={
+                'policies': policies,
+                'targetType': 'USER',
+                'targetIdentifiers': [userId]
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        code, message = data['addPolicyAssignments']['code'], data['addPolicyAssignments']['message']
+        return code, message
+
+    def remove_policies(self, userId, policies):
+        """移除策略
+        """
+        data = self.graphqlClient.request(
+            query=QUERY["removePolicyAssignments"],
+            params={
+                'policies': policies,
+                'targetType': 'USER',
+                'targetIdentifiers': [userId]
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        code, message = data['removePolicyAssignments']['code'], data['removePolicyAssignments']['message']
+        return code, message
