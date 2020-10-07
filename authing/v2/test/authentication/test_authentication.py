@@ -9,7 +9,7 @@ load_dotenv()
 
 authentication = AuthenticationClient(
     options=AuthenticationClientOptions(
-        userPoolId=os.getenv('AUTHING_USERPOOL_ID'),
+        user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
         host=os.getenv('AUTHING_SERVER')
     )
 )

@@ -9,7 +9,7 @@ load_dotenv()
 
 
 management = ManagementClient(ManagementClientOptions(
-    userPoolId=os.getenv('AUTHING_USERPOOL_ID'),
+    user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
     host=os.getenv('AUTHING_SERVER')
 ))

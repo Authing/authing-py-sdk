@@ -12,7 +12,7 @@ class GraphqlClient(object):
 
         headers = {
             'x-authing-sdk-version': 'py3:%s' % __version__,
-            'x-authing-userpool-id': self.options.userPoolId,
+            'x-authing-userpool-id': self.options.user_pool_id,
             'x-authing-request-from': 'sdk',
         }
         if token:
