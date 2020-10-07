@@ -43,7 +43,7 @@ class UsersManagementClient(object):
         """
         if userInfo.get('password'):
             userInfo['password'] = encrypt(
-                userInfo['password'], self.options.encPublicKey)
+                userInfo['password'], self.options.enc_public_key)
         data = self.graphqlClient.request(query=QUERY['createUser'], params={
             'userInfo': userInfo,
         }, token=self.tokenProvider.getAccessToken())
@@ -58,7 +58,7 @@ class UsersManagementClient(object):
         """
         if updates.get('password'):
             updates['password'] = encrypt(
-                updates['password'], self.options.encPublicKey)
+                updates['password'], self.options.enc_public_key)
 
         data = self.graphqlClient.request(
             query=QUERY['updateUser'],

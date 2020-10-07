@@ -1,4 +1,4 @@
-from authing.v2.management.policy import PolicyManagementClient
+from .policy import PolicyManagementClient
 from . import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from ..common.codegen import QUERY
@@ -10,17 +10,13 @@ from .roles import RolesManagementClient
 
 class ManagementClient(object):
     """Authing Management Client
-
-    Args:
-        userPoolId (str): Your Authing UserPool Id
-        secret (str): Your Authing UserPool Secret
     """
 
     def __init__(self, options: ManagementClientOptions):
         self.options = options
         self.graphqlClient = GraphqlClient(
             options=self.options,
-            endpoint=self.options.graphqlEndpoint
+            endpoint=self.options.graphql_endpoint
         )
         self.tokenProvider = ManagementTokenProvider(
             options=self.options,

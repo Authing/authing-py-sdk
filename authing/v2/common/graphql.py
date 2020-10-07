@@ -11,7 +11,7 @@ class GraphqlClient(object):
     def request(self, query, params, token: str = None):
 
         headers = {
-            'x-authing-sdk-version': __version__,
+            'x-authing-sdk-version': 'py3:%s' % __version__,
             'x-authing-userpool-id': self.options.userPoolId,
             'x-authing-request-from': 'sdk',
         }

@@ -12,12 +12,12 @@ GKl64GDcIq3au+aqJQIDAQAB
 """
 
 
-class ManagementClientOptions():
-    def __init__(self, userPoolId: str, secret: str, host=None, enc_public_key=None, on_error=None, timeout=10.0):
-        self.userPoolId = userPoolId
-        self.secret = secret
+class AuthenticationClientOptions():
+    def __init__(self, user_pool_id: str, access_token: str = None, host=None, enc_public_key=None, on_error=None, timeout=10.0):
+        self.user_pool_id = user_pool_id
         self.host = host or 'https://core.authing.cn'
         self.on_error = on_error or DEFAULT_ONERROR
         self.timeout = timeout
         self.graphql_endpoint = '%s/v2/graphql' % self.host
         self.enc_public_key = enc_public_key or DEFAULT_ENCRYPT_PUBLICKEY
+        self.access_token = access_token
