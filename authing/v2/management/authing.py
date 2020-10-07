@@ -1,4 +1,4 @@
-from .policy import PolicyManagementClient
+from .policies import PolicyManagementClient
 from . import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from ..common.codegen import QUERY

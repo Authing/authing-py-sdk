@@ -13,7 +13,7 @@ class ManagementTokenProvider():
 
     def _getClientWhenSdkInit(self):
         res = self.graphqlClient.request(query=QUERY["accessToken"], params={
-            "user_pool_id": self.options.user_pool_id,
+            "userPoolId": self.options.user_pool_id,
             "secret": self.options.secret
         })
         return res['accessToken']['accessToken']
