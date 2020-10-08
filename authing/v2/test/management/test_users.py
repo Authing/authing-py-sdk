@@ -1,3 +1,4 @@
+from datetime import datetime
 from ...management.types import ManagementClientOptions
 from ...management.authing import ManagementClient
 from ...common.utils import get_random_string
@@ -137,7 +138,8 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        _, roles = management.roles.list()
+        data = management.roles.list()
+        roles = data['list']
         management.users.add_roles(
             userId=user['id'],
             roles=list(map(lambda x: x['code'], roles))
@@ -156,7 +158,8 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        _, roles = management.roles.list()
+        data = management.roles.list()
+        roles = data['list']
         management.users.add_roles(
             userId=user['id'],
             roles=list(map(lambda x: x['code'], roles))
@@ -254,3 +257,202 @@ class TestUsers(unittest.TestCase):
         totalCount = data['totalCount']
         _list = data['list']
         self.assertTrue(totalCount == 0)
+
+    def test_add_udv_wrong_type(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+
+        # 字符串
+        failed = False
+        try:
+            management.udf.add_udf(
+                targetType='USER',
+                key='school',
+                dataType='STRING',
+                label='学校'
+            )
+            management.users.add_udv(
+                userId=user['id'],
+                key='school',
+                value=11
+            )
+        except:
+            failed = True
+        self.assertTrue(failed)
+
+        # 数字
+        failed = False
+        try:
+            management.udf.add_udf(
+                targetType='USER',
+                key='age',
+                dataType='NUMBER',
+                label='学校'
+            )
+            management.users.add_udv(
+                userId=user['id'],
+                key='age',
+                value='18'
+            )
+        except:
+            failed = True
+        self.assertTrue(failed)
+
+        # boolean
+        failed = False
+        try:
+            management.udf.add_udf(
+                targetType='USER',
+                key='is_boss',
+                dataType='BOOLEAN',
+                label='是否为 boss'
+            )
+            management.users.add_udv(
+                userId=user['id'],
+                key='is_boss',
+                value='ok'
+            )
+        except:
+            failed = True
+        self.assertTrue(failed)
+
+    def test_add_udv_string(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='school',
+            dataType='STRING',
+            label='学校'
+        )
+        management.users.add_udv(
+            userId=user['id'],
+            key='school',
+            value='ucla'
+        )
+        udvs = management.users.list_udv(user['id'])
+        self.assertTrue(len(udvs) == 1)
+        self.assertTrue(isinstance(udvs[0]['value'], str))
+
+    def test_add_udv_int(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='age',
+            dataType='NUMBER',
+            label='学校'
+        )
+        management.users.add_udv(
+            userId=user['id'],
+            key='age',
+            value=18
+        )
+        udvs = management.users.list_udv(user['id'])
+        self.assertTrue(len(udvs) == 1)
+        self.assertTrue(isinstance(udvs[0]['value'], int))
+
+    def test_add_udv_boolean(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='is_boss',
+            dataType='BOOLEAN',
+            label='是否为 boss'
+        )
+        management.users.add_udv(
+            userId=user['id'],
+            key='is_boss',
+            value=False
+        )
+        udvs = management.users.list_udv(user['id'])
+        self.assertTrue(len(udvs) == 1)
+        self.assertTrue(isinstance(udvs[0]['value'], bool))
+
+    def test_add_udv_datetime(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='birthday',
+            dataType='DATETIME',
+            label='生日'
+        )
+        management.users.add_udv(
+            userId=user['id'],
+            key='birthday',
+            value=datetime.now()
+        )
+        udvs = management.users.list_udv(user['id'])
+        self.assertTrue(len(udvs) == 1)
+        self.assertTrue(isinstance(udvs[0]['value'], datetime))
+
+    def test_add_udv_object(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='settings',
+            dataType='OBJECT',
+            label='设置'
+        )
+        management.users.add_udv(
+            userId=user['id'],
+            key='settings',
+            value={
+                'favorColor': 'red'
+            }
+        )
+        udvs = management.users.list_udv(user['id'])
+        self.assertTrue(len(udvs) == 1)
+        self.assertTrue(isinstance(udvs[0]['value'], dict))
+
+    def test_remove_duv(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='age',
+            dataType='NUMBER',
+            label='学校'
+        )
+        management.users.add_udv(
+            userId=user['id'],
+            key='age',
+            value=18
+        )
+        management.users.remove_udv(
+            userId=user['id'],
+            key='age',
+        )
+        udvs = management.users.list_udv(user['id'])
+        self.assertTrue(len(udvs) == 0)

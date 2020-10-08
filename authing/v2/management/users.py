@@ -3,6 +3,9 @@ from ..common.utils import encrypt
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
+import json
+import datetime
+from dateutil import parser
 
 
 class UsersManagementClient(object):
@@ -261,3 +264,76 @@ class UsersManagementClient(object):
             token=self.tokenProvider.getAccessToken()
         )
         return data['removePolicyAssignments']
+
+    def list_udv(self, userId: str):
+        """获取该用户的自定义数据列表
+        """
+        data = self.graphqlClient.request(
+            query=QUERY["udv"],
+            params={
+                'targetType': 'USER',
+                'targetId': userId
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        data = data['udv']
+        for i, item in enumerate(data):
+            dataType, value = item['dataType'], item['value']
+            if dataType == "NUMBER":
+                data[i]['value'] = json.loads(value)
+            elif dataType == "BOOLEAN":
+                data[i]['value'] = json.loads(value)
+            elif dataType == 'DATETIME':
+                data[i]['value'] = parser.parse(value)
+            elif dataType == 'OBJECT':
+                data[i]['value'] = json.loads(value)
+        return data
+
+    def add_udv(self, userId, key, value):
+        """设置自定义用户数据
+
+        Args:
+            key ([type]): key
+            value ([type]): valud
+        """
+
+        if isinstance(value, datetime.datetime):
+            def default(o):
+                if isinstance(o, (datetime.date, datetime.datetime)):
+                    return o.isoformat()
+            value = json.dumps(
+                value,
+                sort_keys=True,
+                indent=1,
+                default=default
+            )
+        else:
+            value = json.dumps(value)
+        data = self.graphqlClient.request(
+            query=QUERY['setUdv'],
+            params={
+                'targetType': 'USER',
+                'targetId': userId,
+                'key': key,
+                'value': value
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return data['setUdv']
+
+    def remove_udv(self, userId, key):
+        """删除用户自定义字段数据
+
+        Args:
+            key ([str]): str
+        """
+        data = self.graphqlClient.request(
+            query=QUERY['removeUdv'],
+            params={
+                'targetType': 'USER',
+                'targetId': userId,
+                'key': key,
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return data['removeUdv']
