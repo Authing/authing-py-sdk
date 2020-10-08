@@ -59,17 +59,17 @@ class AuthenticationClient(object):
         )
         user = data['user']
         self._set_current_user(user)
-        return data
+        return user
 
-    def register_by_email(self, email: str, password: str, profile=None, forceLogin=False, generateToken=None):
+    def register_by_email(self, email: str, password: str, profile=None, force_login=False, generate_token=False):
         """通过邮箱注册
 
         Args:
             email (str): 邮箱
             password (str): 密码
             profile ([type], optional): 用户资料
-            forceLogin (bool, optional): 强制登录
-            generateToken ([type], optional): 自动生成 token
+            force_login (bool, optional): 强制登录
+            generate_token ([type], optional): 自动生成 token
         """
         password = encrypt(password, self.options.enc_public_key)
         data = self.graphqlClient.request(
@@ -79,8 +79,8 @@ class AuthenticationClient(object):
                     'email': email,
                     'password': password,
                     'profile': profile,
-                    'forceLogin': forceLogin,
-                    'generateToken': generateToken
+                    'forceLogin': force_login,
+                    'generateToken': generate_token
                 }
             }
         )
@@ -88,15 +88,15 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def register_by_username(self, username: str, password: str, profile=None, forceLogin=False, generateToken=None):
+    def register_by_username(self, username: str, password: str, profile=None, force_login=False, generate_token=False):
         """通过用户名注册
 
         Args:
             username (str): 用户名
             password (str): 密码
             profile ([type], optional): 用户资料
-            forceLogin (bool, optional): 强制登录
-            generateToken ([type], optional): 自动生成 token
+            force_login (bool, optional): 强制登录
+            generate_token ([type], optional): 自动生成 token
         """
         password = encrypt(password, self.options.enc_public_key)
         data = self.graphqlClient.request(
@@ -106,8 +106,8 @@ class AuthenticationClient(object):
                     'username': username,
                     'password': password,
                     'profile': profile,
-                    'forceLogin': forceLogin,
-                    'generateToken': generateToken
+                    'forceLogin': force_login,
+                    'generateToken': generate_token
                 }
             }
         )
@@ -115,7 +115,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def register_by_phone_code(self, phone: str, code: str, password=None, profile=None, forceLogin=False, generateToken=None):
+    def register_by_phone_code(self, phone: str, code: str, password=None, profile=None, force_login=False, generate_token=False):
         """通过手机号验证码注册
 
         Args:
@@ -123,8 +123,8 @@ class AuthenticationClient(object):
             code (str): 手机号验证码
             password (str): 密码
             profile ([type], optional): 用户资料
-            forceLogin (bool, optional): 强制登录
-            generateToken ([type], optional): 自动生成 token
+            force_login (bool, optional): 强制登录
+            generate_token ([type], optional): 自动生成 token
         """
         if password:
             password = encrypt(password, self.options.enc_public_key)
@@ -136,8 +136,8 @@ class AuthenticationClient(object):
                     'code': code,
                     'password': password,
                     'profile': profile,
-                    'forceLogin': forceLogin,
-                    'generateToken': generateToken
+                    'forceLogin': force_login,
+                    'generateToken': generate_token
                 }
             }
         )
@@ -157,14 +157,14 @@ class AuthenticationClient(object):
         )
         return data
 
-    def login_by_email(self, email: str, password: str, autoRegister: bool = False, captchaCode: str = None):
+    def login_by_email(self, email: str, password: str, auto_register: bool = False, captcha_code: str = None):
         """使用邮箱登录
 
         Args:
             email (str): 邮箱
             password (str): 密码
-            autoRegister (bool, optional): 如果用户不存在，是否自动注册。
-            captchaCode (str, optional): 图形验证码
+            auto_register (bool, optional): 如果用户不存在，是否自动注册。
+            captcha_code (str, optional): 图形验证码
         """
         password = encrypt(password, self.options.enc_public_key)
         data = self.graphqlClient.request(
@@ -173,8 +173,8 @@ class AuthenticationClient(object):
                 'input': {
                     'email': email,
                     'password': password,
-                    'autoRegister': autoRegister,
-                    'captchaCode': captchaCode
+                    'autoRegister': auto_register,
+                    'captchaCode': captcha_code
                 }
             }
         )
@@ -182,14 +182,14 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def login_by_username(self, username: str, password: str, autoRegister: bool = False, captchaCode: str = None):
+    def login_by_username(self, username: str, password: str, auto_register: bool = False, captcha_code: str = None):
         """使用邮箱登录
 
         Args:
             username (str): 用户名
             password (str): 密码
-            autoRegister (bool, optional): 如果用户不存在，是否自动注册。
-            captchaCode (str, optional): 图形验证码
+            auto_register (bool, optional): 如果用户不存在，是否自动注册。
+            captcha_code (str, optional): 图形验证码
         """
         password = encrypt(password, self.options.enc_public_key)
         data = self.graphqlClient.request(
@@ -198,8 +198,8 @@ class AuthenticationClient(object):
                 'input': {
                     'username': username,
                     'password': password,
-                    'autoRegister': autoRegister,
-                    'captchaCode': captchaCode
+                    'autoRegister': auto_register,
+                    'captchaCode': captcha_code
                 }
             }
         )
@@ -227,14 +227,14 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def login_by_phone_password(self, phone: str, password: str, autoRegister: bool = False, captchaCode: str = None):
+    def login_by_phone_password(self, phone: str, password: str, auto_register: bool = False, captcha_code: str = None):
         """使用邮箱登录
 
         Args:
             phone (str): 手机号
             password (str): 密码
-            autoRegister (bool, optional): 如果用户不存在，是否自动注册。
-            captchaCode (str, optional): 图形验证码
+            auto_register (bool, optional): 如果用户不存在，是否自动注册。
+            captcha_code (str, optional): 图形验证码
         """
         password = encrypt(password, self.options.enc_public_key)
         data = self.graphqlClient.request(
@@ -243,8 +243,8 @@ class AuthenticationClient(object):
                 'input': {
                     'phone': phone,
                     'password': password,
-                    'autoRegister': autoRegister,
-                    'captchaCode': captchaCode
+                    'autoRegister': auto_register,
+                    'captchaCode': captcha_code
                 }
             }
         )
@@ -282,22 +282,22 @@ class AuthenticationClient(object):
         self,
         phone,
         code,
-        newPassword
+        new_password
     ):
         """通过手机号验证码重置密码
 
         Args:
             phone ([str]): 手机号
             code ([str]): 手机号验证码
-            newPassword ([str]): 新的密码
+            new_password ([str]): 新的密码
         """
-        newPassword = encrypt(newPassword, self.options.enc_public_key)
+        new_password = encrypt(new_password, self.options.enc_public_key)
         data = self.graphqlClient.request(
             query=QUERY['resetPassword'],
             params={
                 'phone': phone,
                 'code': code,
-                'newPassword': newPassword
+                'newPassword': new_password
             }
         )
         return data['resetPassword']
@@ -306,22 +306,22 @@ class AuthenticationClient(object):
         self,
         email,
         code,
-        newPassword
+        new_password
     ):
         """通过邮件验证码修改密码
 
         Args:
             email ([str]): 邮箱
             code ([str]): 邮箱验证码
-            newPassword ([str]): 新的密码
+            new_password ([str]): 新的密码
         """
-        newPassword = encrypt(newPassword, self.options.enc_public_key)
+        new_password = encrypt(new_password, self.options.enc_public_key)
         data = self.graphqlClient.request(
             query=QUERY['resetPassword'],
             params={
                 'email': email,
                 'code': code,
-                'newPassword': newPassword
+                'newPassword': new_password
             },
         )
         return data['resetPassword']
@@ -342,20 +342,20 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def update_password(self, newPassword, oldPassword):
+    def update_password(self, new_password, old_password):
         """修改密码
 
         Args:
-            newPassword ([str]): 新密码
-            oldPassword ([str]): 老密码
+            new_password ([str]): 新密码
+            old_password ([str]): 老密码
         """
-        newPassword = encrypt(newPassword, self.options.enc_public_key)
-        oldPassword = encrypt(oldPassword, self.options.enc_public_key)
+        new_password = encrypt(new_password, self.options.enc_public_key)
+        old_password = encrypt(old_password, self.options.enc_public_key)
         data = self.graphqlClient.request(
             query=QUERY['updatePassword'],
             params={
-                'newPassword': newPassword,
-                'oldPassword': oldPassword
+                'newPassword': new_password,
+                'oldPassword': old_password
             },
             token=self._get_access_token()
         )

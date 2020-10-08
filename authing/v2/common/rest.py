@@ -1,4 +1,4 @@
-from ..authentication import AuthenticationClientOptions
+from ..authentication.types import AuthenticationClientOptions
 from .. import __version__
 import requests
 

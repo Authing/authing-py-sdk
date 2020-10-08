@@ -1761,6 +1761,23 @@ query addUserToGroup($userId: String, $groupId: String) {
 }
 
 """,
+    'checkLoginStatus': """
+query checkLoginStatus($token: String) {
+  checkLoginStatus(token: $token) {
+    code
+    message
+    status
+    exp
+    iat
+    data {
+      id
+      userPoolId
+      arn
+    }
+  }
+}
+
+""",
     'checkPasswordStrength': """
 query checkPasswordStrength($password: String!) {
   checkPasswordStrength(password: $password) {
