@@ -1,22 +1,26 @@
 # Authing - Python
 
-- [Installation](#installation)
-- [Management SDK Usage](#management-sdk-usage)
-  - [Available Management Modules](#available-management-modules)
-- [Authentication SDK Usage](#authentication-sdk-usage)
-  - [Available Authentication Methods](#available-authentication-methods)
+Authing Python SDK 由两部分组成：`ManagementClient` 和 `AuthenticationClient`。`ManagementClient` 中进行的所有操作均以管理员的身份进行，包含管理用户、管理角色、管理权限策略、管理用户池配置等模块。`AuthenticationClient` 中的所有操作以当前终端用户的身份进行，包含登录、注册、修改用户资料、退出登录等方法。
 
-## Installation
+你应该将初始化过后的 `ManagementClient` 实例设置为一个全局变量（只初始化一次），而 `AuthenticationClient` 应该每次请求初始化一个。
 
-You can install the auth0 Python SDK using the following command.
+- [安装](#安装)
+- [使用 ManagementClient](#使用-managementclient)
+  - [可用的 Management 模块](#可用的-management-模块)
+- [使用 AuthenticationClient](#使用-authenticationclient)
+  - [可用的 Authentication 方法](#可用的-authentication-方法)
+
+## 安装
 
 ```
 pip install authing
 ```
 
-## Management SDK Usage
+## 使用 ManagementClient
 
-To use the management library you will need to instantiate an `ManagementClient` object with a `user_pool_id` and a `secret` (see [here](https://docs.authing.cn/others/faq.html) how to get those): 
+初始化 `ManagementClient` 需要 `user_pool_id`（用户池 ID） 和 `secret`（用户池密钥）:
+
+> 你可以在此[了解如何获取 UserPoolId 和 Secret](https://docs.authing.cn/others/faq.html) .
 
 ```python
 from authing.v2.management import ManagementClient, ManagementClientOptions
@@ -28,13 +32,13 @@ authing = ManagementClient(
 ))
 ```
 
-the `ManagementClient()` object is now ready to take orders! Let's see how we can use this to get all users:
+现在 `ManagementClient()` 实例就可以使用了。例如可以获取用户池中的用户列表：
 
 ```python
-totalCount, users = authing.users.list()
+data = authing.users.list()
 ```
 
-Which will yield a list of users similar to this:
+返回的数据如下：
 
 ```json
 {
@@ -94,17 +98,19 @@ Which will yield a list of users similar to this:
 }
 ```
 
-That's it!
 
-### Available Management Modules
+### 可用的 Management 模块
 
 - Users `ManagementClient().users`
 - Roles `ManagementClient().roles`
 - Policies `ManagementClient().policies`
 
-## Authentication SDK Usage
+## 使用 AuthenticationClient
 
-To use the authentication library you will need to instantiate an `AuthenticationClient` object with a `user_pool_id`  (see [here](https://docs.authing.cn/others/faq.html) how to get this): 
+初始化 `ManagementClient` 需要 `user_pool_id`（用户池 ID）：
+
+> 你可以在此[了解如何获取 UserPoolId](https://docs.authing.cn/others/faq.html) .
+
 
 ```python
 from authing.v2.authentication import AuthenticationClient, AuthenticationClientOptions
@@ -115,28 +121,28 @@ authing = AuthenticationClient(
 ))
 ```
 
-Now it's ready to use:
+接下来可以进行注册登录等操作：
 
 ```python
 username = get_random_string(10)
 password = get_random_string(10)
-user = authentication.register_by_username(
+user = authentication.login_by_username(
     username=username,
     password=password,
 )
 ```
 
-Then you can update userinfo etc:
+完成登录之后，`update_profile` 等要求用户登录的方法就可用了：
 
-```
+```python
 authing.update_profile({
   'nickname': 'Nick'
 })
 ```
 
-And you can also instantiate `AuthenticationClient` with a `access_token` param instead:
+你也可以使用 `access_token` 参数来初始化 `AuthenticationClient`, 而不需要每次都调用 `login` 方法:
 
-```
+```python
 from authing.v2.authentication import AuthenticationClient, AuthenticationClientOptions
 
 authing = AuthenticationClient(
@@ -146,17 +152,36 @@ authing = AuthenticationClient(
 ))
 ```
 
-Then the `update_profile` function is avaliable: 
+再次执行 `update_profile` 方法，发现也成功了:
 
 ```
-authing.update_profile({
+user = authing.update_profile({
   'nickname': 'Nick'
 })
 ```
 
-It works.
+### 可用的 Authentication 方法
 
-### Available Authentication Methods
-
-- Get Current User's Detail UserInfo: `AuthenticationClient().get_current_user()`
-- Register By Email: `AuthenticationClient().register_by_email()`
+- 获取当前用户的用户资料: `get_current_user`
+- 使用邮箱注册: `register_by_email`
+- 使用用户名注册: `register_by_username`
+- 使用手机号验证码注册: `register_by_phone_code`
+- 使用邮箱登录: `login_by_email`
+- 使用用户名登录: `login_by_username`
+- 使用手机号验证码登录 `login_by_phone_code`
+- 使用手机号密码登录: `login_by_phone_password`
+- 发送邮件: `send_email`
+- 发送短信验证码: `send_sms_code`
+- 检查 token 的有效状态: `check_login_status`
+- 使用手机号验证码重置密码: `reset_password_by_phone_code`
+- 使用邮件验证码重置密码: `reset_password_by_email_code`
+- 更新用户资料: `update_profile`
+- 更新密码: `update_password`
+- 更新手机号: `update_phone`
+- 更新邮箱: `update_email`
+- 刷新 token: `refresh_token`
+- 绑定手机号: `bind_phone`
+- 解绑手机号: `unbind_phone`
+- 添加当前用户自定义字段值: `set_udv`
+- 获取当前用户的自定义字段值： `udv`
+- 删除当前用户自定义字段值: `remove_udv`
