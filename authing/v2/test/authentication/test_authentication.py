@@ -1,10 +1,20 @@
 from ...common.utils import get_random_string, get_random_phone_number
 from ...authentication import AuthenticationClientOptions
 from ...authentication.authing import AuthenticationClient
+from ...management.types import ManagementClientOptions
+from ...management.authing import ManagementClient
 import unittest
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
+
+
+management = ManagementClient(ManagementClientOptions(
+    user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+    secret=os.getenv('AUTHING_USERPOOL_SECRET'),
+    host=os.getenv('AUTHING_SERVER')
+))
 
 
 class TestAuthentication(unittest.TestCase):
@@ -230,3 +240,242 @@ class TestAuthentication(unittest.TestCase):
         authentication.refresh_token()
         user = authentication.get_current_user()
         self.assertTrue(user)
+
+    def test_add_udv_wrong_type(self):
+        authentication = AuthenticationClient(
+            options=AuthenticationClientOptions(
+                user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+                host=os.getenv('AUTHING_SERVER')
+            )
+        )
+        email = '%s@authing.cn' % get_random_string(10)
+        password = get_random_string(10)
+        authentication.register_by_email(
+            email=email,
+            password=password,
+            generate_token=True
+        )
+
+        # 字符串
+        failed = False
+        try:
+            management.udf.add_udf(
+                targetType='USER',
+                key='school',
+                dataType='STRING',
+                label='学校'
+            )
+            authentication.add_udv(
+                key='school',
+                value=11
+            )
+        except:
+            failed = True
+        self.assertTrue(failed)
+
+        # 数字
+        failed = False
+        try:
+            management.udf.add_udf(
+                targetType='USER',
+                key='age',
+                dataType='NUMBER',
+                label='学校'
+            )
+            authentication.add_udv(
+                key='age',
+                value='18'
+            )
+        except:
+            failed = True
+        self.assertTrue(failed)
+
+        # boolean
+        failed = False
+        try:
+            management.udf.add_udf(
+                targetType='USER',
+                key='is_boss',
+                dataType='BOOLEAN',
+                label='是否为 boss'
+            )
+            authentication.add_udv(
+                key='is_boss',
+                value='ok'
+            )
+        except:
+            failed = True
+        self.assertTrue(failed)
+
+    def test_add_udv_string(self):
+        authentication = AuthenticationClient(
+            options=AuthenticationClientOptions(
+                user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+                host=os.getenv('AUTHING_SERVER')
+            )
+        )
+        email = '%s@authing.cn' % get_random_string(10)
+        password = get_random_string(10)
+        authentication.register_by_email(
+            email=email,
+            password=password,
+            generate_token=True
+        )
+
+        management.udf.add_udf(
+            targetType='USER',
+            key='school',
+            dataType='STRING',
+            label='学校'
+        )
+        authentication.add_udv(
+            key='school',
+            value='ucla'
+        )
+        udvs = authentication.list_udv()
+        self.assertTrue(len(udvs) == 1)
+        self.assertTrue(isinstance(udvs[0]['value'], str))
+
+    def test_add_udv_int(self):
+        authentication = AuthenticationClient(
+            options=AuthenticationClientOptions(
+                user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+                host=os.getenv('AUTHING_SERVER')
+            )
+        )
+        email = '%s@authing.cn' % get_random_string(10)
+        password = get_random_string(10)
+        authentication.register_by_email(
+            email=email,
+            password=password,
+            generate_token=True
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='age',
+            dataType='NUMBER',
+            label='学校'
+        )
+        authentication.add_udv(
+            key='age',
+            value=18
+        )
+        udvs = authentication.list_udv()
+        self.assertTrue(len(udvs) == 1)
+        self.assertTrue(isinstance(udvs[0]['value'], int))
+
+    def test_add_udv_boolean(self):
+        authentication = AuthenticationClient(
+            options=AuthenticationClientOptions(
+                user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+                host=os.getenv('AUTHING_SERVER')
+            )
+        )
+        email = '%s@authing.cn' % get_random_string(10)
+        password = get_random_string(10)
+        authentication.register_by_email(
+            email=email,
+            password=password,
+            generate_token=True
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='is_boss',
+            dataType='BOOLEAN',
+            label='是否为 boss'
+        )
+        authentication.add_udv(
+            key='is_boss',
+            value=False
+        )
+        udvs = authentication.list_udv()
+        self.assertTrue(len(udvs) == 1)
+        self.assertTrue(isinstance(udvs[0]['value'], bool))
+
+    def test_add_udv_datetime(self):
+        authentication = AuthenticationClient(
+            options=AuthenticationClientOptions(
+                user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+                host=os.getenv('AUTHING_SERVER')
+            )
+        )
+        email = '%s@authing.cn' % get_random_string(10)
+        password = get_random_string(10)
+        authentication.register_by_email(
+            email=email,
+            password=password,
+            generate_token=True
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='birthday',
+            dataType='DATETIME',
+            label='生日'
+        )
+        authentication.add_udv(
+            key='birthday',
+            value=datetime.now()
+        )
+        udvs = authentication.list_udv()
+        self.assertTrue(len(udvs) == 1)
+        self.assertTrue(isinstance(udvs[0]['value'], datetime))
+
+    def test_add_udv_object(self):
+        authentication = AuthenticationClient(
+            options=AuthenticationClientOptions(
+                user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+                host=os.getenv('AUTHING_SERVER')
+            )
+        )
+        email = '%s@authing.cn' % get_random_string(10)
+        password = get_random_string(10)
+        authentication.register_by_email(
+            email=email,
+            password=password,
+            generate_token=True
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='settings',
+            dataType='OBJECT',
+            label='设置'
+        )
+        authentication.add_udv(
+            key='settings',
+            value={
+                'favorColor': 'red'
+            }
+        )
+        udvs = authentication.list_udv()
+        self.assertTrue(len(udvs) == 1)
+        self.assertTrue(isinstance(udvs[0]['value'], dict))
+
+    def test_remove_duv(self):
+        authentication = AuthenticationClient(
+            options=AuthenticationClientOptions(
+                user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+                host=os.getenv('AUTHING_SERVER')
+            )
+        )
+        email = '%s@authing.cn' % get_random_string(10)
+        password = get_random_string(10)
+        authentication.register_by_email(
+            email=email,
+            password=password,
+            generate_token=True
+        )
+        management.udf.add_udf(
+            targetType='USER',
+            key='age',
+            dataType='NUMBER',
+            label='学校'
+        )
+        authentication.add_udv(
+            key='age',
+            value=18
+        )
+        authentication.remove_udv(
+            key='age',
+        )
+        udvs = authentication.list_udv()
+        self.assertTrue(len(udvs) == 0)
