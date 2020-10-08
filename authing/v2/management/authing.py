@@ -7,6 +7,7 @@ from .token_provider import ManagementTokenProvider
 from .users import UsersManagementClient
 from .roles import RolesManagementClient
 from .acl import AclManagementClient
+from .udf import UdfManagementClient
 
 
 class ManagementClient(object):
@@ -43,6 +44,12 @@ class ManagementClient(object):
         )
 
         self.acl = AclManagementClient(
+            options=self.options,
+            graphqlClient=self.graphqlClient,
+            tokenProvider=self.tokenProvider
+        )
+
+        self.udf = UdfManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
             tokenProvider=self.tokenProvider

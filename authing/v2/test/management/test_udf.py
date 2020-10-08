@@ -1,0 +1,29 @@
+from os import scandir
+from ...common.utils import get_random_string
+import unittest
+import os
+from ...management.types import ManagementClientOptions
+from ...management.authing import ManagementClient
+from dotenv import load_dotenv
+load_dotenv()
+
+
+management = ManagementClient(ManagementClientOptions(
+    user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+    secret=os.getenv('AUTHING_USERPOOL_SECRET'),
+    host=os.getenv('AUTHING_SERVER')
+))
+
+
+class TestUdf(unittest.TestCase):
+    def test_add(self):
+        udf = management.udf.add_udf(
+            targetType='USER',
+            key='school',
+            dataType='STRING',
+            label='学校'
+        )
+        self.assertTrue(udf)
+
+        udfs = management.udf.list_udf('USER')
+        self.assertTrue(len(udfs))

@@ -443,7 +443,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def udv(self):
+    def list_udv(self):
         """获取当前用户的自定义用户数据
         """
         user = self._check_logged_in()
@@ -457,7 +457,7 @@ class AuthenticationClient(object):
         )
         return data['udv']
 
-    def set_udv(self, key, value):
+    def add_udv(self, key, value):
         """设置自定义用户数据
 
         Args:
