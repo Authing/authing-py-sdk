@@ -6,6 +6,7 @@ from ..common.utils import jwt_verify
 from .token_provider import ManagementTokenProvider
 from .users import UsersManagementClient
 from .roles import RolesManagementClient
+from .acl import AclManagementClient
 
 
 class ManagementClient(object):
@@ -36,6 +37,12 @@ class ManagementClient(object):
         )
 
         self.policies = PolicyManagementClient(
+            options=self.options,
+            graphqlClient=self.graphqlClient,
+            tokenProvider=self.tokenProvider
+        )
+
+        self.acl = AclManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
             tokenProvider=self.tokenProvider
