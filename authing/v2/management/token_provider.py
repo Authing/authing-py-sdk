@@ -1,6 +1,7 @@
 from ..common.codegen import QUERY
 from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
+import time
 
 
 class ManagementTokenProvider():
@@ -16,10 +17,14 @@ class ManagementTokenProvider():
             "userPoolId": self.options.user_pool_id,
             "secret": self.options.secret
         })
-        return res['accessToken']['accessToken']
+        data = res['accessToken']
+        accessToken, iat, exp = data['accessToken'], data['iat'], data['exp']
+        return accessToken, iat, exp
 
     def getAccessToken(self):
-        if self._accessToken:
+        if self._accessToken and self._accessTokenExpriredAt >= time.time() + 3600:
             return self._accessToken
-        self._accessToken = self._getClientWhenSdkInit()
+        accessToken, iat, exp = self._getClientWhenSdkInit()
+        self._accessToken = accessToken
+        self._accessTokenExpriredAt = exp
         return self._accessToken

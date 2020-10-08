@@ -935,6 +935,16 @@ mutation moveNode($orgId: String!, $nodeId: String!, $targetParentId: String!) {
 }
 
 """,
+    'refreshAccessToken': """
+mutation refreshAccessToken($accessToken: String) {
+  refreshAccessToken(accessToken: $accessToken) {
+    accessToken
+    exp
+    iat
+  }
+}
+
+""",
     'refreshToken': """
 mutation refreshToken($id: String) {
   refreshToken(id: $id) {
@@ -1742,6 +1752,8 @@ mutation updateUserpool($input: UpdateUserpoolInput!) {
 query accessToken($userPoolId: String!, $secret: String!) {
   accessToken(userPoolId: $userPoolId, secret: $secret) {
     accessToken
+    exp
+    iat
   }
 }
 
