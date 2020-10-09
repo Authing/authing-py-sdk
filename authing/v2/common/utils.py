@@ -4,7 +4,7 @@ import rsa
 import base64
 import string
 import random
-import python_jwt as jwt
+import jwt
 
 
 def encrypt(plainText, publicKey):
@@ -42,9 +42,9 @@ def get_random_phone_number():
 
 
 def jwt_verify(token, secret):
-    result = jwt.verify_jwt(
+    result = jwt.decode(
         token,
         secret,
-        ['HS256']
+        algorithms=['HS256']
     )
     return result
