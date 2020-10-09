@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
@@ -8,12 +10,14 @@ class UdfManagementClient(object):
     """Authing User Defined Field Management Client
     """
 
-    def __init__(self, options: ManagementClientOptions, graphqlClient: GraphqlClient, tokenProvider: ManagementTokenProvider):
+    def __init__(self, options, graphqlClient, tokenProvider):
+        # type:(ManagementClientOptions,GraphqlClient,ManagementTokenProvider) -> UdfManagementClient
         self.options = options
         self.graphqlClient = graphqlClient
         self.tokenProvider = tokenProvider
 
     def list_udf(self, targetType):
+        # type:(str) -> object
         """获取自定义字段定义
         """
         data = self.graphqlClient.request(
@@ -26,6 +30,7 @@ class UdfManagementClient(object):
         return data['udf']
 
     def add_udf(self, targetType, key, dataType, label):
+        # type:(str,str,str,str,str) -> object
         """添加自定义字段定义
         """
         data = self.graphqlClient.request(
@@ -41,6 +46,7 @@ class UdfManagementClient(object):
         return data['addUdf']
 
     def remove_udf(self, targetType, key):
+        # type:(str,str) -> object
         """删除自定义字段定义
         """
         data = self.graphqlClient.request(

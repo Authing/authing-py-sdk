@@ -1,4 +1,4 @@
-jwt
+python_jwt
 gql
 requests
 python-dateutil

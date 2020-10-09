@@ -4,7 +4,8 @@ import requests
 
 
 class RestClient(object):
-    def __init__(self, options: AuthenticationClientOptions):
+    def __init__(self, options):
+        # type:(AuthenticationClientOptions) -> RestClient
         self.options = options
 
     def request(self, method, url, token=None, **kwargs):
