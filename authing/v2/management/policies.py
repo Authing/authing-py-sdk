@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from ..common.codegen import QUERY
 from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
@@ -8,12 +10,15 @@ class PolicyManagementClient(object):
     """Authing Policy Management Client
     """
 
-    def __init__(self, options: ManagementClientOptions, graphqlClient: GraphqlClient, tokenProvider: ManagementTokenProvider):
+    def __init__(self, options, graphqlClient, tokenProvider):
+        # type:(ManagementClientOptions,GraphqlClient,ManagementTokenProvider) -> PolicyManagementClient
+
         self.options = options
         self.graphqlClient = graphqlClient
         self.tokenProvider = tokenProvider
 
     def list(self, page=1, limit=10):
+        # type:(int,int) -> any
         """获取策略列表
 
         Args:
@@ -31,6 +36,7 @@ class PolicyManagementClient(object):
         return data['policies']
 
     def create(self, code, statements, description=None):
+        # type:(str,any,str) -> any
         """创建策略
         """
         data = self.graphqlClient.request(
@@ -44,7 +50,8 @@ class PolicyManagementClient(object):
         )
         return data['createPolicy']
 
-    def detail(self, code: str):
+    def detail(self, code):
+        # type:(int) -> any
         """获取策略详情
         """
         data = self.graphqlClient.request(
@@ -56,7 +63,8 @@ class PolicyManagementClient(object):
         )
         return data['policy']
 
-    def update(self, code: str, statements, description: str = None, ):
+    def update(self, code, statements, description=None, ):
+        # type:(str,any,str) -> any
         """修改策略
         """
         data = self.graphqlClient.request(
@@ -70,7 +78,8 @@ class PolicyManagementClient(object):
         )
         return data['updatePolicy']
 
-    def delete(self, code: str):
+    def delete(self, code):
+        # type:(int) -> any
         """删除策略
         """
         data = self.graphqlClient.request(

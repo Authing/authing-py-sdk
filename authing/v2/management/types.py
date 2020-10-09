@@ -13,7 +13,8 @@ GKl64GDcIq3au+aqJQIDAQAB
 
 
 class ManagementClientOptions():
-    def __init__(self, user_pool_id: str, secret: str, host=None, enc_public_key=None, on_error=None, timeout=10.0):
+    def __init__(self, user_pool_id, secret, host=None, enc_public_key=None, on_error=None, timeout=10.0):
+        # type:(str,str,str,str,any,float) -> ManagementClientOptions
         self.user_pool_id = user_pool_id
         self.secret = secret
         self.host = host or 'https://core.authing.cn'

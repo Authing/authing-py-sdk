@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from .policies import PolicyManagementClient
 from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
@@ -14,7 +16,8 @@ class ManagementClient(object):
     """Authing Management Client
     """
 
-    def __init__(self, options: ManagementClientOptions):
+    def __init__(self, options):
+        # type:(ManagementClientOptions) -> ManagementClient
         self.options = options
         self.graphqlClient = GraphqlClient(
             options=self.options,
@@ -70,7 +73,8 @@ class ManagementClient(object):
         self._userpool_detail = data['userpool']
         return self._userpool_detail
 
-    def check_login_status(self, token: str, fetchUserDetail: bool = False):
+    def check_login_status(self, token, fetchUserDetail=False):
+        # type:(str,bool) -> any
         jwt_secret = self._get_userpool_detail()['jwtSecret']
         result = jwt_verify(token, jwt_secret)
         data, iat, exp = result['data'], result['iat'], result['exp']
