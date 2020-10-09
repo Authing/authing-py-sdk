@@ -445,6 +445,19 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
+    def _convert_udv(self, data):
+        for i, item in enumerate(data):
+            dataType, value = item['dataType'], item['value']
+            if dataType == "NUMBER":
+                data[i]['value'] = json.loads(value)
+            elif dataType == "BOOLEAN":
+                data[i]['value'] = json.loads(value)
+            elif dataType == 'DATETIME':
+                data[i]['value'] = parser.parse(value)
+            elif dataType == 'OBJECT':
+                data[i]['value'] = json.loads(value)
+        return data
+
     def list_udv(self):
         """获取当前用户的自定义用户数据
         """
@@ -458,17 +471,7 @@ class AuthenticationClient(object):
             token=self._get_access_token()
         )
         data = data['udv']
-        for i, item in enumerate(data):
-            dataType, value = item['dataType'], item['value']
-            if dataType == "NUMBER":
-                data[i]['value'] = json.loads(value)
-            elif dataType == "BOOLEAN":
-                data[i]['value'] = json.loads(value)
-            elif dataType == 'DATETIME':
-                data[i]['value'] = parser.parse(value)
-            elif dataType == 'OBJECT':
-                data[i]['value'] = json.loads(value)
-        return data
+        return self._convert_udv(data)
 
     def add_udv(self, key, value):
         """设置自定义用户数据
@@ -500,7 +503,8 @@ class AuthenticationClient(object):
             },
             token=self._get_access_token()
         )
-        return data['setUdv']
+        data = data['setUdv']
+        return self._convert_udv(data)
 
     def remove_udv(self, key):
         """删除用户自定义字段数据
@@ -518,7 +522,8 @@ class AuthenticationClient(object):
             },
             token=self._get_access_token()
         )
-        return data['removeUdv']
+        data = data['removeUdv']
+        return self._convert_udv(data)
 
     def logout(self):
         """退出登录 会使当前的 token 失效
