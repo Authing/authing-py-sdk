@@ -1,9 +1,11 @@
 # coding: utf-8
 
 from gql import Client, gql
+from gql.transport.exceptions import TransportQueryError
 from gql.transport.requests import RequestsHTTPTransport
 from ..management.types import ManagementClientOptions
 from .. import __version__
+from ..common.exceptions import AuthingException
 
 
 class GraphqlClient(object):
@@ -24,6 +26,20 @@ class GraphqlClient(object):
         transport = RequestsHTTPTransport(self.endpoint, headers=headers)
         client = Client(transport=transport,
                         fetch_schema_from_transport=True)
-        result = client.execute(
-            gql(query), variable_values=params)
-        return result
+
+        try:
+            result = client.execute(
+                gql(query), variable_values=params)
+            return result
+        except TransportQueryError as e:
+            errmsg = None
+            errcode = None
+            errors = e.errors
+            for _, err in enumerate(errors):
+                msg = err['message']
+                errcode, errmsg = msg['code'], msg['message']
+                self.options.on_error(errcode, errmsg)
+            raise AuthingException(
+                errcode=errcode,
+                errmsg=errmsg
+            )

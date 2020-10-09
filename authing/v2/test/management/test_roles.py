@@ -57,7 +57,8 @@ class TestRoles(unittest.TestCase):
         role = management.roles.create(
             code=get_random_string(5)
         )
-        status_code, message = management.roles.delete(code=role['code'])
+        data = management.roles.delete(code=role['code'])
+        status_code = data['code']
         self.assertTrue(status_code == 200)
 
         newRole = management.roles.detail(code=role['code'])
@@ -67,7 +68,9 @@ class TestRoles(unittest.TestCase):
         role = management.roles.create(
             code=get_random_string(5)
         )
-        totalCount, users = management.roles.list_users(role['code'])
+        data = management.roles.list_users(role['code'])
+        totalCount = data['totalCount']
+        users = data['list']
         self.assertTrue(totalCount == 0)
         self.assertTrue(len(users) == 0)
 
@@ -82,7 +85,9 @@ class TestRoles(unittest.TestCase):
             }
         )
         management.roles.add_users(role['code'], [user['id']])
-        totalCount, users = management.roles.list_users(role['code'])
+        data = management.roles.list_users(role['code'])
+        totalCount = data['totalCount']
+        users = data['list']
         self.assertTrue(totalCount == 1)
         self.assertTrue(len(users) == 1)
 
@@ -98,7 +103,9 @@ class TestRoles(unittest.TestCase):
         )
         management.roles.add_users(role['code'], [user['id']])
         management.roles.remove_users(role['code'], [user['id']])
-        totalCount, users = management.roles.list_users(role['code'])
+        data = management.roles.list_users(role['code'])
+        totalCount = data['totalCount']
+        users = data['list']
         self.assertTrue(totalCount == 0)
         self.assertTrue(len(users) == 0)
 
@@ -115,7 +122,8 @@ class TestRoles(unittest.TestCase):
         )
         role = createRole()
         management.roles.add_policies(role['code'], [policy['code']])
-        totalCount, _list = management.roles.list_policies(role['code'])
+        data = management.roles.list_policies(role['code'])
+        totalCount = data['totalCount']
         self.assertTrue(totalCount == 1)
 
     def test_remove_policies(self):
@@ -132,5 +140,6 @@ class TestRoles(unittest.TestCase):
         role = createRole()
         management.roles.add_policies(role['code'], [policy['code']])
         management.roles.remove_policies(role['code'], [policy['code']])
-        totalCount, _list = management.roles.list_policies(role['code'])
+        data = management.roles.list_policies(role['code'])
+        totalCount = data['totalCount']
         self.assertTrue(totalCount == 0)

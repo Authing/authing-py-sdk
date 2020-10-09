@@ -139,10 +139,10 @@ class TestPolicies(unittest.TestCase):
             targetIdentifiers=[user['id']]
         )
 
-        totalCount, _list = management.policies.list_assignments(
+        data = management.policies.list_assignments(
             code=policy['code']
         )
-
+        totalCount = data['totalCount']
         self.assertTrue(totalCount == 1)
 
     def test_add_assignments_to_role(self):
@@ -165,10 +165,10 @@ class TestPolicies(unittest.TestCase):
             targetType='ROLE',
             targetIdentifiers=[role['code']]
         )
-        totalCount, _list = management.policies.list_assignments(
+        data = management.policies.list_assignments(
             code=policy['code']
         )
-
+        totalCount = data['totalCount']
         self.assertTrue(totalCount == 1)
 
     def test_remove_assignments(self):
@@ -196,8 +196,8 @@ class TestPolicies(unittest.TestCase):
             targetType='ROLE',
             targetIdentifiers=[role['code']]
         )
-        totalCount, _list = management.policies.list_assignments(
+        data = management.policies.list_assignments(
             code=policy['code']
         )
-
+        totalCount = data['totalCount']
         self.assertTrue(totalCount == 0)

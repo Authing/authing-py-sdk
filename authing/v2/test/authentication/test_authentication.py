@@ -271,7 +271,7 @@ class TestAuthentication(unittest.TestCase):
                 key='school',
                 value=11
             )
-        except:
+        except Exception as e:
             failed = True
         self.assertTrue(failed)
 

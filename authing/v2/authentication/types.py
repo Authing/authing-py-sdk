@@ -1,5 +1,11 @@
+from ..common.exceptions import AuthingException
+
+
 def DEFAULT_ONERROR(code, message):
-    raise(code, message)
+    raise AuthingException(
+        errcode=code,
+        errmsg=message
+    )
 
 
 DEFAULT_ENCRYPT_PUBLICKEY = """
