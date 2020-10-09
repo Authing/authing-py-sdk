@@ -13,7 +13,7 @@ class UdfManagementClient(object):
         self.graphqlClient = graphqlClient
         self.tokenProvider = tokenProvider
 
-    def list_udf(self, targetType):
+    def list(self, targetType):
         """获取自定义字段定义
         """
         data = self.graphqlClient.request(
@@ -25,7 +25,7 @@ class UdfManagementClient(object):
         )
         return data['udf']
 
-    def add_udf(self, targetType, key, dataType, label):
+    def add(self, targetType, key, dataType, label):
         """添加自定义字段定义
         """
         data = self.graphqlClient.request(
@@ -40,7 +40,7 @@ class UdfManagementClient(object):
         )
         return data['addUdf']
 
-    def remove_udf(self, targetType, key):
+    def remove(self, targetType, key):
         """删除自定义字段定义
         """
         data = self.graphqlClient.request(

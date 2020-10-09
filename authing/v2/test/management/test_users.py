@@ -269,7 +269,7 @@ class TestUsers(unittest.TestCase):
         # 字符串
         failed = False
         try:
-            management.udf.add_udf(
+            management.udf.add(
                 targetType='USER',
                 key='school',
                 dataType='STRING',
@@ -287,7 +287,7 @@ class TestUsers(unittest.TestCase):
         # 数字
         failed = False
         try:
-            management.udf.add_udf(
+            management.udf.add(
                 targetType='USER',
                 key='age',
                 dataType='NUMBER',
@@ -305,7 +305,7 @@ class TestUsers(unittest.TestCase):
         # boolean
         failed = False
         try:
-            management.udf.add_udf(
+            management.udf.add(
                 targetType='USER',
                 key='is_boss',
                 dataType='BOOLEAN',
@@ -327,7 +327,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='school',
             dataType='STRING',
@@ -349,7 +349,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='age',
             dataType='NUMBER',
@@ -371,7 +371,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='is_boss',
             dataType='BOOLEAN',
@@ -393,7 +393,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='birthday',
             dataType='DATETIME',
@@ -415,7 +415,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='settings',
             dataType='OBJECT',
@@ -439,7 +439,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='age',
             dataType='NUMBER',

@@ -259,7 +259,7 @@ class TestAuthentication(unittest.TestCase):
         # 字符串
         failed = False
         try:
-            management.udf.add_udf(
+            management.udf.add(
                 targetType='USER',
                 key='school',
                 dataType='STRING',
@@ -276,7 +276,7 @@ class TestAuthentication(unittest.TestCase):
         # 数字
         failed = False
         try:
-            management.udf.add_udf(
+            management.udf.add(
                 targetType='USER',
                 key='age',
                 dataType='NUMBER',
@@ -293,7 +293,7 @@ class TestAuthentication(unittest.TestCase):
         # boolean
         failed = False
         try:
-            management.udf.add_udf(
+            management.udf.add(
                 targetType='USER',
                 key='is_boss',
                 dataType='BOOLEAN',
@@ -322,7 +322,7 @@ class TestAuthentication(unittest.TestCase):
             generate_token=True
         )
 
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='school',
             dataType='STRING',
@@ -350,7 +350,7 @@ class TestAuthentication(unittest.TestCase):
             password=password,
             generate_token=True
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='age',
             dataType='NUMBER',
@@ -378,7 +378,7 @@ class TestAuthentication(unittest.TestCase):
             password=password,
             generate_token=True
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='is_boss',
             dataType='BOOLEAN',
@@ -406,7 +406,7 @@ class TestAuthentication(unittest.TestCase):
             password=password,
             generate_token=True
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='birthday',
             dataType='DATETIME',
@@ -434,7 +434,7 @@ class TestAuthentication(unittest.TestCase):
             password=password,
             generate_token=True
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='settings',
             dataType='OBJECT',
@@ -464,7 +464,7 @@ class TestAuthentication(unittest.TestCase):
             password=password,
             generate_token=True
         )
-        management.udf.add_udf(
+        management.udf.add(
             targetType='USER',
             key='age',
             dataType='NUMBER',
