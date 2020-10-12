@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from .types import ManagementClientOptions
 from ..common.utils import encrypt
 from ..common.graphql import GraphqlClient
@@ -12,12 +14,14 @@ class UsersManagementClient(object):
     """Authing Users Management Client
     """
 
-    def __init__(self, options: ManagementClientOptions, graphqlClient: GraphqlClient, tokenProvider: ManagementTokenProvider):
+    def __init__(self, options, graphqlClient, tokenProvider):
+        # type:(ManagementClientOptions,GraphqlClient,ManagementTokenProvider) -> UsersManagementClient
         self.options = options
         self.graphqlClient = graphqlClient
         self.tokenProvider = tokenProvider
 
     def list(self, page=1, limit=10):
+        # type:(int,int) -> any
         """获取用户池用户列表
 
         Args:
@@ -34,7 +38,8 @@ class UsersManagementClient(object):
             }, token=self.tokenProvider.getAccessToken())
         return data['users']
 
-    def create(self, userInfo: object):
+    def create(self, userInfo):
+        # type:(object) -> any
         """创建用户
 
         Args:
@@ -51,7 +56,8 @@ class UsersManagementClient(object):
         }, token=self.tokenProvider.getAccessToken())
         return data["createUser"]
 
-    def update(self, userId: str, updates: object):
+    def update(self, userId, updates):
+        # type:(str,object) -> any
         """修改用户信息
 
         Args:
@@ -72,7 +78,8 @@ class UsersManagementClient(object):
         )
         return data['updateUser']
 
-    def detail(self, userId: str):
+    def detail(self, userId):
+        # type:(str) -> any
         """获取用户资料详情
 
         Args:
@@ -87,7 +94,8 @@ class UsersManagementClient(object):
         )
         return data['user']
 
-    def search(self, query: str, page=1, limit=10):
+    def search(self, query, page=1, limit=10):
+        # type:(str,int,int) -> any
         """搜索用户
 
         Args:
@@ -107,10 +115,11 @@ class UsersManagementClient(object):
         return data['searchUser']
 
     def batch(self, userIds):
+        # type:(str) -> any
         """批量获取用户详情
 
         Args:
-            userIds: 用户 ID 列表
+            userIds: 用户 ID 列表，以英文逗号分隔
         """
         data = self.graphqlClient.request(
             query=QUERY['userBatch'],
@@ -121,7 +130,8 @@ class UsersManagementClient(object):
         )
         return data['userBatch']
 
-    def delete(self, userId: str):
+    def delete(self, userId):
+        # type:(str) -> any
         """删除用户
 
         Args:
@@ -140,6 +150,7 @@ class UsersManagementClient(object):
         return data['deleteUser']
 
     def delete_many(self, userIds):
+        # type:(str) -> any
         """批量删除用户
 
         Args:
@@ -154,7 +165,8 @@ class UsersManagementClient(object):
         )
         return data['deleteUsers']
 
-    def list_roles(self, userId: str):
+    def list_roles(self, userId):
+        # type:(str) -> any
         """获取用户的角色列表
 
         Args:
@@ -169,7 +181,8 @@ class UsersManagementClient(object):
         )
         return data['user']['roles']
 
-    def add_roles(self, userId: str, roles):
+    def add_roles(self, userId, roles):
+        # type:(str,object) -> any
         """批量授权用户角色
 
         Args:
@@ -186,7 +199,8 @@ class UsersManagementClient(object):
         )
         return data['assignRole']
 
-    def remove_roles(self, userId: str, roles):
+    def remove_roles(self, userId, roles):
+        # type:(str,object) -> any
         """批量撤销用户角色
 
         Args:
@@ -203,7 +217,8 @@ class UsersManagementClient(object):
         )
         return data['revokeRole']
 
-    def refresh_token(self, userId: str):
+    def refresh_token(self, userId):
+        # type:(str) -> any
         """刷新某个用户的 token
 
         Args:
@@ -222,7 +237,8 @@ class UsersManagementClient(object):
         data = data['refreshToken']
         return data
 
-    def list_policies(self, userId: str, page=1, limit=10):
+    def list_policies(self, userId, page=1, limit=10):
+        # type:(str,int,int) -> any
         """获取策略列表
         """
         data = self.graphqlClient.request(
@@ -238,6 +254,7 @@ class UsersManagementClient(object):
         return data['policyAssignments']
 
     def add_policies(self, userId, policies):
+        # type:(str,object) -> any
         """添加策略
         """
         data = self.graphqlClient.request(
@@ -252,6 +269,7 @@ class UsersManagementClient(object):
         return data['addPolicyAssignments']
 
     def remove_policies(self, userId, policies):
+        # type:(str,object) -> any
         """移除策略
         """
         data = self.graphqlClient.request(
@@ -265,7 +283,8 @@ class UsersManagementClient(object):
         )
         return data['removePolicyAssignments']
 
-    def list_udv(self, userId: str):
+    def list_udv(self, userId):
+        # type:(str) -> any
         """获取该用户的自定义数据列表
         """
         data = self.graphqlClient.request(
@@ -290,6 +309,7 @@ class UsersManagementClient(object):
         return data
 
     def add_udv(self, userId, key, value):
+        # type:(str,str,any) -> any
         """设置自定义用户数据
 
         Args:
@@ -322,6 +342,7 @@ class UsersManagementClient(object):
         return data['setUdv']
 
     def remove_udv(self, userId, key):
+        # type:(str,str) -> any
         """删除用户自定义字段数据
 
         Args:

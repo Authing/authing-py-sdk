@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from ...common.utils import get_random_string, get_random_phone_number
 from ...authentication import AuthenticationClientOptions
 from ...authentication.authing import AuthenticationClient
@@ -269,7 +271,7 @@ class TestAuthentication(unittest.TestCase):
                 key='school',
                 value=11
             )
-        except:
+        except Exception as e:
             failed = True
         self.assertTrue(failed)
 

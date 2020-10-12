@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
@@ -8,12 +10,14 @@ class RolesManagementClient(object):
     """Authing Roles Management Client
     """
 
-    def __init__(self, options: ManagementClientOptions, graphqlClient: GraphqlClient, tokenProvider: ManagementTokenProvider):
+    def __init__(self, options, graphqlClient, tokenProvider):
+        # type:(ManagementClientOptions,GraphqlClient,ManagementTokenProvider) -> RolesManagementClient
         self.options = options
         self.graphqlClient = graphqlClient
         self.tokenProvider = tokenProvider
 
     def list(self, page=1, limit=10):
+        # type:(int,int) -> object
         """获取用户池角色列表
 
         Args:
@@ -34,10 +38,11 @@ class RolesManagementClient(object):
         return data['roles']
 
     def create(self,
-               code: str,
-               description: str = None,
-               parentCode: str = None
+               code,
+               description=None,
+               parentCode=None
                ):
+        # type:(str,str,str) -> object
         """创建角色 
 
         Args:
@@ -56,7 +61,8 @@ class RolesManagementClient(object):
         )
         return data['createRole']
 
-    def detail(self, code: str):
+    def detail(self, code):
+        # type:(str) -> object
         """获取角色详情
 
         Args:
@@ -71,7 +77,8 @@ class RolesManagementClient(object):
         )
         return data['role']
 
-    def update(self, code: str, description: str = None, newCode: str = None):
+    def update(self, code, description=None, newCode=None):
+        # type:(str,str,str) -> object
         """修改角色资料
 
         Args:
@@ -90,7 +97,8 @@ class RolesManagementClient(object):
         )
         return data['updateRole']
 
-    def delete(self, code: str):
+    def delete(self, code):
+        # type:(str) -> object
         """删除角色
 
         Args:
@@ -106,6 +114,7 @@ class RolesManagementClient(object):
         return data['deleteRole']
 
     def delete_many(self, code_list):
+        # type:(object) -> object
         """批量删除角色
 
         Args:
@@ -120,7 +129,8 @@ class RolesManagementClient(object):
         )
         return data['deleteRoles']
 
-    def list_users(self, code: str):
+    def list_users(self, code):
+        # type:(str) -> object
         """获取用户列表
         """
         data = self.graphqlClient.request(
@@ -133,6 +143,7 @@ class RolesManagementClient(object):
         return data['role']['users']
 
     def add_users(self, code, userIds):
+        # type:(str,object) -> object
         """添加用户
         """
         data = self.graphqlClient.request(
@@ -145,7 +156,8 @@ class RolesManagementClient(object):
         )
         return data['assignRole']
 
-    def remove_users(self, code: str, userIds):
+    def remove_users(self, code, userIds):
+        # type:(str,object) -> object
         """移除用户
         """
         data = self.graphqlClient.request(
@@ -158,7 +170,8 @@ class RolesManagementClient(object):
         )
         return data['revokeRole']
 
-    def list_policies(self, code: str, page=1, limit=10):
+    def list_policies(self, code, page=1, limit=10):
+        # type:(str,int,int) -> object
         """获取策略列表
         """
         data = self.graphqlClient.request(
@@ -174,6 +187,7 @@ class RolesManagementClient(object):
         return data['policyAssignments']
 
     def add_policies(self, code, policies):
+        # type:(str,object) -> object
         """添加策略
         """
         data = self.graphqlClient.request(
@@ -188,6 +202,7 @@ class RolesManagementClient(object):
         return data['addPolicyAssignments']
 
     def remove_policies(self, code, policies):
+        # type:(str,object) -> object
         """移除策略
         """
         data = self.graphqlClient.request(

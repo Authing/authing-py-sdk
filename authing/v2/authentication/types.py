@@ -1,5 +1,11 @@
+from ..common.exceptions import AuthingException
+
+
 def DEFAULT_ONERROR(code, message):
-    raise(code, message)
+    raise AuthingException(
+        errcode=code,
+        errmsg=message
+    )
 
 
 DEFAULT_ENCRYPT_PUBLICKEY = """
@@ -13,7 +19,7 @@ GKl64GDcIq3au+aqJQIDAQAB
 
 
 class AuthenticationClientOptions():
-    def __init__(self, user_pool_id: str, access_token: str = None, host=None, enc_public_key=None, on_error=None, timeout=10.0):
+    def __init__(self, user_pool_id, access_token=None, host=None, enc_public_key=None, on_error=None, timeout=10.0):
         self.user_pool_id = user_pool_id
         self.host = host or 'https://core.authing.cn'
         self.on_error = on_error or DEFAULT_ONERROR

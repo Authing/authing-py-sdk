@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from ..common.codegen import QUERY
 from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
@@ -5,7 +7,8 @@ import time
 
 
 class ManagementTokenProvider():
-    def __init__(self, options: ManagementClientOptions, graphqlClient: GraphqlClient):
+    def __init__(self, options, graphqlClient):
+        # type:(ManagementClientOptions,GraphqlClient) -> ManagementTokenProvider
         self.options = options
         self.graphqlClient = graphqlClient
 

@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from ..common.rest import RestClient
 from .types import AuthenticationClientOptions
 from ..common.graphql import GraphqlClient
@@ -12,7 +14,8 @@ class AuthenticationClient(object):
     """Authing Management Client
     """
 
-    def __init__(self, options: AuthenticationClientOptions):
+    def __init__(self, options):
+        # type:(AuthenticationClientOptions) -> AuthenticationClient
 
         self.options = options
         self.graphqlClient = GraphqlClient(
@@ -45,10 +48,10 @@ class AuthenticationClient(object):
     def _get_access_token(self):
         return self._token
 
-    def _set_access_token(self, token: str):
+    def _set_access_token(self, token):
         self._token = token
 
-    def get_current_user(self, token: str = None):
+    def get_current_user(self, token=None):
         """获取当前用户的资料
 
         Args:
@@ -63,7 +66,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def register_by_email(self, email: str, password: str, profile=None, force_login=False, generate_token=False):
+    def register_by_email(self, email, password, profile=None, force_login=False, generate_token=False):
         """通过邮箱注册
 
         Args:
@@ -90,7 +93,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def register_by_username(self, username: str, password: str, profile=None, force_login=False, generate_token=False):
+    def register_by_username(self, username, password, profile=None, force_login=False, generate_token=False):
         """通过用户名注册
 
         Args:
@@ -117,7 +120,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def register_by_phone_code(self, phone: str, code: str, password=None, profile=None, force_login=False, generate_token=False):
+    def register_by_phone_code(self, phone, code, password=None, profile=None, force_login=False, generate_token=False):
         """通过手机号验证码注册
 
         Args:
@@ -147,7 +150,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def send_sms_code(self, phone: str):
+    def send_sms_code(self, phone):
         url = '%s/api/v2/sms/send' % self.options.host
         data = self.restClient.request(
             method='POST',
@@ -159,7 +162,7 @@ class AuthenticationClient(object):
         )
         return data
 
-    def login_by_email(self, email: str, password: str, auto_register: bool = False, captcha_code: str = None):
+    def login_by_email(self, email, password, auto_register=False, captcha_code=None):
         """使用邮箱登录
 
         Args:
@@ -184,7 +187,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def login_by_username(self, username: str, password: str, auto_register: bool = False, captcha_code: str = None):
+    def login_by_username(self, username, password, auto_register=False, captcha_code=None):
         """使用邮箱登录
 
         Args:
@@ -209,7 +212,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def login_by_phone_code(self, phone: str, code: str):
+    def login_by_phone_code(self, phone, code):
         """使用邮箱登录
 
         Args:
@@ -229,7 +232,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def login_by_phone_password(self, phone: str, password: str, auto_register: bool = False, captcha_code: str = None):
+    def login_by_phone_password(self, phone, password, auto_register=False, captcha_code=None):
         """使用邮箱登录
 
         Args:
@@ -254,7 +257,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def check_login_status(self, token: str = None):
+    def check_login_status(self, token=None):
         """检查 token 的登录状态
 
         Args:
@@ -268,7 +271,7 @@ class AuthenticationClient(object):
         )
         return data['checkLoginStatus']
 
-    def send_email(self, email: str, scene: str):
+    def send_email(self, email, scene):
         """发送邮件
         """
         data = self.graphqlClient.request(
@@ -396,7 +399,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def refresh_token(self, token: str = None):
+    def refresh_token(self, token=None):
         """刷新 token
 
         Returns:
