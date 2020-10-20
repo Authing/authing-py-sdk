@@ -308,7 +308,7 @@ class UsersManagementClient(object):
                 data[i]['value'] = json.loads(value)
         return data
 
-    def add_udv(self, userId, key, value):
+    def set_udv(self, userId, key, value):
         # type:(str,str,any) -> any
         """设置自定义用户数据
 

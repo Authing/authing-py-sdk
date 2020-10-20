@@ -269,13 +269,13 @@ class TestUsers(unittest.TestCase):
         # 字符串
         failed = False
         try:
-            management.udf.add(
+            management.udf.set(
                 targetType='USER',
                 key='school',
                 dataType='STRING',
                 label='学校'
             )
-            management.users.add_udv(
+            management.users.set_udv(
                 userId=user['id'],
                 key='school',
                 value=11
@@ -287,13 +287,13 @@ class TestUsers(unittest.TestCase):
         # 数字
         failed = False
         try:
-            management.udf.add(
+            management.udf.set(
                 targetType='USER',
                 key='age',
                 dataType='NUMBER',
                 label='学校'
             )
-            management.users.add_udv(
+            management.users.set_udv(
                 userId=user['id'],
                 key='age',
                 value='18'
@@ -305,13 +305,13 @@ class TestUsers(unittest.TestCase):
         # boolean
         failed = False
         try:
-            management.udf.add(
+            management.udf.set(
                 targetType='USER',
                 key='is_boss',
                 dataType='BOOLEAN',
                 label='是否为 boss'
             )
-            management.users.add_udv(
+            management.users.set_udv(
                 userId=user['id'],
                 key='is_boss',
                 value='ok'
@@ -327,13 +327,13 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='school',
             dataType='STRING',
             label='学校'
         )
-        management.users.add_udv(
+        management.users.set_udv(
             userId=user['id'],
             key='school',
             value='ucla'
@@ -349,13 +349,13 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='age',
             dataType='NUMBER',
             label='学校'
         )
-        management.users.add_udv(
+        management.users.set_udv(
             userId=user['id'],
             key='age',
             value=18
@@ -371,13 +371,13 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='is_boss',
             dataType='BOOLEAN',
             label='是否为 boss'
         )
-        management.users.add_udv(
+        management.users.set_udv(
             userId=user['id'],
             key='is_boss',
             value=False
@@ -393,13 +393,13 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='birthday',
             dataType='DATETIME',
             label='生日'
         )
-        management.users.add_udv(
+        management.users.set_udv(
             userId=user['id'],
             key='birthday',
             value=datetime.now()
@@ -415,13 +415,13 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='settings',
             dataType='OBJECT',
             label='设置'
         )
-        management.users.add_udv(
+        management.users.set_udv(
             userId=user['id'],
             key='settings',
             value={
@@ -439,13 +439,13 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='age',
             dataType='NUMBER',
             label='学校'
         )
-        management.users.add_udv(
+        management.users.set_udv(
             userId=user['id'],
             key='age',
             value=18

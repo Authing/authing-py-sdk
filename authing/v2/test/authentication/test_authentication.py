@@ -36,6 +36,27 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(user['id'])
         self.assertTrue(user['email'] == email)
 
+    def test_register_by_email_with_profile(self):
+        authentication = AuthenticationClient(
+            options=AuthenticationClientOptions(
+                user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+                host=os.getenv('AUTHING_SERVER')
+            )
+        )
+        email = '%s@authing.cn' % get_random_string(10)
+        user = authentication.register_by_email(
+            email=email,
+            password=get_random_string(10),
+            profile={
+                'nickname': 'Nick'
+            },
+            generate_token=True
+        )
+        self.assertTrue(user)
+        self.assertTrue(user['id'])
+        self.assertTrue(user['email'] == email)
+        self.assertTrue(user['token'] != None)
+
     def test_register_by_username(self):
         authentication = AuthenticationClient(
             options=AuthenticationClientOptions(
@@ -261,13 +282,13 @@ class TestAuthentication(unittest.TestCase):
         # 字符串
         failed = False
         try:
-            management.udf.add(
+            management.udf.set(
                 targetType='USER',
                 key='school',
                 dataType='STRING',
                 label='学校'
             )
-            authentication.add_udv(
+            authentication.set_udv(
                 key='school',
                 value=11
             )
@@ -278,13 +299,13 @@ class TestAuthentication(unittest.TestCase):
         # 数字
         failed = False
         try:
-            management.udf.add(
+            management.udf.set(
                 targetType='USER',
                 key='age',
                 dataType='NUMBER',
                 label='学校'
             )
-            authentication.add_udv(
+            authentication.set_udv(
                 key='age',
                 value='18'
             )
@@ -295,13 +316,13 @@ class TestAuthentication(unittest.TestCase):
         # boolean
         failed = False
         try:
-            management.udf.add(
+            management.udf.set(
                 targetType='USER',
                 key='is_boss',
                 dataType='BOOLEAN',
                 label='是否为 boss'
             )
-            authentication.add_udv(
+            authentication.set_udv(
                 key='is_boss',
                 value='ok'
             )
@@ -324,13 +345,13 @@ class TestAuthentication(unittest.TestCase):
             generate_token=True
         )
 
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='school',
             dataType='STRING',
             label='学校'
         )
-        authentication.add_udv(
+        authentication.set_udv(
             key='school',
             value='ucla'
         )
@@ -352,13 +373,13 @@ class TestAuthentication(unittest.TestCase):
             password=password,
             generate_token=True
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='age',
             dataType='NUMBER',
             label='学校'
         )
-        authentication.add_udv(
+        authentication.set_udv(
             key='age',
             value=18
         )
@@ -380,13 +401,13 @@ class TestAuthentication(unittest.TestCase):
             password=password,
             generate_token=True
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='is_boss',
             dataType='BOOLEAN',
             label='是否为 boss'
         )
-        authentication.add_udv(
+        authentication.set_udv(
             key='is_boss',
             value=False
         )
@@ -408,13 +429,13 @@ class TestAuthentication(unittest.TestCase):
             password=password,
             generate_token=True
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='birthday',
             dataType='DATETIME',
             label='生日'
         )
-        authentication.add_udv(
+        authentication.set_udv(
             key='birthday',
             value=datetime.now()
         )
@@ -436,13 +457,13 @@ class TestAuthentication(unittest.TestCase):
             password=password,
             generate_token=True
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='settings',
             dataType='OBJECT',
             label='设置'
         )
-        authentication.add_udv(
+        authentication.set_udv(
             key='settings',
             value={
                 'favorColor': 'red'
@@ -466,13 +487,13 @@ class TestAuthentication(unittest.TestCase):
             password=password,
             generate_token=True
         )
-        management.udf.add(
+        management.udf.set(
             targetType='USER',
             key='age',
             dataType='NUMBER',
             label='学校'
         )
-        authentication.add_udv(
+        authentication.set_udv(
             key='age',
             value=18
         )

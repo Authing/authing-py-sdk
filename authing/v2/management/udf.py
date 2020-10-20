@@ -29,12 +29,12 @@ class UdfManagementClient(object):
         )
         return data['udf']
 
-    def add(self, targetType, key, dataType, label):
+    def set(self, targetType, key, dataType, label):
         # type:(str,str,str,str,str) -> object
         """添加自定义字段定义
         """
         data = self.graphqlClient.request(
-            query=QUERY["addUdf"],
+            query=QUERY["setUdf"],
             params={
                 'targetType': targetType,
                 'key': key,
@@ -43,7 +43,7 @@ class UdfManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken()
         )
-        return data['addUdf']
+        return data['setUdf']
 
     def remove(self, targetType, key):
         # type:(str,str) -> object

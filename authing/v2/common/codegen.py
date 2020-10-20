@@ -61,9 +61,11 @@ mutation addMember($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildre
         locality
         region
         postalCode
+        city
+        province
         country
+        createdAt
         updatedAt
-        customData
       }
     }
   }
@@ -117,14 +119,11 @@ mutation addPolicyAssignments($policies: [String!]!, $targetType: PolicyAssignme
 }
 
 """,
-    'addUdf': """
-mutation addUdf($targetType: UDFTargetType!, $key: String!, $dataType: UDFDataType!, $label: String!, $options: String) {
-  addUdf(targetType: $targetType, key: $key, dataType: $dataType, label: $label, options: $options) {
-    targetType
-    dataType
-    key
-    label
-    options
+    'addUserToGroup': """
+mutation addUserToGroup($userIds: [String!]!, $code: String) {
+  addUserToGroup(userIds: $userIds, code: $code) {
+    message
+    code
   }
 }
 
@@ -170,15 +169,6 @@ mutation bindPhone($phone: String!, $phoneCode: String!) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -212,10 +202,11 @@ mutation bindPhone($phone: String!, $phoneCode: String!) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -257,6 +248,18 @@ mutation createFunction($input: CreateFunctionInput!) {
     sourceCode
     description
     url
+  }
+}
+
+""",
+    'createGroup': """
+mutation createGroup($code: String!, $name: String!, $description: String) {
+  createGroup(code: $code, name: $name, description: $description) {
+    code
+    name
+    description
+    createdAt
+    updatedAt
   }
 }
 
@@ -326,11 +329,9 @@ mutation createRole($code: String!, $description: String, $parent: String) {
     isSystem
     createdAt
     updatedAt
-    users {
-      totalCount
-    }
     parent {
       code
+      arn
       description
       isSystem
       createdAt
@@ -383,15 +384,6 @@ mutation createUser($userInfo: CreateUserInput!, $keepPassword: Boolean) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -425,10 +417,11 @@ mutation createUser($userInfo: CreateUserInput!, $keepPassword: Boolean) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -441,6 +434,7 @@ mutation createUserpool($name: String!, $domain: String!, $description: String, 
     domain
     description
     secret
+    jwtSecret
     userpoolTypes {
       code
       name
@@ -489,6 +483,10 @@ mutation createUserpool($name: String!, $domain: String!, $description: String, 
       emailEnabled
       usernameEnabled
     }
+    customSMSProvider {
+      enabled
+      provider
+    }
   }
 }
 
@@ -496,6 +494,15 @@ mutation createUserpool($name: String!, $domain: String!, $description: String, 
     'deleteFunction': """
 mutation deleteFunction($id: String!) {
   deleteFunction(id: $id) {
+    message
+    code
+  }
+}
+
+""",
+    'deleteGroups': """
+mutation deleteGroups($codeList: [String!]!) {
+  deleteGroups(codeList: $codeList) {
     message
     code
   }
@@ -658,15 +665,6 @@ mutation loginByEmail($input: LoginByEmailInput!) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -700,10 +698,11 @@ mutation loginByEmail($input: LoginByEmailInput!) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -721,15 +720,6 @@ mutation loginByPhoneCode($input: LoginByPhoneCodeInput!) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -763,10 +753,11 @@ mutation loginByPhoneCode($input: LoginByPhoneCodeInput!) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -784,15 +775,6 @@ mutation loginByPhonePassword($input: LoginByPhonePasswordInput!) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -826,10 +808,11 @@ mutation loginByPhonePassword($input: LoginByPhonePasswordInput!) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -847,15 +830,6 @@ mutation loginByUsername($input: LoginByUsernameInput!) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -889,10 +863,11 @@ mutation loginByUsername($input: LoginByUsernameInput!) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -974,15 +949,6 @@ mutation registerByEmail($input: RegisterByEmailInput!) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -1016,10 +982,11 @@ mutation registerByEmail($input: RegisterByEmailInput!) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -1037,15 +1004,6 @@ mutation registerByPhoneCode($input: RegisterByPhoneCodeInput!) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -1079,10 +1037,11 @@ mutation registerByPhoneCode($input: RegisterByPhoneCodeInput!) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -1100,15 +1059,6 @@ mutation registerByUsername($input: RegisterByUsernameInput!) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -1142,10 +1092,11 @@ mutation registerByUsername($input: RegisterByUsernameInput!) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -1211,9 +1162,11 @@ mutation removeMember($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChil
         locality
         region
         postalCode
+        city
+        province
         country
+        createdAt
         updatedAt
-        customData
       }
     }
   }
@@ -1232,11 +1185,8 @@ mutation removePolicyAssignments($policies: [String!]!, $targetType: PolicyAssig
     'removeUdf': """
 mutation removeUdf($targetType: UDFTargetType!, $key: String!) {
   removeUdf(targetType: $targetType, key: $key) {
-    targetType
-    dataType
-    key
-    label
-    options
+    message
+    code
   }
 }
 
@@ -1247,6 +1197,15 @@ mutation removeUdv($targetType: UDFTargetType!, $targetId: String!, $key: String
     key
     dataType
     value
+  }
+}
+
+""",
+    'removeUserFromGroup': """
+mutation removeUserFromGroup($userIds: [String!]!, $code: String) {
+  removeUserFromGroup(userIds: $userIds, code: $code) {
+    message
+    code
   }
 }
 
@@ -1288,12 +1247,79 @@ mutation sendEmail($email: String!, $scene: EmailScene!) {
 }
 
 """,
+    'setUdf': """
+mutation setUdf($targetType: UDFTargetType!, $key: String!, $dataType: UDFDataType!, $label: String!, $options: String) {
+  setUdf(targetType: $targetType, key: $key, dataType: $dataType, label: $label, options: $options) {
+    targetType
+    dataType
+    key
+    label
+    options
+  }
+}
+
+""",
     'setUdv': """
 mutation setUdv($targetType: UDFTargetType!, $targetId: String!, $key: String!, $value: String!) {
   setUdv(targetType: $targetType, targetId: $targetId, key: $key, value: $value) {
     key
     dataType
     value
+  }
+}
+
+""",
+    'unbindEmail': """
+mutation unbindEmail {
+  unbindEmail {
+    id
+    arn
+    userPoolId
+    username
+    email
+    emailVerified
+    phone
+    phoneVerified
+    unionid
+    openid
+    nickname
+    registerSource
+    photo
+    password
+    oauth
+    token
+    tokenExpiredAt
+    loginsCount
+    lastLogin
+    lastIP
+    signedUp
+    blocked
+    isDeleted
+    device
+    browser
+    company
+    name
+    givenName
+    familyName
+    middleName
+    profile
+    preferredUsername
+    website
+    gender
+    birthdate
+    zoneinfo
+    locale
+    address
+    formatted
+    streetAddress
+    locality
+    region
+    postalCode
+    city
+    province
+    country
+    createdAt
+    updatedAt
   }
 }
 
@@ -1311,15 +1337,6 @@ mutation unbindPhone {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -1353,10 +1370,11 @@ mutation unbindPhone {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -1374,15 +1392,6 @@ mutation updateEmail($email: String!, $emailCode: String!, $oldEmail: String, $o
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -1416,10 +1425,11 @@ mutation updateEmail($email: String!, $emailCode: String!, $oldEmail: String, $o
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -1432,6 +1442,18 @@ mutation updateFunction($input: UpdateFunctionInput!) {
     sourceCode
     description
     url
+  }
+}
+
+""",
+    'updateGroup': """
+mutation updateGroup($code: String!, $name: String, $description: String, $newCode: String) {
+  updateGroup(code: $code, name: $name, description: $description, newCode: $newCode) {
+    code
+    name
+    description
+    createdAt
+    updatedAt
   }
 }
 
@@ -1472,15 +1494,6 @@ mutation updatePassword($newPassword: String!, $oldPassword: String) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -1514,10 +1527,11 @@ mutation updatePassword($newPassword: String!, $oldPassword: String) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -1535,15 +1549,6 @@ mutation updatePhone($phone: String!, $phoneCode: String!, $oldPhone: String, $o
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -1577,19 +1582,19 @@ mutation updatePhone($phone: String!, $phoneCode: String!, $oldPhone: String, $o
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
 """,
     'updatePolicy': """
-mutation updatePolicy($code: String!, $description: String, $statements: [PolicyStatementInput!]!) {
-  updatePolicy(code: $code, description: $description, statements: $statements) {
+mutation updatePolicy($code: String!, $description: String, $statements: [PolicyStatementInput!], $newCode: String) {
+  updatePolicy(code: $code, description: $description, statements: $statements, newCode: $newCode) {
     code
-    assignmentsCount
     isDefault
     description
     statements {
@@ -1599,6 +1604,7 @@ mutation updatePolicy($code: String!, $description: String, $statements: [Policy
     }
     createdAt
     updatedAt
+    assignmentsCount
   }
 }
 
@@ -1607,6 +1613,7 @@ mutation updatePolicy($code: String!, $description: String, $statements: [Policy
 mutation updateRole($code: String!, $description: String, $newCode: String) {
   updateRole(code: $code, description: $description, newCode: $newCode) {
     code
+    arn
     description
     isSystem
     createdAt
@@ -1616,6 +1623,7 @@ mutation updateRole($code: String!, $description: String, $newCode: String) {
     }
     parent {
       code
+      arn
       description
       isSystem
       createdAt
@@ -1638,15 +1646,6 @@ mutation updateUser($id: String, $input: UpdateUserInput!) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -1680,10 +1679,11 @@ mutation updateUser($id: String, $input: UpdateUserInput!) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -1696,6 +1696,7 @@ mutation updateUserpool($input: UpdateUserpoolInput!) {
     domain
     description
     secret
+    jwtSecret
     userpoolTypes {
       code
       name
@@ -1744,6 +1745,10 @@ mutation updateUserpool($input: UpdateUserpoolInput!) {
       emailEnabled
       usernameEnabled
     }
+    customSMSProvider {
+      enabled
+      provider
+    }
   }
 }
 
@@ -1754,21 +1759,6 @@ query accessToken($userPoolId: String!, $secret: String!) {
     accessToken
     exp
     iat
-  }
-}
-
-""",
-    'addUserToGroup': """
-query addUserToGroup($userId: String, $groupId: String) {
-  addUserToGroup(userId: $userId, groupId: $groupId) {
-    totalCount
-    list {
-      code
-      name
-      description
-      createdAt
-      updatedAt
-    }
   }
 }
 
@@ -1836,6 +1826,61 @@ query emailTemplates {
 }
 
 """,
+    'findUser': """
+query findUser($email: String, $phone: String, $username: String) {
+  findUser(email: $email, phone: $phone, username: $username) {
+    id
+    arn
+    userPoolId
+    username
+    email
+    emailVerified
+    phone
+    phoneVerified
+    unionid
+    openid
+    nickname
+    registerSource
+    photo
+    password
+    oauth
+    token
+    tokenExpiredAt
+    loginsCount
+    lastLogin
+    lastIP
+    signedUp
+    blocked
+    isDeleted
+    device
+    browser
+    company
+    name
+    givenName
+    familyName
+    middleName
+    profile
+    preferredUsername
+    website
+    gender
+    birthdate
+    zoneinfo
+    locale
+    address
+    formatted
+    streetAddress
+    locality
+    region
+    postalCode
+    city
+    province
+    country
+    createdAt
+    updatedAt
+  }
+}
+
+""",
     'function': """
 query function($id: String) {
   function(id: $id) {
@@ -1863,6 +1908,23 @@ query functions($page: Int, $limit: Int, $sortBy: SortByEnum) {
 }
 
 """,
+    'getUserGroups': """
+query getUserGroups($id: String!) {
+  user(id: $id) {
+    groups {
+      totalCount
+      list {
+        code
+        name
+        description
+        createdAt
+        updatedAt
+      }
+    }
+  }
+}
+
+""",
     'getUserRoles': """
 query getUserRoles($id: String!) {
   user(id: $id) {
@@ -1882,6 +1944,78 @@ query getUserRoles($id: String!) {
           createdAt
           updatedAt
         }
+      }
+    }
+  }
+}
+
+""",
+    'group': """
+query group($code: String!) {
+  group(code: $code) {
+    code
+    name
+    description
+    createdAt
+    updatedAt
+  }
+}
+
+""",
+    'groupWithUsers': """
+query groupWithUsers($code: String!, $page: Int, $limit: Int) {
+  group(code: $code) {
+    users(page: $page, limit: $limit) {
+      totalCount
+      list {
+        id
+        arn
+        userPoolId
+        username
+        email
+        emailVerified
+        phone
+        phoneVerified
+        unionid
+        openid
+        nickname
+        registerSource
+        photo
+        password
+        oauth
+        token
+        tokenExpiredAt
+        loginsCount
+        lastLogin
+        lastIP
+        signedUp
+        blocked
+        isDeleted
+        device
+        browser
+        company
+        name
+        givenName
+        familyName
+        middleName
+        profile
+        preferredUsername
+        website
+        gender
+        birthdate
+        zoneinfo
+        locale
+        address
+        formatted
+        streetAddress
+        locality
+        region
+        postalCode
+        city
+        province
+        country
+        createdAt
+        updatedAt
       }
     }
   }
@@ -1918,6 +2052,18 @@ query isActionDenied($resource: String!, $action: String!, $userId: String!) {
     'isDomainAvaliable': """
 query isDomainAvaliable($domain: String!) {
   isDomainAvaliable(domain: $domain)
+}
+
+""",
+    'isRootNode': """
+query isRootNode($nodeId: String!, $orgId: String!) {
+  isRootNode(nodeId: $nodeId, orgId: $orgId)
+}
+
+""",
+    'isUserExists': """
+query isUserExists($email: String, $phone: String, $username: String) {
+  isUserExists(email: $email, phone: $phone, username: $username)
 }
 
 """,
@@ -2002,9 +2148,11 @@ query nodeByCodeWithMembers($page: Int, $limit: Int, $sortBy: SortByEnum, $inclu
         locality
         region
         postalCode
+        city
+        province
         country
+        createdAt
         updatedAt
-        customData
       }
     }
   }
@@ -2092,9 +2240,11 @@ query nodeByIdWithMembers($page: Int, $limit: Int, $sortBy: SortByEnum, $include
         locality
         region
         postalCode
+        city
+        province
         country
+        createdAt
         updatedAt
-        customData
       }
     }
   }
@@ -2181,16 +2331,16 @@ query orgs($page: Int, $limit: Int, $sortBy: SortByEnum) {
 
 """,
     'policies': """
-query policies($page: Int, $limit: Int) {
-  policies(page: $page, limit: $limit) {
+query policies($page: Int, $limit: Int, $excludeDefault: Boolean) {
+  policies(page: $page, limit: $limit, excludeDefault: $excludeDefault) {
     totalCount
     list {
       code
-      assignmentsCount
       isDefault
       description
       createdAt
       updatedAt
+      assignmentsCount
       statements {
         resource
         actions
@@ -2306,23 +2456,11 @@ query role($code: String!) {
     'roleWithUsers': """
 query roleWithUsers($code: String!) {
   role(code: $code) {
-    code
-    arn
-    description
-    isSystem
-    createdAt
-    updatedAt
-    parent {
-      code
-      description
-      isSystem
-      createdAt
-      updatedAt
-    }
     users {
       totalCount
       list {
         id
+        arn
         userPoolId
         username
         email
@@ -2364,9 +2502,11 @@ query roleWithUsers($code: String!) {
         locality
         region
         postalCode
+        city
+        province
         country
+        createdAt
         updatedAt
-        customData
       }
     }
   }
@@ -2391,6 +2531,29 @@ query roles($page: Int, $limit: Int, $sortBy: SortByEnum) {
         createdAt
         updatedAt
       }
+    }
+  }
+}
+
+""",
+    'rootNode': """
+query rootNode($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildrenNodes: Boolean, $orgId: String!) {
+  rootNode(orgId: $orgId) {
+    id
+    name
+    nameI18n
+    description
+    descriptionI18n
+    order
+    code
+    root
+    depth
+    path
+    createdAt
+    updatedAt
+    children
+    users(page: $page, limit: $limit, sortBy: $sortBy, includeChildrenNodes: $includeChildrenNodes) {
+      totalCount
     }
   }
 }
@@ -2444,10 +2607,11 @@ query searchUser($query: String!, $fields: [String], $page: Int, $limit: Int) {
       locality
       region
       postalCode
+      city
+      province
       country
       createdAt
       updatedAt
-      customData
     }
   }
 }
@@ -2554,15 +2718,6 @@ query user($id: String) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -2596,10 +2751,11 @@ query user($id: String) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -2617,15 +2773,6 @@ query userBatch($ids: [String!]!) {
     phoneVerified
     unionid
     openid
-    identities {
-      openid
-      userIdInIdp
-      userId
-      connectionId
-      isSocial
-      provider
-      userPoolId
-    }
     nickname
     registerSource
     photo
@@ -2659,10 +2806,11 @@ query userBatch($ids: [String!]!) {
     locality
     region
     postalCode
+    city
+    province
     country
     createdAt
     updatedAt
-    customData
   }
 }
 
@@ -2723,6 +2871,10 @@ query userpool {
       phoneEnabled
       emailEnabled
       usernameEnabled
+    }
+    customSMSProvider {
+      enabled
+      provider
     }
   }
 }
@@ -2814,10 +2966,11 @@ query users($page: Int, $limit: Int, $sortBy: SortByEnum) {
       locality
       region
       postalCode
+      city
+      province
       country
       createdAt
       updatedAt
-      customData
     }
   }
 }

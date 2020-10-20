@@ -17,7 +17,7 @@ management = ManagementClient(ManagementClientOptions(
 
 class TestUdf(unittest.TestCase):
     def test_add(self):
-        udf = management.udf.add(
+        udf = management.udf.set(
             targetType='USER',
             key='school',
             dataType='STRING',

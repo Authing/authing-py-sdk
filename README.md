@@ -25,7 +25,7 @@ pip install authing
 ```python
 from authing.v2.management import ManagementClient, ManagementClientOptions
 
-authing = ManagementClient(
+management_client = ManagementClient(
   options=ManagementClientOptions(
     user_pool_id='AUTHING_USERPOOL_ID',
     secret='AUTHING_USERPOOL_SECRET',
@@ -35,7 +35,7 @@ authing = ManagementClient(
 现在 `ManagementClient()` 实例就可以使用了。例如可以获取用户池中的用户列表：
 
 ```python
-data = authing.users.list()
+data = management_client.users.list()
 ```
 
 返回的数据如下：
@@ -116,7 +116,7 @@ data = authing.users.list()
 ```python
 from authing.v2.authentication import AuthenticationClient, AuthenticationClientOptions
 
-authing = AuthenticationClient(
+authentication_client = AuthenticationClient(
   options=AuthenticationClientOptions(
     user_pool_id='AUTHING_USERPOOL_ID'
 ))
@@ -136,7 +136,7 @@ user = authentication.login_by_username(
 完成登录之后，`update_profile` 等要求用户登录的方法就可用了：
 
 ```python
-authing.update_profile({
+authentication_client.update_profile({
   'nickname': 'Nick'
 })
 ```
@@ -146,7 +146,7 @@ authing.update_profile({
 ```python
 from authing.v2.authentication import AuthenticationClient, AuthenticationClientOptions
 
-authing = AuthenticationClient(
+authentication_client = AuthenticationClient(
   options=AuthenticationClientOptions(
     user_pool_id='AUTHING_USERPOOL_ID',
     access_token='AUTHING_USER_TOKEN'
@@ -156,7 +156,7 @@ authing = AuthenticationClient(
 再次执行 `update_profile` 方法，发现也成功了:
 
 ```
-user = authing.update_profile({
+user = authentication_client.update_profile({
   'nickname': 'Nick'
 })
 ```

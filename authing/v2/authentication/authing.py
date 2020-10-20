@@ -429,19 +429,12 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def unbind_phone(self, phone, phoneCode):
+    def unbind_phone(self):
         """解绑手机号
-
-        Args:
-            phone ([str]): 手机号
-            phoneCode ([str]): 手机号验证码
         """
         data = self.graphqlClient.request(
             query=QUERY['unbindPhone'],
-            params={
-                'phone': phone,
-                'phoneCode': phoneCode
-            },
+            params={},
             token=self._get_access_token()
         )
         user = data['unbindPhone']
@@ -476,7 +469,7 @@ class AuthenticationClient(object):
         data = data['udv']
         return self._convert_udv(data)
 
-    def add_udv(self, key, value):
+    def set_udv(self, key, value):
         """设置自定义用户数据
 
         Args:
