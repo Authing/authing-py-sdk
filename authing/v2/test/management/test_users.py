@@ -192,7 +192,7 @@ class TestUsers(unittest.TestCase):
         self.assertTrue(exp)
 
         status = management.check_login_status(
-            token=token, fetchUserDetail=True)
+            token=token)
         self.assertTrue(status)
         self.assertTrue(status['id'] == user['id'])
 

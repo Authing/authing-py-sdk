@@ -1,4 +1,4 @@
-from ..common.exceptions import AuthingException
+from ..exceptions import AuthingException
 
 
 def DEFAULT_ONERROR(code, message):

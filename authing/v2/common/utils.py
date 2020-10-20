@@ -4,7 +4,6 @@ import rsa
 import base64
 import string
 import random
-import jwt
 
 
 def encrypt(plainText, publicKey):
@@ -39,12 +38,3 @@ def get_random_phone_number():
         suffix = suffix + str(random.randint(0, 9))
 
     return "1{}{}{}".format(second, third, suffix)
-
-
-def jwt_verify(token, secret):
-    result = jwt.decode(
-        token,
-        secret,
-        algorithms=['HS256']
-    )
-    return result

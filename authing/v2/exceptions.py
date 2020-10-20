@@ -1,8 +1,13 @@
-class AuthingError(Exception):
-    def __init__(self, status_code, error_code, message):
-        self.status_code = status_code
-        self.error_code = error_code
-        self.message = message
+# coding: utf-8
+import sys
+
+
+class AuthingException(Exception):
+    def __init__(self, code, errmsg):
+        self.code = code
+        self.message = errmsg
 
     def __str__(self):
-        return '{}: {}'.format(self.status_code, self.message)
+        message = self.message.encode(
+            'utf-8') if sys.version_info[0] == 2 else self.message
+        return 'Authing Request Error: {} {}'.format(self.code, message)

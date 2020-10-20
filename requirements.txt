@@ -1,4 +1,4 @@
 gql
 requests
 python-dateutil
-PyJwt==1.6.4
+rsa==4.0

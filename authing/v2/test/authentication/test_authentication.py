@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from ...common.exceptions import AuthingException
+from ...exceptions import AuthingException
 from ...common.utils import get_random_string, get_random_phone_number
 from ...authentication import AuthenticationClientOptions
 from ...authentication.authing import AuthenticationClient

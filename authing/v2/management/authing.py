@@ -4,7 +4,6 @@ from .policies import PolicyManagementClient
 from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from ..common.codegen import QUERY
-from ..common.utils import jwt_verify
 from .token_provider import ManagementTokenProvider
 from .users import UsersManagementClient
 from .roles import RolesManagementClient
@@ -73,13 +72,12 @@ class ManagementClient(object):
         self._userpool_detail = data['userpool']
         return self._userpool_detail
 
-    def check_login_status(self, token, fetchUserDetail=False):
+    def check_login_status(self, token):
         # type:(str,bool) -> any
-        jwt_secret = self._get_userpool_detail()['jwtSecret']
-        result = jwt_verify(token, jwt_secret)
-        data, iat, exp = result['data'], result['iat'], result['exp']
-        if not fetchUserDetail:
-            return data
-        userId = data['userId']
-        user = self.users.detail(userId=userId)
-        return user
+        data = self.graphqlClient.request(
+            query=QUERY['checkLoginStatus'],
+            params={
+                'token': token
+            }
+        )
+        return data['checkLoginStatus']
