@@ -1,14 +1,17 @@
 # Authing - Python
 
+- [安装](#安装)
+- [使用用户管理模块](#使用用户管理模块)
+- [使用用户认证模块](#使用用户认证模块)
+- [错误处理](#错误处理)
+- [获取帮助](#获取帮助)
+- [接口索引](#接口索引)
+
 Authing Python SDK 由两部分组成：`ManagementClient` 和 `AuthenticationClient`。`ManagementClient` 中进行的所有操作均以管理员的身份进行，包含管理用户、管理角色、管理权限策略、管理用户池配置等模块。`AuthenticationClient` 中的所有操作以当前终端用户的身份进行，包含登录、注册、修改用户资料、退出登录等方法。
 
 你应该将初始化过后的 `ManagementClient` 实例设置为一个全局变量（只初始化一次），而 `AuthenticationClient` 应该每次请求初始化一个。
 
-- [安装](#安装)
-- [使用 ManagementClient](#使用-managementclient)
-  - [可用的 Management 模块](#可用的-management-模块)
-- [使用 AuthenticationClient](#使用-authenticationclient)
-  - [可用的 Authentication 方法](#可用的-authentication-方法)
+Authing Python SDK 同时支持 `python2` 和 `python3`。
 
 ## 安装
 
@@ -16,7 +19,7 @@ Authing Python SDK 由两部分组成：`ManagementClient` 和 `AuthenticationCl
 pip install authing
 ```
 
-## 使用 ManagementClient
+## 使用用户管理模块
 
 初始化 `ManagementClient` 需要 `user_pool_id`（用户池 ID） 和 `secret`（用户池密钥）:
 
@@ -98,17 +101,9 @@ data = management_client.users.list()
 }
 ```
 
+## 使用用户认证模块
 
-### 可用的 Management 模块
-
-- Users `ManagementClient().users`
-- Roles `ManagementClient().roles`
-- Policies `ManagementClient().policies`
-- Access Control: `ManagementClient().acl`
-
-## 使用 AuthenticationClient
-
-初始化 `ManagementClient` 需要 `user_pool_id`（用户池 ID）：
+初始化 `AuthenticationClient` 需要 `user_pool_id`（用户池 ID）：
 
 > 你可以在此[了解如何获取 UserPoolId](https://docs.authing.cn/others/faq.html) .
 
@@ -161,28 +156,29 @@ user = authentication_client.update_profile({
 })
 ```
 
-### 可用的 Authentication 方法
+## 错误处理
 
-- 获取当前用户的用户资料: `get_current_user`
-- 使用邮箱注册: `register_by_email`
-- 使用用户名注册: `register_by_username`
-- 使用手机号验证码注册: `register_by_phone_code`
-- 使用邮箱登录: `login_by_email`
-- 使用用户名登录: `login_by_username`
-- 使用手机号验证码登录 `login_by_phone_code`
-- 使用手机号密码登录: `login_by_phone_password`
-- 发送邮件: `send_email`
-- 发送短信验证码: `send_sms_code`
-- 检查 token 的有效状态: `check_login_status`
-- 使用手机号验证码重置密码: `reset_password_by_phone_code`
-- 使用邮件验证码重置密码: `reset_password_by_email_code`
-- 更新用户资料: `update_profile`
-- 更新密码: `update_password`
-- 更新手机号: `update_phone`
-- 更新邮箱: `update_email`
-- 刷新 token: `refresh_token`
-- 绑定手机号: `bind_phone`
-- 解绑手机号: `unbind_phone`
-- 添加当前用户自定义字段值: `set_udv`
-- 获取当前用户的自定义字段值： `udv`
-- 删除当前用户自定义字段值: `remove_udv`
+```python
+from authing.v2.exceptions import AuthingException
+
+try:
+    authentication_client.login_by_username(
+        username='bob',
+        password='passw0rd',
+    )
+except AuthingException as e:
+    print(e.code) # 2004
+    print(e.message) # 用户不存在
+```
+
+> 完整的错误代码请见[此文档](https://docs.authing.cn/advanced/error-code.html)。
+
+
+## 获取帮助
+
+Join us on Gitter: [#authing-chat](https://gitter.im/authing-chat/community)
+
+
+## 接口索引
+
+详细的接口文档请见：[认证模块文档](https://docs.authing.co/sdk/sdk-for-python/authentication/) 和 [管理模块文档](https://docs.authing.co/sdk/sdk-for-python/management/)
