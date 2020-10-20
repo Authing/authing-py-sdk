@@ -123,7 +123,7 @@ class RolesManagementClient(object):
         data = self.graphqlClient.request(
             query=QUERY["deleteRoles"],
             params={
-                'codes': code_list,
+                'codeList': code_list,
             },
             token=self.tokenProvider.getAccessToken()
         )

@@ -528,8 +528,8 @@ mutation deleteOrg($id: String!) {
 
 """,
     'deletePolicies': """
-mutation deletePolicies($codes: [String!]!) {
-  deletePolicies(codes: $codes) {
+mutation deletePolicies($codeList: [String!]!) {
+  deletePolicies(codeList: $codeList) {
     message
     code
   }
@@ -555,8 +555,8 @@ mutation deleteRole($code: String!) {
 
 """,
     'deleteRoles': """
-mutation deleteRoles($codes: [String!]!) {
-  deleteRoles(codes: $codes) {
+mutation deleteRoles($codeList: [String!]!) {
+  deleteRoles(codeList: $codeList) {
     message
     code
   }

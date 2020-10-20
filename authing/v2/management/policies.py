@@ -97,7 +97,7 @@ class PolicyManagementClient(object):
         data = self.graphqlClient.request(
             query=QUERY["deletePolicies"],
             params={
-                'codes': code_list,
+                'codeList': code_list,
             },
             token=self.tokenProvider.getAccessToken()
         )
