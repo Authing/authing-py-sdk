@@ -17,7 +17,8 @@ management = ManagementClient(ManagementClientOptions(
 
 class TestPolicies(unittest.TestCase):
     def test_list(self):
-        totalCount, _list = management.policies.list()
+        data = management.policies.list()
+        totalCount, _list = data['totalCount'], data['list']
         self.assertTrue(totalCount != None)
         self.assertTrue(_list != None)
 

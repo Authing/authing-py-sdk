@@ -557,10 +557,8 @@ mutation deleteRole($code: String!) {
     'deleteRoles': """
 mutation deleteRoles($codes: [String!]!) {
   deleteRoles(codes: $codes) {
-    succeedCount
-    failedCount
     message
-    errors
+    code
   }
 }
 

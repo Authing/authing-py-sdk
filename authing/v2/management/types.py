@@ -3,7 +3,7 @@ from ..common.exceptions import AuthingException
 
 def DEFAULT_ONERROR(code, message):
     raise AuthingException(
-        errcode=code,
+        code=code,
         errmsg=message
     )
 

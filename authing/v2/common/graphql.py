@@ -40,6 +40,6 @@ class GraphqlClient(object):
                 errcode, errmsg = msg['code'], msg['message']
                 self.options.on_error(errcode, errmsg)
             raise AuthingException(
-                errcode=errcode,
+                code=errcode,
                 errmsg=errmsg
-            )
+            ) from e

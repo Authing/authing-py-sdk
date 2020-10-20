@@ -1,8 +1,7 @@
 class AuthingException(Exception):
-    def __init__(self, errcode, errmsg):
-        self.errcode = errcode
-        self.errmsg = errmsg
+    def __init__(self, code, errmsg):
+        self.code = code
         self.message = errmsg
 
     def __str__(self):
-        return 'Authing Error: {} {}'.format(self.errcode, self.errmsg)
+        return 'Authing Error: {} {}'.format(self.code, self.message)

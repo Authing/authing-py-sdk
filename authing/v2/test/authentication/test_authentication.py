@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from ...common.exceptions import AuthingException
 from ...common.utils import get_random_string, get_random_phone_number
 from ...authentication import AuthenticationClientOptions
 from ...authentication.authing import AuthenticationClient
@@ -20,6 +21,26 @@ management = ManagementClient(ManagementClientOptions(
 
 
 class TestAuthentication(unittest.TestCase):
+
+    def test_catch_error(self):
+        authentication = AuthenticationClient(
+            options=AuthenticationClientOptions(
+                user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
+                host=os.getenv('AUTHING_SERVER')
+            )
+        )
+        username = get_random_string(10)
+        password = get_random_string(10)
+
+        try:
+            authentication.login_by_username(
+                username=username,
+                password=password,
+            )
+        except AuthingException as e:
+            print(e.code)
+            print(e.message)
+
     def test_register_by_email(self):
         authentication = AuthenticationClient(
             options=AuthenticationClientOptions(

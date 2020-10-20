@@ -27,3 +27,16 @@ class TestUdf(unittest.TestCase):
 
         udfs = management.udf.list('USER')
         self.assertTrue(len(udfs))
+
+    def test_remove(self):
+        udf = management.udf.set(
+            targetType='USER',
+            key='school',
+            dataType='STRING',
+            label='学校'
+        )
+        self.assertTrue(udf)
+        management.udf.remove(
+            targetType='USER',
+            key='school'
+        )

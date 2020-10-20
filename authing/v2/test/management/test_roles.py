@@ -64,6 +64,17 @@ class TestRoles(unittest.TestCase):
         newRole = management.roles.detail(code=role['code'])
         self.assertTrue(newRole == None)
 
+    def test_delete_many(self):
+        role = management.roles.create(
+            code=get_random_string(5)
+        )
+        data = management.roles.delete_many(code_list=[role['code']])
+        status_code = data['code']
+        self.assertTrue(status_code == 200)
+
+        newRole = management.roles.detail(code=role['code'])
+        self.assertTrue(newRole == None)
+
     def test_list_users(self):
         role = management.roles.create(
             code=get_random_string(5)
