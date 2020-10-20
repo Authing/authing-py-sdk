@@ -26,5 +26,5 @@ class ManagementClientOptions():
         self.host = host or 'https://core.authing.cn'
         self.on_error = on_error or DEFAULT_ONERROR
         self.timeout = timeout
-        self.graphql_endpoint = '%s/v2/graphql' % self.host
+        self.graphql_endpoint = '%s/graphql/v2' % self.host
         self.enc_public_key = enc_public_key or DEFAULT_ENCRYPT_PUBLICKEY

@@ -66,7 +66,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def register_by_email(self, email, password, profile=None, force_login=False, generate_token=False):
+    def register_by_email(self, email, password, profile=None, force_login=False, generate_token=False, clientIp=None):
         """通过邮箱注册
 
         Args:
@@ -85,7 +85,8 @@ class AuthenticationClient(object):
                     'password': password,
                     'profile': profile,
                     'forceLogin': force_login,
-                    'generateToken': generate_token
+                    'generateToken': generate_token,
+                    'clientIp': clientIp
                 }
             }
         )
@@ -93,7 +94,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def register_by_username(self, username, password, profile=None, force_login=False, generate_token=False):
+    def register_by_username(self, username, password, profile=None, force_login=False, generate_token=False, clientIp=None):
         """通过用户名注册
 
         Args:
@@ -112,7 +113,8 @@ class AuthenticationClient(object):
                     'password': password,
                     'profile': profile,
                     'forceLogin': force_login,
-                    'generateToken': generate_token
+                    'generateToken': generate_token,
+                    'clientIp': clientIp
                 }
             }
         )
@@ -120,7 +122,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def register_by_phone_code(self, phone, code, password=None, profile=None, force_login=False, generate_token=False):
+    def register_by_phone_code(self, phone, code, password=None, profile=None, force_login=False, generate_token=False, clientIp=None):
         """通过手机号验证码注册
 
         Args:
@@ -142,7 +144,8 @@ class AuthenticationClient(object):
                     'password': password,
                     'profile': profile,
                     'forceLogin': force_login,
-                    'generateToken': generate_token
+                    'generateToken': generate_token,
+                    'clientIp': clientIp
                 }
             }
         )
@@ -162,7 +165,7 @@ class AuthenticationClient(object):
         )
         return data
 
-    def login_by_email(self, email, password, auto_register=False, captcha_code=None):
+    def login_by_email(self, email, password, auto_register=False, captcha_code=None, clientIp=None):
         """使用邮箱登录
 
         Args:
@@ -179,7 +182,8 @@ class AuthenticationClient(object):
                     'email': email,
                     'password': password,
                     'autoRegister': auto_register,
-                    'captchaCode': captcha_code
+                    'captchaCode': captcha_code,
+                    'clientIp': clientIp
                 }
             }
         )
@@ -187,7 +191,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def login_by_username(self, username, password, auto_register=False, captcha_code=None):
+    def login_by_username(self, username, password, auto_register=False, captcha_code=None, clientIp=None):
         """使用邮箱登录
 
         Args:
@@ -204,7 +208,8 @@ class AuthenticationClient(object):
                     'username': username,
                     'password': password,
                     'autoRegister': auto_register,
-                    'captchaCode': captcha_code
+                    'captchaCode': captcha_code,
+                    'clientIp': clientIp
                 }
             }
         )
@@ -212,7 +217,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def login_by_phone_code(self, phone, code):
+    def login_by_phone_code(self, phone, code, clientIp=None):
         """使用邮箱登录
 
         Args:
@@ -225,6 +230,7 @@ class AuthenticationClient(object):
                 'input': {
                     'phone': phone,
                     'code': code,
+                    'clientIp': clientIp
                 }
             }
         )
@@ -232,7 +238,7 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def login_by_phone_password(self, phone, password, auto_register=False, captcha_code=None):
+    def login_by_phone_password(self, phone, password, auto_register=False, captcha_code=None, clientIp=None):
         """使用邮箱登录
 
         Args:
@@ -249,7 +255,8 @@ class AuthenticationClient(object):
                     'phone': phone,
                     'password': password,
                     'autoRegister': auto_register,
-                    'captchaCode': captcha_code
+                    'captchaCode': captcha_code,
+                    'clientIp': clientIp
                 }
             }
         )
