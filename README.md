@@ -124,7 +124,7 @@ authentication_client = AuthenticationClient(
 ```python
 username = get_random_string(10)
 password = get_random_string(10)
-user = authentication.login_by_username(
+user = authentication_client.login_by_username(
     username=username,
     password=password,
 )
