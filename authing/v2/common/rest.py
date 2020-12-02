@@ -1,11 +1,9 @@
-from ..authentication.types import AuthenticationClientOptions
 from .. import __version__
 import requests
 
 
 class RestClient(object):
     def __init__(self, options):
-        # type:(AuthenticationClientOptions) -> RestClient
         self.options = options
 
     def request(self, method, url, token=None, **kwargs):

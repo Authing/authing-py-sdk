@@ -1,2 +1,2 @@
 from .authing import AuthenticationClient
-from .authing import AuthenticationClientOptions
+from .types import AuthenticationClientOptions

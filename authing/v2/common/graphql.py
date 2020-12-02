@@ -3,7 +3,6 @@
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 from gql.client import Client
-from ..management.types import ManagementClientOptions
 from .. import __version__
 from ..exceptions import AuthingException
 
@@ -21,7 +20,6 @@ Client.execute = execute
 
 class GraphqlClient(object):
     def __init__(self, options, endpoint):
-        # type:(ManagementClientOptions,str) -> GraphqlClient
         self.options = options
         self.endpoint = endpoint
 
