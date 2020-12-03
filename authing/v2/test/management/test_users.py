@@ -75,6 +75,19 @@ class TestUsers(unittest.TestCase):
         )
         self.assertTrue(len(users) == 1)
 
+    def test_find(self):
+        nickname = get_random_string(10)
+        username = get_random_string(10)
+        user = management.users.create(
+            userInfo={
+                'username': username,
+                'password': get_random_string(10),
+                'nickname': nickname
+            }
+        )
+        user = management.users.find(username=username)
+        self.assertTrue(user)
+
     def test_search(self):
         nickname = get_random_string(10)
         user = management.users.create(

@@ -94,6 +94,25 @@ class UsersManagementClient(object):
         )
         return data['user']
 
+    def find(self, email=None, username=None, phone=None):
+        """查找用户
+
+        Args:
+            email (str, optional): 邮箱
+            username (str, optional): 用户名
+            phone (str, optional): 手机号
+        """
+        data = self.graphqlClient.request(
+            query=QUERY['findUser'],
+            params={
+                'email': email,
+                'username': username,
+                'phone': phone
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return data['findUser']
+
     def search(self, query, page=1, limit=10):
         # type:(str,int,int) -> any
         """搜索用户
