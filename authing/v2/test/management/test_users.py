@@ -469,3 +469,36 @@ class TestUsers(unittest.TestCase):
         )
         udvs = management.users.list_udv(user['id'])
         self.assertTrue(len(udvs) == 0)
+
+    def test_add_group(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        group = 'feifan'
+        data = management.users.add_group(user['id'], group)
+        self.assertTrue(data['code'] == 200)
+
+    def test_remove_group(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        group = 'feifan'
+        data = management.users.remove_group(user['id'], group)
+        self.assertTrue(data['code'] == 200)
+
+    def test_list_groups(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        data = management.users.list_groups(user['id'])
+        self.assertTrue(data['totalCount'] != None)
+        self.assertTrue(data['list'] != None)

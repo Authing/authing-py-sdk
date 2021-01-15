@@ -255,6 +255,55 @@ class UsersManagementClient(object):
         )
         data = data['refreshToken']
         return data
+    
+    def list_groups(self, userId):
+        """获取用户的分组列表
+
+        Args:
+            userId (str): 用户 ID
+        """
+        data = self.graphqlClient.request(
+            query=QUERY['getUserGroups'],
+            params={
+                'id': userId,
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return data['user']['groups']
+
+    def add_group(self, userId, group):
+        """获取用户的分组列表
+
+        Args:
+            userId (str): 用户 ID
+            group (str): 分组的 code
+        """
+        data = self.graphqlClient.request(
+            query=QUERY['addUserToGroup'],
+            params={
+                'userIds': [userId],
+                'code': group
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return data['addUserToGroup']
+
+    def remove_group(self, userId, group):
+        """获取用户的分组列表
+
+        Args:
+            userId (str): 用户 ID
+            group (str): 分组的 code
+        """
+        data = self.graphqlClient.request(
+            query=QUERY['removeUserFromGroup'],
+            params={
+                'userIds': [userId],
+                'code': group
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return data['removeUserFromGroup']
 
     def list_policies(self, userId, page=1, limit=10):
         # type:(str,int,int) -> any
