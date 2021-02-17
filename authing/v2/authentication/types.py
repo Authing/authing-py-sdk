@@ -2,10 +2,7 @@ from ..exceptions import AuthingException
 
 
 def DEFAULT_ONERROR(code, message):
-    raise AuthingException(
-        code=code,
-        errmsg=message
-    )
+    raise AuthingException(code=code, errmsg=message)
 
 
 DEFAULT_ENCRYPT_PUBLICKEY = """
@@ -18,12 +15,25 @@ GKl64GDcIq3au+aqJQIDAQAB
 """
 
 
-class AuthenticationClientOptions():
-    def __init__(self, user_pool_id, access_token=None, host=None, enc_public_key=None, on_error=None, timeout=10.0):
+class AuthenticationClientOptions:
+    def __init__(
+        self,
+        app_id=None,
+        user_pool_id=None,
+        access_token=None,
+        host=None,
+        enc_public_key=None,
+        on_error=None,
+        timeout=10.0,
+    ):
+
+        if not app_id and not user_pool_id:
+            raise Exception('Please provide app_id or userpool_id')
+        self.app_id = app_id
         self.user_pool_id = user_pool_id
-        self.host = host or 'https://core.authing.cn'
+        self.host = host or "https://core.authing.cn"
         self.on_error = on_error or DEFAULT_ONERROR
         self.timeout = timeout
-        self.graphql_endpoint = '%s/graphql/v2' % self.host
+        self.graphql_endpoint = "%s/graphql/v2" % self.host
         self.enc_public_key = enc_public_key or DEFAULT_ENCRYPT_PUBLICKEY
         self.access_token = access_token

@@ -29,6 +29,7 @@ class GraphqlClient(object):
             'x-authing-sdk-version': 'python:%s' % __version__,
             'x-authing-userpool-id': self.options.user_pool_id,
             'x-authing-request-from': 'sdk',
+            'x-authing-app-id': self.options.app_id,
         }
         if token:
             headers['authorization'] = 'Bearer %s' % token
