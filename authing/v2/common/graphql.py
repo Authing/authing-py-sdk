@@ -27,9 +27,9 @@ class GraphqlClient(object):
         # type:(str,dict,str) -> any
         headers = {
             'x-authing-sdk-version': 'python:%s' % __version__,
-            'x-authing-userpool-id': self.options.user_pool_id,
+            'x-authing-userpool-id': self.options.user_pool_id if hasattr(self.options, 'user_pool_id') else None,
             'x-authing-request-from': 'sdk',
-            'x-authing-app-id': self.options.app_id,
+            'x-authing-app-id': self.options.app_id if hasattr(self.options, 'app_id') else None,
         }
         if token:
             headers['authorization'] = 'Bearer %s' % token
@@ -40,6 +40,7 @@ class GraphqlClient(object):
         result = client.execute(
             gql(query), variable_values=params)
         if result.errors:
+            print(result.errors)
             errmsg = None
             errcode = None
             for _, err in enumerate(result.errors):

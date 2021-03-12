@@ -8,12 +8,11 @@ Authing Python SDK 由两部分组成：`ManagementClient` 和 `AuthenticationCl
 Authing Python SDK 同时支持 `python2` 和 `python3`。
 
 
-- [安装](#安装)
-- [使用用户管理模块](#使用用户管理模块)
-- [使用用户认证模块](#使用用户认证模块)
-- [错误处理](#错误处理)
-- [获取帮助](#获取帮助)
-- [接口索引](#接口索引)
+  - [使用用户管理模块](#使用用户管理模块)
+  - [使用用户认证模块](#使用用户认证模块)
+  - [错误处理](#错误处理)
+  - [获取帮助](#获取帮助)
+  - [接口索引](#接口索引)
 
 ## 安装
 
@@ -105,9 +104,9 @@ data = management_client.users.list()
 
 ## 使用用户认证模块
 
-初始化 `AuthenticationClient` 需要 `user_pool_id`（用户池 ID）：
+初始化 `AuthenticationClient` 需要 `app_id`（应用 ID）：
 
-> 你可以在此[了解如何获取 UserPoolId](https://docs.authing.cn/others/faq.html) .
+> 你可以在此控制台应用列表页面获取 `app_id` 。
 
 
 ```python
@@ -115,7 +114,7 @@ from authing.v2.authentication import AuthenticationClient, AuthenticationClient
 
 authentication_client = AuthenticationClient(
   options=AuthenticationClientOptions(
-    user_pool_id='AUTHING_USERPOOL_ID'
+    app_id='AUTHING_APP_ID'
 ))
 ```
 
@@ -138,15 +137,15 @@ authentication_client.update_profile({
 })
 ```
 
-你也可以使用 `access_token` 参数来初始化 `AuthenticationClient`, 而不需要每次都调用 `login` 方法:
+你也可以使用 `token` 参数来初始化 `AuthenticationClient`, 而不需要每次都调用 `login` 方法:
 
 ```python
 from authing.v2.authentication import AuthenticationClient, AuthenticationClientOptions
 
 authentication_client = AuthenticationClient(
   options=AuthenticationClientOptions(
-    user_pool_id='AUTHING_USERPOOL_ID',
-    access_token='AUTHING_USER_TOKEN'
+    app_id='AUTHING_APP_ID',
+    token='AUTHING_USER_TOKEN'
 ))
 ```
 
@@ -173,7 +172,7 @@ except AuthingException as e:
     print(e.message) # 用户不存在
 ```
 
-> 完整的错误代码请见[此文档](https://docs.authing.cn/advanced/error-code.html)。
+> 完整的错误代码请见[此文档](https://docs.authing.co/v2/reference/error-code.html)。
 
 
 ## 获取帮助
@@ -183,4 +182,4 @@ Join us on Gitter: [#authing-chat](https://gitter.im/authing-chat/community)
 
 ## 接口索引
 
-详细的接口文档请见：[认证模块文档](https://docs.authing.co/sdk/sdk-for-python/authentication/) 和 [管理模块文档](https://docs.authing.co/sdk/sdk-for-python/management/)
+详细的接口文档请见：[认证模块文档](https://docs.authing.co/v2/reference/sdk-for-python/authentication/) 和 [管理模块文档](https://docs.authing.co/v2/reference/sdk-for-python/management/)

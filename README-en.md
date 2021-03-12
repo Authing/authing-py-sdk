@@ -134,7 +134,7 @@ authing.update_profile({
 })
 ```
 
-And you can also instantiate `AuthenticationClient` with a `access_token` param instead:
+And you can also instantiate `AuthenticationClient` with a `token` param instead:
 
 ```
 from authing.v2.authentication import AuthenticationClient, AuthenticationClientOptions
@@ -142,7 +142,7 @@ from authing.v2.authentication import AuthenticationClient, AuthenticationClient
 authing = AuthenticationClient(
   options=AuthenticationClientOptions(
     user_pool_id='AUTHING_USERPOOL_ID',
-    access_token='AUTHING_USER_TOKEN'
+    token='AUTHING_USER_TOKEN'
 ))
 ```
 

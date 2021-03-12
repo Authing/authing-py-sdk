@@ -29,7 +29,7 @@ class AuthenticationClient(object):
         # 当前用户
         self._user = None
         # 当前用户的 token
-        self._token = self.options.access_token or None
+        self._token = self.options.token or None
 
     def _set_current_user(self, user):
         self._user = user
@@ -45,10 +45,10 @@ class AuthenticationClient(object):
             raise '清先登录'
         return user
 
-    def _get_access_token(self):
+    def _get_token(self):
         return self._token
 
-    def _set_access_token(self, token):
+    def _set_token(self, token):
         self._token = token
 
     def get_current_user(self, token=None):
@@ -57,14 +57,19 @@ class AuthenticationClient(object):
         Args:
             token (str, optional): 用户登录凭证
         """
-        data = self.graphqlClient.request(
-            query=QUERY['user'],
-            params={},
-            token=token or self._get_access_token()
+        url = '%s/api/v2/users/me' % self.options.host
+        data = self.restClient.request(
+            method='GET',
+            url=url,
+            token=token or self._get_token()
         )
-        user = data['user']
-        self._set_current_user(user)
-        return user
+        code, message, user = data.get('code'), data.get('message'), data.get('data')
+        if code == 200:
+            self._set_current_user(user)
+            return user
+        else:
+            self.options.on_error(code, message)
+
 
     def register_by_email(self, email, password, profile=None, force_login=False, generate_token=False, clientIp=None):
         """通过邮箱注册
@@ -270,6 +275,7 @@ class AuthenticationClient(object):
         Args:
             token (str, optional): token
         """
+        print(token or self._token)
         data = self.graphqlClient.request(
             query=QUERY['checkLoginStatus'],
             params={
@@ -348,7 +354,7 @@ class AuthenticationClient(object):
                 'id': user['id'],
                 'input': updates
             },
-            token=self._get_access_token()
+            token=self._get_token()
         )
         user = data['updateUser']
         self._set_current_user(user)
@@ -369,7 +375,7 @@ class AuthenticationClient(object):
                 'newPassword': new_password,
                 'oldPassword': old_password
             },
-            token=self._get_access_token()
+            token=self._get_token()
         )
         user = data['updatePassword']
         return user
@@ -385,7 +391,7 @@ class AuthenticationClient(object):
                 'oldPhone': oldPhone,
                 'oldPhoneCode': oldPhoneCode
             },
-            token=self._get_access_token()
+            token=self._get_token()
         )
         user = data['updatePhone']
         self._set_current_user(user)
@@ -400,7 +406,7 @@ class AuthenticationClient(object):
                 'oldEmail': oldEmail,
                 'oldEmailCode': oldEmailCode
             },
-            token=self._get_access_token()
+            token=self._get_token()
         )
         user = data['updatePhone']
         self._set_current_user(user)
@@ -415,10 +421,10 @@ class AuthenticationClient(object):
         data = self.graphqlClient.request(
             query=QUERY['refreshToken'],
             params={},
-            token=token or self._get_access_token()
+            token=token or self._get_token()
         )
         token = data['refreshToken'].get('token')
-        self._set_access_token(token)
+        self._set_token(token)
         return data['refreshToken']
 
     def bind_phone(self, phone, phoneCode):
@@ -430,7 +436,7 @@ class AuthenticationClient(object):
                 'phone': phone,
                 'phoneCode': phoneCode
             },
-            token=self._get_access_token()
+            token=self._get_token()
         )
         user = data['bindPhone']
         self._set_current_user(user)
@@ -442,7 +448,7 @@ class AuthenticationClient(object):
         data = self.graphqlClient.request(
             query=QUERY['unbindPhone'],
             params={},
-            token=self._get_access_token()
+            token=self._get_token()
         )
         user = data['unbindPhone']
         self._set_current_user(user)
@@ -471,7 +477,7 @@ class AuthenticationClient(object):
                 'targetType': 'USER',
                 'targetId': user['id']
             },
-            token=self._get_access_token()
+            token=self._get_token()
         )
         data = data['udv']
         return self._convert_udv(data)
@@ -504,7 +510,7 @@ class AuthenticationClient(object):
                 'key': key,
                 'value': value
             },
-            token=self._get_access_token()
+            token=self._get_token()
         )
         data = data['setUdv']
         return self._convert_udv(data)
@@ -523,7 +529,7 @@ class AuthenticationClient(object):
                 'targetId': user['id'],
                 'key': key,
             },
-            token=self._get_access_token()
+            token=self._get_token()
         )
         data = data['removeUdv']
         return self._convert_udv(data)
@@ -540,6 +546,6 @@ class AuthenticationClient(object):
                     'tokenExpiredAt': '0'
                 }
             },
-            token=self._get_access_token()
+            token=self._get_token()
         )
         self._clear_current_user()

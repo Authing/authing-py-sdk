@@ -20,7 +20,7 @@ class AuthenticationClientOptions:
         self,
         app_id=None,
         user_pool_id=None,
-        access_token=None,
+        token=None,
         host=None,
         enc_public_key=None,
         on_error=None,
@@ -36,4 +36,4 @@ class AuthenticationClientOptions:
         self.timeout = timeout
         self.graphql_endpoint = "%s/graphql/v2" % self.host
         self.enc_public_key = enc_public_key or DEFAULT_ENCRYPT_PUBLICKEY
-        self.access_token = access_token
+        self.token = token

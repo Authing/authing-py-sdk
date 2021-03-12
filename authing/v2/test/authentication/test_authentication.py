@@ -199,7 +199,7 @@ class TestAuthentication(unittest.TestCase):
     #     self.assertTrue(user.get('phone') == phone)
     #     self.assertTrue(user.get('token'))
 
-    def test_init_by_access_token(self):
+    def test_init_by_token(self):
         authentication = AuthenticationClient(
             options=AuthenticationClientOptions(
                 user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
@@ -216,13 +216,13 @@ class TestAuthentication(unittest.TestCase):
             email=email,
             password=password,
         )
-        access_token = user.get("token")
-        self.assertTrue(access_token)
+        token = user.get("token")
+        self.assertTrue(token)
         authentication = AuthenticationClient(
             options=AuthenticationClientOptions(
                 user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
                 host=os.getenv("AUTHING_SERVER"),
-                access_token=access_token,
+                token=token,
             )
         )
         user = authentication.get_current_user()
