@@ -32,14 +32,6 @@ class TestAuthentication(unittest.TestCase):
             error = True
         self.assertTrue(error)
 
-    def test_init_with_app_id(self):
-        authentication = AuthenticationClient(options=AuthenticationClientOptions(
-            app_id=os.getenv("AUTHING_APP_ID")
-        ))
-        user = authentication.login_by_email('nxmsc@qq.com', 'nxmsc@qq.com')
-        token = user['token']
-        print(token)
-
     def test_catch_error(self):
         authentication = AuthenticationClient(
             options=AuthenticationClientOptions(

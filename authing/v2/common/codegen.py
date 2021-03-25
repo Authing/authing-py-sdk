@@ -1,8 +1,9 @@
 QUERY = {
-    'addMember': """
+'addMember': """
 mutation addMember($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildrenNodes: Boolean, $nodeId: String, $orgId: String, $nodeCode: String, $userIds: [String!]!, $isLeader: Boolean) {
   addMember(nodeId: $nodeId, orgId: $orgId, nodeCode: $nodeCode, userIds: $userIds, isLeader: $isLeader) {
     id
+    orgId
     name
     nameI18n
     description
@@ -22,6 +23,7 @@ mutation addMember($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildre
         arn
         userPoolId
         username
+        status
         email
         emailVerified
         phone
@@ -66,18 +68,20 @@ mutation addMember($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildre
         country
         createdAt
         updatedAt
+        externalId
       }
     }
   }
 }
 
 """,
-    'addNode': """
+'addNode': """
 mutation addNode($orgId: String!, $parentNodeId: String, $name: String!, $nameI18n: String, $description: String, $descriptionI18n: String, $order: Int, $code: String) {
   addNode(orgId: $orgId, parentNodeId: $parentNodeId, name: $name, nameI18n: $nameI18n, description: $description, descriptionI18n: $descriptionI18n, order: $order, code: $code) {
     id
     rootNode {
       id
+      orgId
       name
       nameI18n
       description
@@ -93,6 +97,7 @@ mutation addNode($orgId: String!, $parentNodeId: String, $name: String!, $nameI1
     }
     nodes {
       id
+      orgId
       name
       nameI18n
       description
@@ -110,16 +115,37 @@ mutation addNode($orgId: String!, $parentNodeId: String, $name: String!, $nameI1
 }
 
 """,
-    'addPolicyAssignments': """
-mutation addPolicyAssignments($policies: [String!]!, $targetType: PolicyAssignmentTargetType!, $targetIdentifiers: [String!]) {
-  addPolicyAssignments(policies: $policies, targetType: $targetType, targetIdentifiers: $targetIdentifiers) {
+'addNodeV2': """
+mutation addNodeV2($orgId: String!, $parentNodeId: String, $name: String!, $nameI18n: String, $description: String, $descriptionI18n: String, $order: Int, $code: String) {
+  addNodeV2(orgId: $orgId, parentNodeId: $parentNodeId, name: $name, nameI18n: $nameI18n, description: $description, descriptionI18n: $descriptionI18n, order: $order, code: $code) {
+    id
+    orgId
+    name
+    nameI18n
+    description
+    descriptionI18n
+    order
+    code
+    root
+    depth
+    path
+    createdAt
+    updatedAt
+    children
+  }
+}
+
+""",
+'addPolicyAssignments': """
+mutation addPolicyAssignments($policies: [String!]!, $targetType: PolicyAssignmentTargetType!, $targetIdentifiers: [String!], $inheritByChildren: Boolean, $namespace: String) {
+  addPolicyAssignments(policies: $policies, targetType: $targetType, targetIdentifiers: $targetIdentifiers, inheritByChildren: $inheritByChildren, namespace: $namespace) {
     message
     code
   }
 }
 
 """,
-    'addUserToGroup': """
+'addUserToGroup': """
 mutation addUserToGroup($userIds: [String!]!, $code: String) {
   addUserToGroup(userIds: $userIds, code: $code) {
     message
@@ -128,7 +154,7 @@ mutation addUserToGroup($userIds: [String!]!, $code: String) {
 }
 
 """,
-    'addWhitelist': """
+'addWhitelist': """
 mutation addWhitelist($type: WhitelistType!, $list: [String!]!) {
   addWhitelist(type: $type, list: $list) {
     createdAt
@@ -138,30 +164,40 @@ mutation addWhitelist($type: WhitelistType!, $list: [String!]!) {
 }
 
 """,
-    'allow': """
-mutation allow($resource: String!, $action: String!, $userId: String, $userIds: [String!], $roleCode: String, $roleCodes: [String!]) {
-  allow(resource: $resource, action: $action, userId: $userId, userIds: $userIds, roleCode: $roleCode, roleCodes: $roleCodes) {
+'allow': """
+mutation allow($resource: String!, $action: String!, $userId: String, $userIds: [String!], $roleCode: String, $roleCodes: [String!], $namespace: String) {
+  allow(resource: $resource, action: $action, userId: $userId, userIds: $userIds, roleCode: $roleCode, roleCodes: $roleCodes, namespace: $namespace) {
     message
     code
   }
 }
 
 """,
-    'assignRole': """
-mutation assignRole($roleCode: String, $roleCodes: [String], $userIds: [String!], $groupCodes: [String!], $nodeCodes: [String!]) {
-  assignRole(roleCode: $roleCode, roleCodes: $roleCodes, userIds: $userIds, groupCodes: $groupCodes, nodeCodes: $nodeCodes) {
+'assignRole': """
+mutation assignRole($namespace: String, $roleCode: String, $roleCodes: [String], $userIds: [String!], $groupCodes: [String!], $nodeCodes: [String!]) {
+  assignRole(namespace: $namespace, roleCode: $roleCode, roleCodes: $roleCodes, userIds: $userIds, groupCodes: $groupCodes, nodeCodes: $nodeCodes) {
     message
     code
   }
 }
 
 """,
-    'bindPhone': """
-mutation bindPhone($phone: String!, $phoneCode: String!) {
-  bindPhone(phone: $phone, phoneCode: $phoneCode) {
+'authorizeResource': """
+mutation authorizeResource($namespace: String, $resource: String, $resourceType: ResourceType, $opts: [AuthorizeResourceOpt]) {
+  authorizeResource(namespace: $namespace, resource: $resource, resourceType: $resourceType, opts: $opts) {
+    code
+    message
+  }
+}
+
+""",
+'bindEmail': """
+mutation bindEmail($email: String!, $emailCode: String!) {
+  bindEmail(email: $email, emailCode: $emailCode) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -211,7 +247,63 @@ mutation bindPhone($phone: String!, $phoneCode: String!) {
 }
 
 """,
-    'changeMfa': """
+'bindPhone': """
+mutation bindPhone($phone: String!, $phoneCode: String!) {
+  bindPhone(phone: $phone, phoneCode: $phoneCode) {
+    id
+    arn
+    userPoolId
+    status
+    username
+    email
+    emailVerified
+    phone
+    phoneVerified
+    unionid
+    openid
+    nickname
+    registerSource
+    photo
+    password
+    oauth
+    token
+    tokenExpiredAt
+    loginsCount
+    lastLogin
+    lastIP
+    signedUp
+    blocked
+    isDeleted
+    device
+    browser
+    company
+    name
+    givenName
+    familyName
+    middleName
+    profile
+    preferredUsername
+    website
+    gender
+    birthdate
+    zoneinfo
+    locale
+    address
+    formatted
+    streetAddress
+    locality
+    region
+    postalCode
+    city
+    province
+    country
+    createdAt
+    updatedAt
+  }
+}
+
+""",
+'changeMfa': """
 mutation changeMfa($enable: Boolean, $id: String, $userId: String, $userPoolId: String, $refresh: Boolean) {
   changeMfa(enable: $enable, id: $id, userId: $userId, userPoolId: $userPoolId, refresh: $refresh) {
     id
@@ -223,7 +315,7 @@ mutation changeMfa($enable: Boolean, $id: String, $userId: String, $userPoolId: 
 }
 
 """,
-    'configEmailTemplate': """
+'configEmailTemplate': """
 mutation configEmailTemplate($input: ConfigEmailTemplateInput!) {
   configEmailTemplate(input: $input) {
     type
@@ -240,7 +332,7 @@ mutation configEmailTemplate($input: ConfigEmailTemplateInput!) {
 }
 
 """,
-    'createFunction': """
+'createFunction': """
 mutation createFunction($input: CreateFunctionInput!) {
   createFunction(input: $input) {
     id
@@ -252,7 +344,7 @@ mutation createFunction($input: CreateFunctionInput!) {
 }
 
 """,
-    'createGroup': """
+'createGroup': """
 mutation createGroup($code: String!, $name: String!, $description: String) {
   createGroup(code: $code, name: $name, description: $description) {
     code
@@ -264,12 +356,13 @@ mutation createGroup($code: String!, $name: String!, $description: String) {
 }
 
 """,
-    'createOrg': """
+'createOrg': """
 mutation createOrg($name: String!, $code: String, $description: String) {
   createOrg(name: $name, code: $code, description: $description) {
     id
     rootNode {
       id
+      orgId
       name
       nameI18n
       description
@@ -285,6 +378,7 @@ mutation createOrg($name: String!, $code: String, $description: String) {
     }
     nodes {
       id
+      orgId
       name
       nameI18n
       description
@@ -302,38 +396,44 @@ mutation createOrg($name: String!, $code: String, $description: String) {
 }
 
 """,
-    'createPolicy': """
-mutation createPolicy($code: String!, $description: String, $statements: [PolicyStatementInput!]!) {
-  createPolicy(code: $code, description: $description, statements: $statements) {
+'createPolicy': """
+mutation createPolicy($namespace: String, $code: String!, $description: String, $statements: [PolicyStatementInput!]!) {
+  createPolicy(namespace: $namespace, code: $code, description: $description, statements: $statements) {
+    namespace
     code
-    assignmentsCount
     isDefault
     description
     statements {
       resource
       actions
       effect
+      condition {
+        param
+        operator
+        value
+      }
     }
     createdAt
     updatedAt
+    assignmentsCount
   }
 }
 
 """,
-    'createRole': """
-mutation createRole($code: String!, $description: String, $parent: String) {
-  createRole(code: $code, description: $description, parent: $parent) {
+'createRole': """
+mutation createRole($namespace: String, $code: String!, $description: String, $parent: String) {
+  createRole(namespace: $namespace, code: $code, description: $description, parent: $parent) {
+    namespace
     code
     arn
     description
-    isSystem
     createdAt
     updatedAt
     parent {
+      namespace
       code
       arn
       description
-      isSystem
       createdAt
       updatedAt
     }
@@ -341,24 +441,7 @@ mutation createRole($code: String!, $description: String, $parent: String) {
 }
 
 """,
-    'createSocialConnection': """
-mutation createSocialConnection($input: CreateSocialConnectionInput!) {
-  createSocialConnection(input: $input) {
-    provider
-    name
-    logo
-    description
-    fields {
-      key
-      label
-      type
-      placeholder
-    }
-  }
-}
-
-""",
-    'createSocialConnectionInstance': """
+'createSocialConnectionInstance': """
 mutation createSocialConnectionInstance($input: CreateSocialConnectionInstanceInput!) {
   createSocialConnectionInstance(input: $input) {
     provider
@@ -371,12 +454,13 @@ mutation createSocialConnectionInstance($input: CreateSocialConnectionInstanceIn
 }
 
 """,
-    'createUser': """
+'createUser': """
 mutation createUser($userInfo: CreateUserInput!, $keepPassword: Boolean) {
   createUser(userInfo: $userInfo, keepPassword: $keepPassword) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -422,11 +506,12 @@ mutation createUser($userInfo: CreateUserInput!, $keepPassword: Boolean) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'createUserpool': """
+'createUserpool': """
 mutation createUserpool($name: String!, $domain: String!, $description: String, $logo: String, $userpoolTypes: [String!]) {
   createUserpool(name: $name, domain: $domain, description: $description, logo: $logo, userpoolTypes: $userpoolTypes) {
     id
@@ -448,6 +533,7 @@ mutation createUserpool($name: String!, $domain: String!, $description: String, 
     emailVerifiedDefault
     sendWelcomeEmail
     registerDisabled
+    appSsoEnabled
     showWxQRCodeWhenRegisterDisabled
     allowedOrigins
     tokenExpiresAfter
@@ -487,11 +573,12 @@ mutation createUserpool($name: String!, $domain: String!, $description: String, 
       enabled
       provider
     }
+    packageType
   }
 }
 
 """,
-    'deleteFunction': """
+'deleteFunction': """
 mutation deleteFunction($id: String!) {
   deleteFunction(id: $id) {
     message
@@ -500,7 +587,7 @@ mutation deleteFunction($id: String!) {
 }
 
 """,
-    'deleteGroups': """
+'deleteGroups': """
 mutation deleteGroups($codeList: [String!]!) {
   deleteGroups(codeList: $codeList) {
     message
@@ -509,7 +596,7 @@ mutation deleteGroups($codeList: [String!]!) {
 }
 
 """,
-    'deleteNode': """
+'deleteNode': """
 mutation deleteNode($orgId: String!, $nodeId: String!) {
   deleteNode(orgId: $orgId, nodeId: $nodeId) {
     message
@@ -518,7 +605,7 @@ mutation deleteNode($orgId: String!, $nodeId: String!) {
 }
 
 """,
-    'deleteOrg': """
+'deleteOrg': """
 mutation deleteOrg($id: String!) {
   deleteOrg(id: $id) {
     message
@@ -527,43 +614,43 @@ mutation deleteOrg($id: String!) {
 }
 
 """,
-    'deletePolicies': """
-mutation deletePolicies($codeList: [String!]!) {
-  deletePolicies(codeList: $codeList) {
+'deletePolicies': """
+mutation deletePolicies($codeList: [String!]!, $namespace: String) {
+  deletePolicies(codeList: $codeList, namespace: $namespace) {
     message
     code
   }
 }
 
 """,
-    'deletePolicy': """
-mutation deletePolicy($code: String!) {
-  deletePolicy(code: $code) {
+'deletePolicy': """
+mutation deletePolicy($code: String!, $namespace: String) {
+  deletePolicy(code: $code, namespace: $namespace) {
     message
     code
   }
 }
 
 """,
-    'deleteRole': """
-mutation deleteRole($code: String!) {
-  deleteRole(code: $code) {
+'deleteRole': """
+mutation deleteRole($code: String!, $namespace: String) {
+  deleteRole(code: $code, namespace: $namespace) {
     message
     code
   }
 }
 
 """,
-    'deleteRoles': """
-mutation deleteRoles($codeList: [String!]!) {
-  deleteRoles(codeList: $codeList) {
+'deleteRoles': """
+mutation deleteRoles($codeList: [String!]!, $namespace: String) {
+  deleteRoles(codeList: $codeList, namespace: $namespace) {
     message
     code
   }
 }
 
 """,
-    'deleteUser': """
+'deleteUser': """
 mutation deleteUser($id: String!) {
   deleteUser(id: $id) {
     message
@@ -572,7 +659,7 @@ mutation deleteUser($id: String!) {
 }
 
 """,
-    'deleteUserpool': """
+'deleteUserpool': """
 mutation deleteUserpool {
   deleteUserpool {
     message
@@ -581,7 +668,7 @@ mutation deleteUserpool {
 }
 
 """,
-    'deleteUsers': """
+'deleteUsers': """
 mutation deleteUsers($ids: [String!]!) {
   deleteUsers(ids: $ids) {
     message
@@ -590,7 +677,7 @@ mutation deleteUsers($ids: [String!]!) {
 }
 
 """,
-    'disableEmailTemplate': """
+'disableEmailTemplate': """
 mutation disableEmailTemplate($type: EmailTemplateType!) {
   disableEmailTemplate(type: $type) {
     type
@@ -607,7 +694,7 @@ mutation disableEmailTemplate($type: EmailTemplateType!) {
 }
 
 """,
-    'disableSocialConnectionInstance': """
+'disableSocialConnectionInstance': """
 mutation disableSocialConnectionInstance($provider: String!) {
   disableSocialConnectionInstance(provider: $provider) {
     provider
@@ -620,7 +707,16 @@ mutation disableSocialConnectionInstance($provider: String!) {
 }
 
 """,
-    'enableEmailTemplate': """
+'disbalePolicyAssignment': """
+mutation disbalePolicyAssignment($policy: String!, $targetType: PolicyAssignmentTargetType!, $targetIdentifier: String!, $namespace: String) {
+  disbalePolicyAssignment(policy: $policy, targetType: $targetType, targetIdentifier: $targetIdentifier, namespace: $namespace) {
+    message
+    code
+  }
+}
+
+""",
+'enableEmailTemplate': """
 mutation enableEmailTemplate($type: EmailTemplateType!) {
   enableEmailTemplate(type: $type) {
     type
@@ -637,7 +733,16 @@ mutation enableEmailTemplate($type: EmailTemplateType!) {
 }
 
 """,
-    'enableSocialConnectionInstance': """
+'enablePolicyAssignment': """
+mutation enablePolicyAssignment($policy: String!, $targetType: PolicyAssignmentTargetType!, $targetIdentifier: String!, $namespace: String) {
+  enablePolicyAssignment(policy: $policy, targetType: $targetType, targetIdentifier: $targetIdentifier, namespace: $namespace) {
+    message
+    code
+  }
+}
+
+""",
+'enableSocialConnectionInstance': """
 mutation enableSocialConnectionInstance($provider: String!) {
   enableSocialConnectionInstance(provider: $provider) {
     provider
@@ -650,11 +755,12 @@ mutation enableSocialConnectionInstance($provider: String!) {
 }
 
 """,
-    'loginByEmail': """
+'loginByEmail': """
 mutation loginByEmail($input: LoginByEmailInput!) {
   loginByEmail(input: $input) {
     id
     arn
+    status
     userPoolId
     username
     email
@@ -701,16 +807,18 @@ mutation loginByEmail($input: LoginByEmailInput!) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'loginByPhoneCode': """
+'loginByPhoneCode': """
 mutation loginByPhoneCode($input: LoginByPhoneCodeInput!) {
   loginByPhoneCode(input: $input) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -756,16 +864,18 @@ mutation loginByPhoneCode($input: LoginByPhoneCodeInput!) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'loginByPhonePassword': """
+'loginByPhonePassword': """
 mutation loginByPhonePassword($input: LoginByPhonePasswordInput!) {
   loginByPhonePassword(input: $input) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -811,15 +921,17 @@ mutation loginByPhonePassword($input: LoginByPhonePasswordInput!) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'loginByUsername': """
-mutation loginByUsername($input: LoginByUsernameInput!) {
-  loginByUsername(input: $input) {
+'loginBySubAccount': """
+mutation loginBySubAccount($account: String!, $password: String!, $captchaCode: String, $clientIp: String) {
+  loginBySubAccount(account: $account, password: $password, captchaCode: $captchaCode, clientIp: $clientIp) {
     id
     arn
+    status
     userPoolId
     username
     email
@@ -866,16 +978,75 @@ mutation loginByUsername($input: LoginByUsernameInput!) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'moveNode': """
+'loginByUsername': """
+mutation loginByUsername($input: LoginByUsernameInput!) {
+  loginByUsername(input: $input) {
+    id
+    arn
+    userPoolId
+    status
+    username
+    email
+    emailVerified
+    phone
+    phoneVerified
+    unionid
+    openid
+    nickname
+    registerSource
+    photo
+    password
+    oauth
+    token
+    tokenExpiredAt
+    loginsCount
+    lastLogin
+    lastIP
+    signedUp
+    blocked
+    isDeleted
+    device
+    browser
+    company
+    name
+    givenName
+    familyName
+    middleName
+    profile
+    preferredUsername
+    website
+    gender
+    birthdate
+    zoneinfo
+    locale
+    address
+    formatted
+    streetAddress
+    locality
+    region
+    postalCode
+    city
+    province
+    country
+    createdAt
+    updatedAt
+    externalId
+  }
+}
+
+""",
+'moveNode': """
 mutation moveNode($orgId: String!, $nodeId: String!, $targetParentId: String!) {
   moveNode(orgId: $orgId, nodeId: $nodeId, targetParentId: $targetParentId) {
     id
     rootNode {
       id
+      orgId
       name
       nameI18n
       description
@@ -891,6 +1062,7 @@ mutation moveNode($orgId: String!, $nodeId: String!, $targetParentId: String!) {
     }
     nodes {
       id
+      orgId
       name
       nameI18n
       description
@@ -908,7 +1080,7 @@ mutation moveNode($orgId: String!, $nodeId: String!, $targetParentId: String!) {
 }
 
 """,
-    'refreshAccessToken': """
+'refreshAccessToken': """
 mutation refreshAccessToken($accessToken: String) {
   refreshAccessToken(accessToken: $accessToken) {
     accessToken
@@ -918,7 +1090,7 @@ mutation refreshAccessToken($accessToken: String) {
 }
 
 """,
-    'refreshToken': """
+'refreshToken': """
 mutation refreshToken($id: String) {
   refreshToken(id: $id) {
     token
@@ -928,18 +1100,19 @@ mutation refreshToken($id: String) {
 }
 
 """,
-    'refreshUserpoolSecret': """
+'refreshUserpoolSecret': """
 mutation refreshUserpoolSecret {
   refreshUserpoolSecret
 }
 
 """,
-    'registerByEmail': """
+'registerByEmail': """
 mutation registerByEmail($input: RegisterByEmailInput!) {
   registerByEmail(input: $input) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -985,16 +1158,18 @@ mutation registerByEmail($input: RegisterByEmailInput!) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'registerByPhoneCode': """
+'registerByPhoneCode': """
 mutation registerByPhoneCode($input: RegisterByPhoneCodeInput!) {
   registerByPhoneCode(input: $input) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -1040,16 +1215,18 @@ mutation registerByPhoneCode($input: RegisterByPhoneCodeInput!) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'registerByUsername': """
+'registerByUsername': """
 mutation registerByUsername($input: RegisterByUsernameInput!) {
   registerByUsername(input: $input) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -1095,11 +1272,12 @@ mutation registerByUsername($input: RegisterByUsernameInput!) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'removeMember': """
+'removeMember': """
 mutation removeMember($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildrenNodes: Boolean, $nodeId: String, $orgId: String, $nodeCode: String, $userIds: [String!]!) {
   removeMember(nodeId: $nodeId, orgId: $orgId, nodeCode: $nodeCode, userIds: $userIds) {
     id
@@ -1120,6 +1298,7 @@ mutation removeMember($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChil
         id
         arn
         userPoolId
+        status
         username
         email
         emailVerified
@@ -1171,16 +1350,16 @@ mutation removeMember($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChil
 }
 
 """,
-    'removePolicyAssignments': """
-mutation removePolicyAssignments($policies: [String!]!, $targetType: PolicyAssignmentTargetType!, $targetIdentifiers: [String!]) {
-  removePolicyAssignments(policies: $policies, targetType: $targetType, targetIdentifiers: $targetIdentifiers) {
+'removePolicyAssignments': """
+mutation removePolicyAssignments($policies: [String!]!, $targetType: PolicyAssignmentTargetType!, $targetIdentifiers: [String!], $namespace: String) {
+  removePolicyAssignments(policies: $policies, targetType: $targetType, targetIdentifiers: $targetIdentifiers, namespace: $namespace) {
     message
     code
   }
 }
 
 """,
-    'removeUdf': """
+'removeUdf': """
 mutation removeUdf($targetType: UDFTargetType!, $key: String!) {
   removeUdf(targetType: $targetType, key: $key) {
     message
@@ -1189,17 +1368,18 @@ mutation removeUdf($targetType: UDFTargetType!, $key: String!) {
 }
 
 """,
-    'removeUdv': """
+'removeUdv': """
 mutation removeUdv($targetType: UDFTargetType!, $targetId: String!, $key: String!) {
   removeUdv(targetType: $targetType, targetId: $targetId, key: $key) {
     key
     dataType
     value
+    label
   }
 }
 
 """,
-    'removeUserFromGroup': """
+'removeUserFromGroup': """
 mutation removeUserFromGroup($userIds: [String!]!, $code: String) {
   removeUserFromGroup(userIds: $userIds, code: $code) {
     message
@@ -1208,7 +1388,7 @@ mutation removeUserFromGroup($userIds: [String!]!, $code: String) {
 }
 
 """,
-    'removeWhitelist': """
+'removeWhitelist': """
 mutation removeWhitelist($type: WhitelistType!, $list: [String!]!) {
   removeWhitelist(type: $type, list: $list) {
     createdAt
@@ -1218,7 +1398,7 @@ mutation removeWhitelist($type: WhitelistType!, $list: [String!]!) {
 }
 
 """,
-    'resetPassword': """
+'resetPassword': """
 mutation resetPassword($phone: String, $email: String, $code: String!, $newPassword: String!) {
   resetPassword(phone: $phone, email: $email, code: $code, newPassword: $newPassword) {
     message
@@ -1227,16 +1407,16 @@ mutation resetPassword($phone: String, $email: String, $code: String!, $newPassw
 }
 
 """,
-    'revokeRole': """
-mutation revokeRole($roleCode: String, $roleCodes: [String], $userIds: [String!], $groupCodes: [String!], $nodeCodes: [String!]) {
-  revokeRole(roleCode: $roleCode, roleCodes: $roleCodes, userIds: $userIds, groupCodes: $groupCodes, nodeCodes: $nodeCodes) {
+'revokeRole': """
+mutation revokeRole($namespace: String, $roleCode: String, $roleCodes: [String], $userIds: [String!], $groupCodes: [String!], $nodeCodes: [String!]) {
+  revokeRole(namespace: $namespace, roleCode: $roleCode, roleCodes: $roleCodes, userIds: $userIds, groupCodes: $groupCodes, nodeCodes: $nodeCodes) {
     message
     code
   }
 }
 
 """,
-    'sendEmail': """
+'sendEmail': """
 mutation sendEmail($email: String!, $scene: EmailScene!) {
   sendEmail(email: $email, scene: $scene) {
     message
@@ -1245,7 +1425,16 @@ mutation sendEmail($email: String!, $scene: EmailScene!) {
 }
 
 """,
-    'setUdf': """
+'setMainDepartment': """
+mutation setMainDepartment($userId: String!, $departmentId: String) {
+  setMainDepartment(userId: $userId, departmentId: $departmentId) {
+    message
+    code
+  }
+}
+
+""",
+'setUdf': """
 mutation setUdf($targetType: UDFTargetType!, $key: String!, $dataType: UDFDataType!, $label: String!, $options: String) {
   setUdf(targetType: $targetType, key: $key, dataType: $dataType, label: $label, options: $options) {
     targetType
@@ -1257,22 +1446,44 @@ mutation setUdf($targetType: UDFTargetType!, $key: String!, $dataType: UDFDataTy
 }
 
 """,
-    'setUdv': """
+'setUdfValueBatch': """
+mutation setUdfValueBatch($targetType: UDFTargetType!, $input: [SetUdfValueBatchInput!]!) {
+  setUdfValueBatch(targetType: $targetType, input: $input) {
+    code
+    message
+  }
+}
+
+""",
+'setUdv': """
 mutation setUdv($targetType: UDFTargetType!, $targetId: String!, $key: String!, $value: String!) {
   setUdv(targetType: $targetType, targetId: $targetId, key: $key, value: $value) {
     key
     dataType
     value
+    label
   }
 }
 
 """,
-    'unbindEmail': """
+'setUdvBatch': """
+mutation setUdvBatch($targetType: UDFTargetType!, $targetId: String!, $udvList: [UserDefinedDataInput!]) {
+  setUdvBatch(targetType: $targetType, targetId: $targetId, udvList: $udvList) {
+    key
+    dataType
+    value
+    label
+  }
+}
+
+""",
+'unbindEmail': """
 mutation unbindEmail {
   unbindEmail {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -1322,12 +1533,13 @@ mutation unbindEmail {
 }
 
 """,
-    'unbindPhone': """
+'unbindPhone': """
 mutation unbindPhone {
   unbindPhone {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -1377,12 +1589,13 @@ mutation unbindPhone {
 }
 
 """,
-    'updateEmail': """
+'updateEmail': """
 mutation updateEmail($email: String!, $emailCode: String!, $oldEmail: String, $oldEmailCode: String) {
   updateEmail(email: $email, emailCode: $emailCode, oldEmail: $oldEmail, oldEmailCode: $oldEmailCode) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -1432,7 +1645,7 @@ mutation updateEmail($email: String!, $emailCode: String!, $oldEmail: String, $o
 }
 
 """,
-    'updateFunction': """
+'updateFunction': """
 mutation updateFunction($input: UpdateFunctionInput!) {
   updateFunction(input: $input) {
     id
@@ -1444,7 +1657,7 @@ mutation updateFunction($input: UpdateFunctionInput!) {
 }
 
 """,
-    'updateGroup': """
+'updateGroup': """
 mutation updateGroup($code: String!, $name: String, $description: String, $newCode: String) {
   updateGroup(code: $code, name: $name, description: $description, newCode: $newCode) {
     code
@@ -1456,10 +1669,11 @@ mutation updateGroup($code: String!, $name: String, $description: String, $newCo
 }
 
 """,
-    'updateNode': """
+'updateNode': """
 mutation updateNode($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildrenNodes: Boolean, $id: String!, $name: String, $code: String, $description: String) {
   updateNode(id: $id, name: $name, code: $code, description: $description) {
     id
+    orgId
     name
     nameI18n
     description
@@ -1479,12 +1693,13 @@ mutation updateNode($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildr
 }
 
 """,
-    'updatePassword': """
+'updatePassword': """
 mutation updatePassword($newPassword: String!, $oldPassword: String) {
   updatePassword(newPassword: $newPassword, oldPassword: $oldPassword) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -1534,12 +1749,13 @@ mutation updatePassword($newPassword: String!, $oldPassword: String) {
 }
 
 """,
-    'updatePhone': """
+'updatePhone': """
 mutation updatePhone($phone: String!, $phoneCode: String!, $oldPhone: String, $oldPhoneCode: String) {
   updatePhone(phone: $phone, phoneCode: $phoneCode, oldPhone: $oldPhone, oldPhoneCode: $oldPhoneCode) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -1589,41 +1805,42 @@ mutation updatePhone($phone: String!, $phoneCode: String!, $oldPhone: String, $o
 }
 
 """,
-    'updatePolicy': """
-mutation updatePolicy($code: String!, $description: String, $statements: [PolicyStatementInput!], $newCode: String) {
-  updatePolicy(code: $code, description: $description, statements: $statements, newCode: $newCode) {
+'updatePolicy': """
+mutation updatePolicy($namespace: String, $code: String!, $description: String, $statements: [PolicyStatementInput!], $newCode: String) {
+  updatePolicy(namespace: $namespace, code: $code, description: $description, statements: $statements, newCode: $newCode) {
+    namespace
     code
-    isDefault
     description
     statements {
       resource
       actions
       effect
+      condition {
+        param
+        operator
+        value
+      }
     }
     createdAt
     updatedAt
-    assignmentsCount
   }
 }
 
 """,
-    'updateRole': """
-mutation updateRole($code: String!, $description: String, $newCode: String) {
-  updateRole(code: $code, description: $description, newCode: $newCode) {
+'updateRole': """
+mutation updateRole($code: String!, $description: String, $newCode: String, $namespace: String) {
+  updateRole(code: $code, description: $description, newCode: $newCode, namespace: $namespace) {
+    namespace
     code
     arn
     description
-    isSystem
     createdAt
     updatedAt
-    users {
-      totalCount
-    }
     parent {
+      namespace
       code
       arn
       description
-      isSystem
       createdAt
       updatedAt
     }
@@ -1631,12 +1848,13 @@ mutation updateRole($code: String!, $description: String, $newCode: String) {
 }
 
 """,
-    'updateUser': """
+'updateUser': """
 mutation updateUser($id: String, $input: UpdateUserInput!) {
   updateUser(id: $id, input: $input) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -1682,11 +1900,12 @@ mutation updateUser($id: String, $input: UpdateUserInput!) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'updateUserpool': """
+'updateUserpool': """
 mutation updateUserpool($input: UpdateUserpoolInput!) {
   updateUserpool(input: $input) {
     id
@@ -1708,6 +1927,7 @@ mutation updateUserpool($input: UpdateUserpoolInput!) {
     emailVerifiedDefault
     sendWelcomeEmail
     registerDisabled
+    appSsoEnabled
     showWxQRCodeWhenRegisterDisabled
     allowedOrigins
     tokenExpiresAfter
@@ -1746,12 +1966,17 @@ mutation updateUserpool($input: UpdateUserpoolInput!) {
     customSMSProvider {
       enabled
       provider
+      config
     }
+    packageType
+    useCustomUserStore
+    loginRequireEmailVerified
+    verifyCodeLength
   }
 }
 
 """,
-    'accessToken': """
+'accessToken': """
 query accessToken($userPoolId: String!, $secret: String!) {
   accessToken(userPoolId: $userPoolId, secret: $secret) {
     accessToken
@@ -1761,7 +1986,67 @@ query accessToken($userPoolId: String!, $secret: String!) {
 }
 
 """,
-    'checkLoginStatus': """
+'archivedUsers': """
+query archivedUsers($page: Int, $limit: Int) {
+  archivedUsers(page: $page, limit: $limit) {
+    totalCount
+    list {
+      id
+      arn
+      status
+      userPoolId
+      username
+      email
+      emailVerified
+      phone
+      phoneVerified
+      unionid
+      openid
+      nickname
+      registerSource
+      photo
+      password
+      oauth
+      token
+      tokenExpiredAt
+      loginsCount
+      lastLogin
+      lastIP
+      signedUp
+      blocked
+      isDeleted
+      device
+      browser
+      company
+      name
+      givenName
+      familyName
+      middleName
+      profile
+      preferredUsername
+      website
+      gender
+      birthdate
+      zoneinfo
+      locale
+      address
+      formatted
+      streetAddress
+      locality
+      region
+      postalCode
+      city
+      province
+      country
+      createdAt
+      updatedAt
+      externalId
+    }
+  }
+}
+
+""",
+'checkLoginStatus': """
 query checkLoginStatus($token: String) {
   checkLoginStatus(token: $token) {
     code
@@ -1778,7 +2063,7 @@ query checkLoginStatus($token: String) {
 }
 
 """,
-    'checkPasswordStrength': """
+'checkPasswordStrength': """
 query checkPasswordStrength($password: String!) {
   checkPasswordStrength(password: $password) {
     valid
@@ -1787,10 +2072,11 @@ query checkPasswordStrength($password: String!) {
 }
 
 """,
-    'childrenNodes': """
+'childrenNodes': """
 query childrenNodes($orgId: String!, $nodeId: String!) {
   childrenNodes(orgId: $orgId, nodeId: $nodeId) {
     id
+    orgId
     name
     nameI18n
     description
@@ -1807,7 +2093,7 @@ query childrenNodes($orgId: String!, $nodeId: String!) {
 }
 
 """,
-    'emailTemplates': """
+'emailTemplates': """
 query emailTemplates {
   emailTemplates {
     type
@@ -1824,12 +2110,13 @@ query emailTemplates {
 }
 
 """,
-    'findUser': """
+'findUser': """
 query findUser($email: String, $phone: String, $username: String) {
   findUser(email: $email, phone: $phone, username: $username) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -1875,11 +2162,12 @@ query findUser($email: String, $phone: String, $username: String) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'function': """
+'function': """
 query function($id: String) {
   function(id: $id) {
     id
@@ -1891,7 +2179,7 @@ query function($id: String) {
 }
 
 """,
-    'functions': """
+'functions': """
 query functions($page: Int, $limit: Int, $sortBy: SortByEnum) {
   functions(page: $page, limit: $limit, sortBy: $sortBy) {
     list {
@@ -1906,7 +2194,39 @@ query functions($page: Int, $limit: Int, $sortBy: SortByEnum) {
 }
 
 """,
-    'getUserGroups': """
+'getUserDepartments': """
+query getUserDepartments($id: String!, $orgId: String) {
+  user(id: $id) {
+    departments(orgId: $orgId) {
+      totalCount
+      list {
+        department {
+          id
+          orgId
+          name
+          nameI18n
+          description
+          descriptionI18n
+          order
+          code
+          root
+          depth
+          path
+          codePath
+          namePath
+          createdAt
+          updatedAt
+          children
+        }
+        isMainDepartment
+        joinedAt
+      }
+    }
+  }
+}
+
+""",
+'getUserGroups': """
 query getUserGroups($id: String!) {
   user(id: $id) {
     groups {
@@ -1923,22 +2243,23 @@ query getUserGroups($id: String!) {
 }
 
 """,
-    'getUserRoles': """
-query getUserRoles($id: String!) {
+'getUserRoles': """
+query getUserRoles($id: String!, $namespace: String) {
   user(id: $id) {
-    roles {
+    roles(namespace: $namespace) {
       totalCount
       list {
         code
+        namespace
         arn
         description
-        isSystem
         createdAt
         updatedAt
         parent {
           code
+          namespace
+          arn
           description
-          isSystem
           createdAt
           updatedAt
         }
@@ -1948,7 +2269,7 @@ query getUserRoles($id: String!) {
 }
 
 """,
-    'group': """
+'group': """
 query group($code: String!) {
   group(code: $code) {
     code
@@ -1960,7 +2281,7 @@ query group($code: String!) {
 }
 
 """,
-    'groupWithUsers': """
+'groupWithUsers': """
 query groupWithUsers($code: String!, $page: Int, $limit: Int) {
   group(code: $code) {
     users(page: $page, limit: $limit) {
@@ -2014,13 +2335,14 @@ query groupWithUsers($code: String!, $page: Int, $limit: Int) {
         country
         createdAt
         updatedAt
+        externalId
       }
     }
   }
 }
 
 """,
-    'groups': """
+'groups': """
 query groups($userId: String, $page: Int, $limit: Int, $sortBy: SortByEnum) {
   groups(userId: $userId, page: $page, limit: $limit, sortBy: $sortBy) {
     totalCount
@@ -2035,40 +2357,129 @@ query groups($userId: String, $page: Int, $limit: Int, $sortBy: SortByEnum) {
 }
 
 """,
-    'isActionAllowed': """
+'isActionAllowed': """
 query isActionAllowed($resource: String!, $action: String!, $userId: String!) {
   isActionAllowed(resource: $resource, action: $action, userId: $userId)
 }
 
 """,
-    'isActionDenied': """
+'isActionDenied': """
 query isActionDenied($resource: String!, $action: String!, $userId: String!) {
   isActionDenied(resource: $resource, action: $action, userId: $userId)
 }
 
 """,
-    'isDomainAvaliable': """
+'isDomainAvaliable': """
 query isDomainAvaliable($domain: String!) {
   isDomainAvaliable(domain: $domain)
 }
 
 """,
-    'isRootNode': """
+'isRootNode': """
 query isRootNode($nodeId: String!, $orgId: String!) {
   isRootNode(nodeId: $nodeId, orgId: $orgId)
 }
 
 """,
-    'isUserExists': """
+'isUserExists': """
 query isUserExists($email: String, $phone: String, $username: String) {
   isUserExists(email: $email, phone: $phone, username: $username)
 }
 
 """,
-    'nodeByCode': """
+'authorizedResources': """
+query authorizedResources($targetType: PolicyAssignmentTargetType, $targetIdentifier: String, $namespace: String, $resourceType: String) {
+  authorizedResources(targetType: $targetType, targetIdentifier: $targetIdentifier, namespace: $namespace, resourceType: $resourceType) {
+    totalCount
+    list {
+      code
+      type
+      actions
+    }
+  }
+}
+
+""",
+'listGroupAuthorizedResources': """
+query listGroupAuthorizedResources($code: String!, $namespace: String, $resourceType: String) {
+  group(code: $code) {
+    authorizedResources(namespace: $namespace, resourceType: $resourceType) {
+      totalCount
+      list {
+        code
+        type
+        actions
+      }
+    }
+  }
+}
+
+""",
+'listNodeByCodeAuthorizedResources': """
+query listNodeByCodeAuthorizedResources($orgId: String!, $code: String!, $namespace: String, $resourceType: String) {
+  nodeByCode(orgId: $orgId, code: $code) {
+    authorizedResources(namespace: $namespace, resourceType: $resourceType) {
+      totalCount
+      list {
+        code
+        type
+        actions
+      }
+    }
+  }
+}
+
+""",
+'listNodeByIdAuthorizedResources': """
+query listNodeByIdAuthorizedResources($id: String!, $namespace: String, $resourceType: String) {
+  nodeById(id: $id) {
+    authorizedResources(namespace: $namespace, resourceType: $resourceType) {
+      totalCount
+      list {
+        code
+        type
+        actions
+      }
+    }
+  }
+}
+
+""",
+'listRoleAuthorizedResources': """
+query listRoleAuthorizedResources($code: String!, $namespace: String, $resourceType: String) {
+  role(code: $code, namespace: $namespace) {
+    authorizedResources(resourceType: $resourceType) {
+      totalCount
+      list {
+        code
+        type
+        actions
+      }
+    }
+  }
+}
+
+""",
+'listUserAuthorizedResources': """
+query listUserAuthorizedResources($id: String!, $namespace: String, $resourceType: String) {
+  user(id: $id) {
+    authorizedResources(namespace: $namespace, resourceType: $resourceType) {
+      totalCount
+      list {
+        code
+        type
+        actions
+      }
+    }
+  }
+}
+
+""",
+'nodeByCode': """
 query nodeByCode($orgId: String!, $code: String!) {
   nodeByCode(orgId: $orgId, code: $code) {
     id
+    orgId
     name
     nameI18n
     description
@@ -2085,10 +2496,11 @@ query nodeByCode($orgId: String!, $code: String!) {
 }
 
 """,
-    'nodeByCodeWithMembers': """
+'nodeByCodeWithMembers': """
 query nodeByCodeWithMembers($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildrenNodes: Boolean, $orgId: String!, $code: String!) {
   nodeByCode(orgId: $orgId, code: $code) {
     id
+    orgId
     name
     nameI18n
     description
@@ -2106,6 +2518,7 @@ query nodeByCodeWithMembers($page: Int, $limit: Int, $sortBy: SortByEnum, $inclu
         id
         arn
         userPoolId
+        status
         username
         email
         emailVerified
@@ -2151,16 +2564,18 @@ query nodeByCodeWithMembers($page: Int, $limit: Int, $sortBy: SortByEnum, $inclu
         country
         createdAt
         updatedAt
+        externalId
       }
     }
   }
 }
 
 """,
-    'nodeById': """
+'nodeById': """
 query nodeById($id: String!) {
   nodeById(id: $id) {
     id
+    orgId
     name
     nameI18n
     description
@@ -2177,10 +2592,11 @@ query nodeById($id: String!) {
 }
 
 """,
-    'nodeByIdWithMembers': """
+'nodeByIdWithMembers': """
 query nodeByIdWithMembers($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildrenNodes: Boolean, $id: String!) {
   nodeById(id: $id) {
     id
+    orgId
     name
     nameI18n
     description
@@ -2198,6 +2614,7 @@ query nodeByIdWithMembers($page: Int, $limit: Int, $sortBy: SortByEnum, $include
         id
         arn
         userPoolId
+        status
         username
         email
         emailVerified
@@ -2243,18 +2660,20 @@ query nodeByIdWithMembers($page: Int, $limit: Int, $sortBy: SortByEnum, $include
         country
         createdAt
         updatedAt
+        externalId
       }
     }
   }
 }
 
 """,
-    'org': """
+'org': """
 query org($id: String!) {
   org(id: $id) {
     id
     rootNode {
       id
+      orgId
       name
       nameI18n
       description
@@ -2270,6 +2689,7 @@ query org($id: String!) {
     }
     nodes {
       id
+      orgId
       name
       nameI18n
       description
@@ -2287,7 +2707,7 @@ query org($id: String!) {
 }
 
 """,
-    'orgs': """
+'orgs': """
 query orgs($page: Int, $limit: Int, $sortBy: SortByEnum) {
   orgs(page: $page, limit: $limit, sortBy: $sortBy) {
     totalCount
@@ -2328,38 +2748,47 @@ query orgs($page: Int, $limit: Int, $sortBy: SortByEnum) {
 }
 
 """,
-    'policies': """
-query policies($page: Int, $limit: Int, $excludeDefault: Boolean) {
-  policies(page: $page, limit: $limit, excludeDefault: $excludeDefault) {
+'policies': """
+query policies($page: Int, $limit: Int, $namespace: String) {
+  policies(page: $page, limit: $limit, namespace: $namespace) {
     totalCount
     list {
+      namespace
       code
-      isDefault
       description
       createdAt
       updatedAt
-      assignmentsCount
       statements {
         resource
         actions
         effect
+        condition {
+          param
+          operator
+          value
+        }
       }
     }
   }
 }
 
 """,
-    'policy': """
-query policy($code: String!) {
-  policy(code: $code) {
+'policy': """
+query policy($namespace: String, $code: String!) {
+  policy(code: $code, namespace: $namespace) {
+    namespace
     code
-    assignmentsCount
     isDefault
     description
     statements {
       resource
       actions
       effect
+      condition {
+        param
+        operator
+        value
+      }
     }
     createdAt
     updatedAt
@@ -2367,9 +2796,9 @@ query policy($code: String!) {
 }
 
 """,
-    'policyAssignments': """
-query policyAssignments($code: String, $targetType: PolicyAssignmentTargetType, $targetIdentifier: String, $page: Int, $limit: Int) {
-  policyAssignments(code: $code, targetType: $targetType, targetIdentifier: $targetIdentifier, page: $page, limit: $limit) {
+'policyAssignments': """
+query policyAssignments($namespace: String, $code: String, $targetType: PolicyAssignmentTargetType, $targetIdentifier: String, $page: Int, $limit: Int) {
+  policyAssignments(namespace: $namespace, code: $code, targetType: $targetType, targetIdentifier: $targetIdentifier, page: $page, limit: $limit) {
     totalCount
     list {
       code
@@ -2380,7 +2809,7 @@ query policyAssignments($code: String, $targetType: PolicyAssignmentTargetType, 
 }
 
 """,
-    'policyWithAssignments': """
+'policyWithAssignments': """
 query policyWithAssignments($page: Int, $limit: Int, $code: String!) {
   policy(code: $code) {
     code
@@ -2403,19 +2832,19 @@ query policyWithAssignments($page: Int, $limit: Int, $code: String!) {
 }
 
 """,
-    'previewEmail': """
+'previewEmail': """
 query previewEmail($type: EmailTemplateType!) {
   previewEmail(type: $type)
 }
 
 """,
-    'qiniuUptoken': """
+'qiniuUptoken': """
 query qiniuUptoken($type: String) {
   qiniuUptoken(type: $type)
 }
 
 """,
-    'queryMfa': """
+'queryMfa': """
 query queryMfa($id: String, $userId: String, $userPoolId: String) {
   queryMfa(id: $id, userId: $userId, userPoolId: $userPoolId) {
     id
@@ -2427,23 +2856,33 @@ query queryMfa($id: String, $userId: String, $userPoolId: String) {
 }
 
 """,
-    'role': """
-query role($code: String!) {
-  role(code: $code) {
+'resourcePermissions': """
+query resourcePermissions($namespace: String!, $resourceType: ResourceType!, $resource: String!, $targetType: PolicyAssignmentTargetType, $actions: ResourcePermissionsActionsInput) {
+  resourcePermissions(namespace: $namespace, resource: $resource, resourceType: $resourceType, targetType: $targetType, actions: $actions) {
+    totalCount
+    list {
+      targetType
+      targetIdentifier
+      actions
+    }
+  }
+}
+
+""",
+'role': """
+query role($code: String!, $namespace: String) {
+  role(code: $code, namespace: $namespace) {
+    namespace
     code
     arn
     description
-    isSystem
     createdAt
     updatedAt
-    users {
-      totalCount
-    }
     parent {
+      namespace
       code
       arn
       description
-      isSystem
       createdAt
       updatedAt
     }
@@ -2451,14 +2890,15 @@ query role($code: String!) {
 }
 
 """,
-    'roleWithUsers': """
-query roleWithUsers($code: String!) {
-  role(code: $code) {
+'roleWithUsers': """
+query roleWithUsers($code: String!, $namespace: String) {
+  role(code: $code, namespace: $namespace) {
     users {
       totalCount
       list {
         id
         arn
+        status
         userPoolId
         username
         email
@@ -2505,39 +2945,34 @@ query roleWithUsers($code: String!) {
         country
         createdAt
         updatedAt
+        externalId
       }
     }
   }
 }
 
 """,
-    'roles': """
-query roles($page: Int, $limit: Int, $sortBy: SortByEnum) {
-  roles(page: $page, limit: $limit, sortBy: $sortBy) {
+'roles': """
+query roles($namespace: String, $page: Int, $limit: Int, $sortBy: SortByEnum) {
+  roles(namespace: $namespace, page: $page, limit: $limit, sortBy: $sortBy) {
     totalCount
     list {
+      namespace
       code
       arn
       description
-      isSystem
       createdAt
       updatedAt
-      parent {
-        code
-        description
-        isSystem
-        createdAt
-        updatedAt
-      }
     }
   }
 }
 
 """,
-    'rootNode': """
-query rootNode($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildrenNodes: Boolean, $orgId: String!) {
+'rootNode': """
+query rootNode($orgId: String!) {
   rootNode(orgId: $orgId) {
     id
+    orgId
     name
     nameI18n
     description
@@ -2547,24 +2982,47 @@ query rootNode($page: Int, $limit: Int, $sortBy: SortByEnum, $includeChildrenNod
     root
     depth
     path
+    codePath
+    namePath
     createdAt
     updatedAt
     children
-    users(page: $page, limit: $limit, sortBy: $sortBy, includeChildrenNodes: $includeChildrenNodes) {
-      totalCount
-    }
   }
 }
 
 """,
-    'searchUser': """
-query searchUser($query: String!, $fields: [String], $page: Int, $limit: Int) {
-  searchUser(query: $query, fields: $fields, page: $page, limit: $limit) {
+'searchNodes': """
+query searchNodes($keyword: String!) {
+  searchNodes(keyword: $keyword) {
+    id
+    orgId
+    name
+    nameI18n
+    description
+    descriptionI18n
+    order
+    code
+    root
+    depth
+    path
+    codePath
+    namePath
+    createdAt
+    updatedAt
+    children
+  }
+}
+
+""",
+'searchUser': """
+query searchUser($query: String!, $fields: [String], $page: Int, $limit: Int, $departmentOpts: [SearchUserDepartmentOpt]) {
+  searchUser(query: $query, fields: $fields, page: $page, limit: $limit, departmentOpts: $departmentOpts) {
     totalCount
     list {
       id
       arn
       userPoolId
+      status
       username
       email
       emailVerified
@@ -2610,12 +3068,13 @@ query searchUser($query: String!, $fields: [String], $page: Int, $limit: Int) {
       country
       createdAt
       updatedAt
+      externalId
     }
   }
 }
 
 """,
-    'socialConnection': """
+'socialConnection': """
 query socialConnection($provider: String!) {
   socialConnection(provider: $provider) {
     provider
@@ -2632,7 +3091,7 @@ query socialConnection($provider: String!) {
 }
 
 """,
-    'socialConnectionInstance': """
+'socialConnectionInstance': """
 query socialConnectionInstance($provider: String!) {
   socialConnectionInstance(provider: $provider) {
     provider
@@ -2645,7 +3104,7 @@ query socialConnectionInstance($provider: String!) {
 }
 
 """,
-    'socialConnectionInstances': """
+'socialConnectionInstances': """
 query socialConnectionInstances {
   socialConnectionInstances {
     provider
@@ -2658,7 +3117,7 @@ query socialConnectionInstances {
 }
 
 """,
-    'socialConnections': """
+'socialConnections': """
 query socialConnections {
   socialConnections {
     provider
@@ -2675,13 +3134,13 @@ query socialConnections {
 }
 
 """,
-    'templateCode': """
+'templateCode': """
 query templateCode {
   templateCode
 }
 
 """,
-    'udf': """
+'udf': """
 query udf($targetType: UDFTargetType!) {
   udf(targetType: $targetType) {
     targetType
@@ -2693,27 +3152,52 @@ query udf($targetType: UDFTargetType!) {
 }
 
 """,
-    'udv': """
+'udfValueBatch': """
+query udfValueBatch($targetType: UDFTargetType!, $targetIds: [String!]!) {
+  udfValueBatch(targetType: $targetType, targetIds: $targetIds) {
+    targetId
+    data {
+      key
+      dataType
+      value
+      label
+    }
+  }
+}
+
+""",
+'udv': """
 query udv($targetType: UDFTargetType!, $targetId: String!) {
   udv(targetType: $targetType, targetId: $targetId) {
     key
     dataType
     value
+    label
   }
 }
 
 """,
-    'user': """
+'user': """
 query user($id: String) {
   user(id: $id) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
     phone
     phoneVerified
+    identities {
+      openid
+      userIdInIdp
+      userId
+      connectionId
+      isSocial
+      provider
+      userPoolId
+    }
     unionid
     openid
     nickname
@@ -2754,16 +3238,18 @@ query user($id: String) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'userBatch': """
+'userBatch': """
 query userBatch($ids: [String!]!) {
   userBatch(ids: $ids) {
     id
     arn
     userPoolId
+    status
     username
     email
     emailVerified
@@ -2809,11 +3295,12 @@ query userBatch($ids: [String!]!) {
     country
     createdAt
     updatedAt
+    externalId
   }
 }
 
 """,
-    'userpool': """
+'userpool': """
 query userpool {
   userpool {
     id
@@ -2822,6 +3309,7 @@ query userpool {
     description
     secret
     jwtSecret
+    ownerId
     userpoolTypes {
       code
       name
@@ -2835,6 +3323,7 @@ query userpool {
     emailVerifiedDefault
     sendWelcomeEmail
     registerDisabled
+    appSsoEnabled
     showWxQRCodeWhenRegisterDisabled
     allowedOrigins
     tokenExpiresAfter
@@ -2873,12 +3362,17 @@ query userpool {
     customSMSProvider {
       enabled
       provider
+      config
     }
+    packageType
+    useCustomUserStore
+    loginRequireEmailVerified
+    verifyCodeLength
   }
 }
 
 """,
-    'userpoolTypes': """
+'userpoolTypes': """
 query userpoolTypes {
   userpoolTypes {
     code
@@ -2890,7 +3384,7 @@ query userpoolTypes {
 }
 
 """,
-    'userpools': """
+'userpools': """
 query userpools($page: Int, $limit: Int, $sortBy: SortByEnum) {
   userpools(page: $page, limit: $limit, sortBy: $sortBy) {
     totalCount
@@ -2898,6 +3392,7 @@ query userpools($page: Int, $limit: Int, $sortBy: SortByEnum) {
       id
       name
       domain
+      ownerId
       description
       secret
       jwtSecret
@@ -2907,16 +3402,21 @@ query userpools($page: Int, $limit: Int, $sortBy: SortByEnum) {
       emailVerifiedDefault
       sendWelcomeEmail
       registerDisabled
+      appSsoEnabled
       showWxQRCodeWhenRegisterDisabled
       allowedOrigins
       tokenExpiresAfter
       isDeleted
+      packageType
+      useCustomUserStore
+      loginRequireEmailVerified
+      verifyCodeLength
     }
   }
 }
 
 """,
-    'users': """
+'users': """
 query users($page: Int, $limit: Int, $sortBy: SortByEnum) {
   users(page: $page, limit: $limit, sortBy: $sortBy) {
     totalCount
@@ -2924,6 +3424,7 @@ query users($page: Int, $limit: Int, $sortBy: SortByEnum) {
       id
       arn
       userPoolId
+      status
       username
       email
       emailVerified
@@ -2969,12 +3470,13 @@ query users($page: Int, $limit: Int, $sortBy: SortByEnum) {
       country
       createdAt
       updatedAt
+      externalId
     }
   }
 }
 
 """,
-    'whitelist': """
+'whitelist': """
 query whitelist($type: WhitelistType!) {
   whitelist(type: $type) {
     createdAt

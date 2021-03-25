@@ -20,9 +20,16 @@ def createRole():
     return role
 
 
+namespace = '605c09f03ef7084037104dc2'
+
 class TestRoles(unittest.TestCase):
     def test_list(self):
         totalCount, _list = management.roles.list()
+        self.assertTrue(totalCount)
+        self.assertTrue(_list)
+
+    def test_list_with_namespace(self):
+        totalCount, _list = management.roles.list(namespace=namespace)
         self.assertTrue(totalCount)
         self.assertTrue(_list)
 
@@ -31,10 +38,23 @@ class TestRoles(unittest.TestCase):
         self.assertTrue(role)
         self.assertTrue(role['code'])
 
+    def test_create_with_namespace(self):
+        code = get_random_string(5)
+        role = management.roles.create(code=code, namespace=namespace)
+        self.assertTrue(role)
+        self.assertTrue(role['code'])
+
     def test_detail(self):
         code = get_random_string(5)
         management.roles.create(code=code)
         role = management.roles.detail(code=code)
+        self.assertTrue(role)
+        self.assertTrue(role['code'] == code)
+    
+    def test_detail_with_namespace(self):
+        code = get_random_string(5)
+        management.roles.create(code=code, namespace=namespace)
+        role = management.roles.detail(code=code, namespace=namespace)
         self.assertTrue(role)
         self.assertTrue(role['code'] == code)
 
@@ -45,12 +65,27 @@ class TestRoles(unittest.TestCase):
         role = management.roles.update(code=code, description=desc)
         self.assertTrue(role['description'] == desc)
 
+    def test_update_with_namespace(self):
+        code = get_random_string(5)
+        management.roles.create(code=code, namespace=namespace)
+        desc = get_random_string(10)
+        role = management.roles.update(code=code, description=desc, namespace=namespace)
+        self.assertTrue(role['description'] == desc)
+
     def test_update_with_new_code(self):
         code = get_random_string(5)
         management.roles.create(code=code)
 
         newCode = get_random_string(5)
         role = management.roles.update(code=code, newCode=newCode)
+        self.assertTrue(role['code'] == newCode)
+
+    def test_update_with_new_code_with_namespace(self):
+        code = get_random_string(5)
+        management.roles.create(code=code, namespace=namespace)
+
+        newCode = get_random_string(5)
+        role = management.roles.update(code=code, newCode=newCode, namespace=namespace)
         self.assertTrue(role['code'] == newCode)
 
     def test_delete(self):
@@ -64,6 +99,18 @@ class TestRoles(unittest.TestCase):
         newRole = management.roles.detail(code=role['code'])
         self.assertTrue(newRole == None)
 
+    def test_delete_namespace(self):
+        role = management.roles.create(
+            code=get_random_string(5),
+            namespace=namespace
+        )
+        data = management.roles.delete(code=role['code'], namespace=namespace)
+        status_code = data['code']
+        self.assertTrue(status_code == 200)
+
+        newRole = management.roles.detail(code=role['code'], namespace=namespace)
+        self.assertTrue(newRole == None)
+
     def test_delete_many(self):
         role = management.roles.create(
             code=get_random_string(5)
@@ -75,11 +122,34 @@ class TestRoles(unittest.TestCase):
         newRole = management.roles.detail(code=role['code'])
         self.assertTrue(newRole == None)
 
+    def test_delete_many_with_namespace(self):
+        role = management.roles.create(
+            code=get_random_string(5),
+            namespace=namespace
+        )
+        data = management.roles.delete_many(code_list=[role['code']], namespace=namespace)
+        status_code = data['code']
+        self.assertTrue(status_code == 200)
+
+        newRole = management.roles.detail(code=role['code'], namespace=namespace)
+        self.assertTrue(newRole == None)
+
     def test_list_users(self):
         role = management.roles.create(
             code=get_random_string(5)
         )
         data = management.roles.list_users(role['code'])
+        totalCount = data['totalCount']
+        users = data['list']
+        self.assertTrue(totalCount == 0)
+        self.assertTrue(len(users) == 0)
+
+    def test_list_users_with_namespace(self):
+        role = management.roles.create(
+            code=get_random_string(5),
+            namespace=namespace
+        )
+        data = management.roles.list_users(role['code'], namespace=namespace)
         totalCount = data['totalCount']
         users = data['list']
         self.assertTrue(totalCount == 0)
@@ -102,6 +172,24 @@ class TestRoles(unittest.TestCase):
         self.assertTrue(totalCount == 1)
         self.assertTrue(len(users) == 1)
 
+    def test_add_users_with_namespace(self):
+        role = management.roles.create(
+            code=get_random_string(5),
+            namespace=namespace
+        )
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        management.roles.add_users(role['code'], [user['id']], namespace=namespace)
+        data = management.roles.list_users(role['code'], namespace=namespace)
+        totalCount = data['totalCount']
+        users = data['list']
+        self.assertTrue(totalCount == 1)
+        self.assertTrue(len(users) == 1)
+
     def test_remove_users(self):
         role = management.roles.create(
             code=get_random_string(5)
@@ -119,6 +207,27 @@ class TestRoles(unittest.TestCase):
         users = data['list']
         self.assertTrue(totalCount == 0)
         self.assertTrue(len(users) == 0)
+
+
+    def test_remove_users_with_namespace(self):
+        role = management.roles.create(
+            code=get_random_string(5),
+            namespace=namespace
+        )
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        management.roles.add_users(role['code'], [user['id']], namespace=namespace)
+        management.roles.remove_users(role['code'], [user['id']], namespace=namespace)
+        data = management.roles.list_users(role['code'], namespace=namespace)
+        totalCount = data['totalCount']
+        users = data['list']
+        self.assertTrue(totalCount == 0)
+        self.assertTrue(len(users) == 0)
+
 
     def test_add_policies(self):
         policy = management.policies.create(

@@ -15,137 +15,149 @@ class RolesManagementClient(object):
         self.graphqlClient = graphqlClient
         self.tokenProvider = tokenProvider
 
-    def list(self, page=1, limit=10):
-        # type:(int,int) -> object
+    def list(self, page=1, limit=10, namespace=None):
+        # type:(int,int,str) -> object
         """获取用户池角色列表
 
         Args:
             page (int, optional): 页码数，从 1 开始，默认为 1 。
             limit (int, optional): 每页个数，默认为 10 。
+            namespace (str, optional): 权限分组 code。
 
         Returns:
             [totalCount, _list]: 返回一个 tuple，第一个值为角色总数，第二个为元素为角色详情的列表。
         """
         data = self.graphqlClient.request(
             query=QUERY["roles"],
-            params={"page": page, "limit": limit},
+            params={"page": page, "limit": limit, "namespace": namespace},
             token=self.tokenProvider.getAccessToken(),
         )
         return data["roles"]
 
-    def create(self, code, description=None, parentCode=None):
-        # type:(str,str,str) -> object
+    def create(self, code, description=None, parentCode=None, namespace=None):
+        # type:(str,str,str,str) -> object
         """创建角色
 
         Args:
             code (str): 角色唯一标志
             description (str, optional): 角色描述
             parentCode (str, optional): 父角色唯一标志
+            namespace (str, optional): 权限分组 code。
         """
         data = self.graphqlClient.request(
             query=QUERY["createRole"],
-            params={"code": code, "description": description, "parentCode": parentCode},
+            params={"code": code, "description": description, "parentCode": parentCode, "namespace": namespace},
             token=self.tokenProvider.getAccessToken(),
         )
         return data["createRole"]
 
-    def detail(self, code):
-        # type:(str) -> object
+    def detail(self, code, namespace=None):
+        # type:(str,str) -> object
         """获取角色详情
 
         Args:
             code (str): 角色唯一标志
+            namespace (str, optional): 权限分组 code。
         """
         data = self.graphqlClient.request(
             query=QUERY["role"],
             params={
                 "code": code,
+                "namespace": namespace
             },
             token=self.tokenProvider.getAccessToken(),
         )
         return data["role"]
 
-    def update(self, code, description=None, newCode=None):
-        # type:(str,str,str) -> object
+    def update(self, code, description=None, newCode=None, namespace=None):
+        # type:(str,str,str,str) -> object
         """修改角色资料
 
         Args:
             code (str): 角色唯一标志
             description (str, optional): 角色描述
             newCode (str, optional): 新的 code
+            namespace (str, optional): 权限分组 code。
         """
         data = self.graphqlClient.request(
             query=QUERY["updateRole"],
-            params={"code": code, "description": description, "newCode": newCode},
+            params={"code": code, "description": description, "newCode": newCode, "namespace": namespace},
             token=self.tokenProvider.getAccessToken(),
         )
         return data["updateRole"]
 
-    def delete(self, code):
-        # type:(str) -> object
+    def delete(self, code, namespace=None):
+        # type:(str,str) -> object
         """删除角色
 
         Args:
             code (str): 角色唯一标志
+            namespace (str, optional): 权限分组 code。
         """
         data = self.graphqlClient.request(
             query=QUERY["deleteRole"],
             params={
                 "code": code,
+                "namespace": namespace
             },
             token=self.tokenProvider.getAccessToken(),
         )
         return data["deleteRole"]
 
-    def delete_many(self, code_list):
-        # type:(object) -> object
+    def delete_many(self, code_list, namespace=None):
+        # type:(object,str) -> object
         """批量删除角色
 
         Args:
             code_list : 角色 code 列表
+            namespace (str, optional): 权限分组 code。
         """
         data = self.graphqlClient.request(
             query=QUERY["deleteRoles"],
             params={
                 "codeList": code_list,
+                "namespace": namespace
             },
             token=self.tokenProvider.getAccessToken(),
         )
         return data["deleteRoles"]
 
-    def list_users(self, code):
-        # type:(str) -> object
+    def list_users(self, code, namespace=None):
+        # type:(str,str) -> object
         """获取用户列表"""
         data = self.graphqlClient.request(
             query=QUERY["roleWithUsers"],
             params={
                 "code": code,
+                "namespace": namespace
             },
             token=self.tokenProvider.getAccessToken(),
         )
         return data["role"]["users"]
 
-    def add_users(self, code, userIds):
-        # type:(str,object) -> object
+    def add_users(self, code, userIds, namespace=None):
+        # type:(str,object,str) -> object
         """添加用户"""
         data = self.graphqlClient.request(
             query=QUERY["assignRole"],
             params={
                 "userIds": userIds,
                 "roleCodes": [code],
+                "namespace": namespace
             },
             token=self.tokenProvider.getAccessToken(),
         )
         return data["assignRole"]
 
-    def remove_users(self, code, userIds):
-        # type:(str,object) -> object
+    def remove_users(self, code, userIds, namespace=None):
+        # type:(str,object,str) -> object
         """移除用户"""
         data = self.graphqlClient.request(
             query=QUERY["revokeRole"],
             params={
                 "userIds": userIds,
                 "roleCodes": [code],
+                "namespace": namespace
             },
             token=self.tokenProvider.getAccessToken(),
         )
