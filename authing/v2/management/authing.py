@@ -12,49 +12,46 @@ from .udf import UdfManagementClient
 
 
 class ManagementClient(object):
-    """Authing Management Client
-    """
+    """Authing Management Client"""
 
     def __init__(self, options):
         # type:(ManagementClientOptions) -> ManagementClient
         self.options = options
         self.graphqlClient = GraphqlClient(
-            options=self.options,
-            endpoint=self.options.graphql_endpoint
+            options=self.options, endpoint=self.options.graphql_endpoint
         )
         self.tokenProvider = ManagementTokenProvider(
-            options=self.options,
-            graphqlClient=self.graphqlClient
+            options=self.options, graphqlClient=self.graphqlClient
         )
 
         self.users = UsersManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
-            tokenProvider=self.tokenProvider
+            tokenProvider=self.tokenProvider,
         )
 
         self.roles = RolesManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
-            tokenProvider=self.tokenProvider
+            tokenProvider=self.tokenProvider,
         )
 
         self.policies = PolicyManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
-            tokenProvider=self.tokenProvider
+            tokenProvider=self.tokenProvider,
         )
 
         self.acl = AclManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
-            tokenProvider=self.tokenProvider
+            tokenProvider=self.tokenProvider,
         )
 
         self.udf = UdfManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
-            tokenProvider=self.tokenProvider
+            tokenProvider=self.tokenProvider,
         )
 
         # 用户池详情
@@ -65,19 +62,16 @@ class ManagementClient(object):
             return self._userpool_detail
 
         data = self.graphqlClient.request(
-            query=QUERY['userpool'],
+            query=QUERY["userpool"],
             params={},
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        self._userpool_detail = data['userpool']
+        self._userpool_detail = data["userpool"]
         return self._userpool_detail
 
     def check_login_status(self, token):
         # type:(str,bool) -> any
         data = self.graphqlClient.request(
-            query=QUERY['checkLoginStatus'],
-            params={
-                'token': token
-            }
+            query=QUERY["checkLoginStatus"], params={"token": token}
         )
-        return data['checkLoginStatus']
+        return data["checkLoginStatus"]

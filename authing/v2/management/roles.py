@@ -7,8 +7,7 @@ from ..common.codegen import QUERY
 
 
 class RolesManagementClient(object):
-    """Authing Roles Management Client
-    """
+    """Authing Roles Management Client"""
 
     def __init__(self, options, graphqlClient, tokenProvider):
         # type:(ManagementClientOptions,GraphqlClient,ManagementTokenProvider) -> RolesManagementClient
@@ -29,21 +28,14 @@ class RolesManagementClient(object):
         """
         data = self.graphqlClient.request(
             query=QUERY["roles"],
-            params={
-                'page': page,
-                'limit': limit
-            },
-            token=self.tokenProvider.getAccessToken()
+            params={"page": page, "limit": limit},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['roles']
+        return data["roles"]
 
-    def create(self,
-               code,
-               description=None,
-               parentCode=None
-               ):
+    def create(self, code, description=None, parentCode=None):
         # type:(str,str,str) -> object
-        """创建角色 
+        """创建角色
 
         Args:
             code (str): 角色唯一标志
@@ -52,14 +44,10 @@ class RolesManagementClient(object):
         """
         data = self.graphqlClient.request(
             query=QUERY["createRole"],
-            params={
-                'code': code,
-                'description': description,
-                'parentCode': parentCode
-            },
-            token=self.tokenProvider.getAccessToken()
+            params={"code": code, "description": description, "parentCode": parentCode},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['createRole']
+        return data["createRole"]
 
     def detail(self, code):
         # type:(str) -> object
@@ -71,11 +59,11 @@ class RolesManagementClient(object):
         data = self.graphqlClient.request(
             query=QUERY["role"],
             params={
-                'code': code,
+                "code": code,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['role']
+        return data["role"]
 
     def update(self, code, description=None, newCode=None):
         # type:(str,str,str) -> object
@@ -88,14 +76,10 @@ class RolesManagementClient(object):
         """
         data = self.graphqlClient.request(
             query=QUERY["updateRole"],
-            params={
-                'code': code,
-                'description': description,
-                'newCode': newCode
-            },
-            token=self.tokenProvider.getAccessToken()
+            params={"code": code, "description": description, "newCode": newCode},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['updateRole']
+        return data["updateRole"]
 
     def delete(self, code):
         # type:(str) -> object
@@ -107,11 +91,11 @@ class RolesManagementClient(object):
         data = self.graphqlClient.request(
             query=QUERY["deleteRole"],
             params={
-                'code': code,
+                "code": code,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['deleteRole']
+        return data["deleteRole"]
 
     def delete_many(self, code_list):
         # type:(object) -> object
@@ -123,95 +107,89 @@ class RolesManagementClient(object):
         data = self.graphqlClient.request(
             query=QUERY["deleteRoles"],
             params={
-                'codeList': code_list,
+                "codeList": code_list,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['deleteRoles']
+        return data["deleteRoles"]
 
     def list_users(self, code):
         # type:(str) -> object
-        """获取用户列表
-        """
+        """获取用户列表"""
         data = self.graphqlClient.request(
             query=QUERY["roleWithUsers"],
             params={
-                'code': code,
+                "code": code,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['role']['users']
+        return data["role"]["users"]
 
     def add_users(self, code, userIds):
         # type:(str,object) -> object
-        """添加用户
-        """
+        """添加用户"""
         data = self.graphqlClient.request(
-            query=QUERY['assignRole'],
+            query=QUERY["assignRole"],
             params={
-                'userIds': userIds,
-                'roleCodes': [code],
+                "userIds": userIds,
+                "roleCodes": [code],
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['assignRole']
+        return data["assignRole"]
 
     def remove_users(self, code, userIds):
         # type:(str,object) -> object
-        """移除用户
-        """
+        """移除用户"""
         data = self.graphqlClient.request(
-            query=QUERY['revokeRole'],
+            query=QUERY["revokeRole"],
             params={
-                'userIds': userIds,
-                'roleCodes': [code],
+                "userIds": userIds,
+                "roleCodes": [code],
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['revokeRole']
+        return data["revokeRole"]
 
     def list_policies(self, code, page=1, limit=10):
         # type:(str,int,int) -> object
-        """获取策略列表
-        """
+        """获取策略列表"""
         data = self.graphqlClient.request(
             query=QUERY["policyAssignments"],
             params={
-                'targetType': 'ROLE',
-                'targetIdentifier': code,
-                'page': page,
-                'limit': limit
+                "targetType": "ROLE",
+                "targetIdentifier": code,
+                "page": page,
+                "limit": limit,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['policyAssignments']
+        return data["policyAssignments"]
 
     def add_policies(self, code, policies):
         # type:(str,object) -> object
-        """添加策略
-        """
+        """添加策略"""
         data = self.graphqlClient.request(
             query=QUERY["addPolicyAssignments"],
             params={
-                'policies': policies,
-                'targetType': 'ROLE',
-                'targetIdentifiers': [code]
+                "policies": policies,
+                "targetType": "ROLE",
+                "targetIdentifiers": [code],
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['addPolicyAssignments']
+        return data["addPolicyAssignments"]
 
     def remove_policies(self, code, policies):
         # type:(str,object) -> object
-        """移除策略
-        """
+        """移除策略"""
         data = self.graphqlClient.request(
             query=QUERY["removePolicyAssignments"],
             params={
-                'policies': policies,
-                'targetType': 'ROLE',
-                'targetIdentifiers': [code]
+                "policies": policies,
+                "targetType": "ROLE",
+                "targetIdentifiers": [code],
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['removePolicyAssignments']
+        return data["removePolicyAssignments"]

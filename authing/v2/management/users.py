@@ -11,8 +11,7 @@ from dateutil import parser
 
 
 class UsersManagementClient(object):
-    """Authing Users Management Client
-    """
+    """Authing Users Management Client"""
 
     def __init__(self, options, graphqlClient, tokenProvider):
         # type:(ManagementClientOptions,GraphqlClient,ManagementTokenProvider) -> UsersManagementClient
@@ -32,11 +31,11 @@ class UsersManagementClient(object):
             [totalCount, _list]: 返回一个 tuple，第一个值为用户总数，第二个为元素为用户信息的列表。
         """
         data = self.graphqlClient.request(
-            query=QUERY["users"], params={
-                'page': page,
-                'limit': limit
-            }, token=self.tokenProvider.getAccessToken())
-        return data['users']
+            query=QUERY["users"],
+            params={"page": page, "limit": limit},
+            token=self.tokenProvider.getAccessToken(),
+        )
+        return data["users"]
 
     def create(self, userInfo):
         # type:(object) -> any
@@ -48,12 +47,17 @@ class UsersManagementClient(object):
         Returns:
             [User]: 用户详情
         """
-        if userInfo.get('password'):
-            userInfo['password'] = encrypt(
-                userInfo['password'], self.options.enc_public_key)
-        data = self.graphqlClient.request(query=QUERY['createUser'], params={
-            'userInfo': userInfo,
-        }, token=self.tokenProvider.getAccessToken())
+        if userInfo.get("password"):
+            userInfo["password"] = encrypt(
+                userInfo["password"], self.options.enc_public_key
+            )
+        data = self.graphqlClient.request(
+            query=QUERY["createUser"],
+            params={
+                "userInfo": userInfo,
+            },
+            token=self.tokenProvider.getAccessToken(),
+        )
         return data["createUser"]
 
     def update(self, userId, updates):
@@ -64,19 +68,17 @@ class UsersManagementClient(object):
             userId (str): 用户 ID
             updates: 需要修改的用户字段
         """
-        if updates.get('password'):
-            updates['password'] = encrypt(
-                updates['password'], self.options.enc_public_key)
+        if updates.get("password"):
+            updates["password"] = encrypt(
+                updates["password"], self.options.enc_public_key
+            )
 
         data = self.graphqlClient.request(
-            query=QUERY['updateUser'],
-            params={
-                'id': userId,
-                'input': updates
-            },
-            token=self.tokenProvider.getAccessToken()
+            query=QUERY["updateUser"],
+            params={"id": userId, "input": updates},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['updateUser']
+        return data["updateUser"]
 
     def detail(self, userId):
         # type:(str) -> any
@@ -86,13 +88,11 @@ class UsersManagementClient(object):
             userId (str): 用户 ID
         """
         data = self.graphqlClient.request(
-            query=QUERY['user'],
-            params={
-                'id': userId
-            },
-            token=self.tokenProvider.getAccessToken()
+            query=QUERY["user"],
+            params={"id": userId},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['user']
+        return data["user"]
 
     def find(self, email=None, username=None, phone=None):
         """查找用户
@@ -103,15 +103,11 @@ class UsersManagementClient(object):
             phone (str, optional): 手机号
         """
         data = self.graphqlClient.request(
-            query=QUERY['findUser'],
-            params={
-                'email': email,
-                'username': username,
-                'phone': phone
-            },
-            token=self.tokenProvider.getAccessToken()
+            query=QUERY["findUser"],
+            params={"email": email, "username": username, "phone": phone},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['findUser']
+        return data["findUser"]
 
     def search(self, query, page=1, limit=10):
         # type:(str,int,int) -> any
@@ -123,15 +119,11 @@ class UsersManagementClient(object):
             limit (int, optional): 每页个数，默认为 10 。
         """
         data = self.graphqlClient.request(
-            query=QUERY['searchUser'],
-            params={
-                'query': query,
-                'page': page,
-                'limit': limit
-            },
-            token=self.tokenProvider.getAccessToken()
+            query=QUERY["searchUser"],
+            params={"query": query, "page": page, "limit": limit},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['searchUser']
+        return data["searchUser"]
 
     def batch(self, userIds):
         # type:(str) -> any
@@ -141,13 +133,11 @@ class UsersManagementClient(object):
             userIds: 用户 ID 列表，以英文逗号分隔
         """
         data = self.graphqlClient.request(
-            query=QUERY['userBatch'],
-            params={
-                'ids': userIds
-            },
-            token=self.tokenProvider.getAccessToken()
+            query=QUERY["userBatch"],
+            params={"ids": userIds},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['userBatch']
+        return data["userBatch"]
 
     def delete(self, userId):
         # type:(str) -> any
@@ -160,13 +150,11 @@ class UsersManagementClient(object):
             [int, str]: 一个 tuple ，第一个为状态码，200 表示成功，第二个为 message
         """
         data = self.graphqlClient.request(
-            query=QUERY['deleteUser'],
-            params={
-                'id': userId
-            },
-            token=self.tokenProvider.getAccessToken()
+            query=QUERY["deleteUser"],
+            params={"id": userId},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['deleteUser']
+        return data["deleteUser"]
 
     def delete_many(self, userIds):
         # type:(str) -> any
@@ -176,13 +164,11 @@ class UsersManagementClient(object):
             userIds: 用户 ID 列表
         """
         data = self.graphqlClient.request(
-            query=QUERY['deleteUsers'],
-            params={
-                'ids': userIds
-            },
-            token=self.tokenProvider.getAccessToken()
+            query=QUERY["deleteUsers"],
+            params={"ids": userIds},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['deleteUsers']
+        return data["deleteUsers"]
 
     def list_roles(self, userId):
         # type:(str) -> any
@@ -192,13 +178,13 @@ class UsersManagementClient(object):
             userId (str): 用户 ID
         """
         data = self.graphqlClient.request(
-            query=QUERY['getUserRoles'],
+            query=QUERY["getUserRoles"],
             params={
-                'id': userId,
+                "id": userId,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['user']['roles']
+        return data["user"]["roles"]
 
     def add_roles(self, userId, roles):
         # type:(str,object) -> any
@@ -209,14 +195,14 @@ class UsersManagementClient(object):
             roles: 角色 code 列表
         """
         data = self.graphqlClient.request(
-            query=QUERY['assignRole'],
+            query=QUERY["assignRole"],
             params={
-                'userIds': [userId],
-                'roleCodes': roles,
+                "userIds": [userId],
+                "roleCodes": roles,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['assignRole']
+        return data["assignRole"]
 
     def remove_roles(self, userId, roles):
         # type:(str,object) -> any
@@ -227,14 +213,14 @@ class UsersManagementClient(object):
             roles: 用户角色 code 列表
         """
         data = self.graphqlClient.request(
-            query=QUERY['revokeRole'],
+            query=QUERY["revokeRole"],
             params={
-                'userIds': [userId],
-                'roleCodes': roles,
+                "userIds": [userId],
+                "roleCodes": roles,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['revokeRole']
+        return data["revokeRole"]
 
     def refresh_token(self, userId):
         # type:(str) -> any
@@ -247,15 +233,15 @@ class UsersManagementClient(object):
             [str, number, number]: jwt token, iat, exp
         """
         data = self.graphqlClient.request(
-            query=QUERY['refreshToken'],
+            query=QUERY["refreshToken"],
             params={
-                'id': userId,
+                "id": userId,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        data = data['refreshToken']
+        data = data["refreshToken"]
         return data
-    
+
     def list_groups(self, userId):
         """获取用户的分组列表
 
@@ -263,13 +249,13 @@ class UsersManagementClient(object):
             userId (str): 用户 ID
         """
         data = self.graphqlClient.request(
-            query=QUERY['getUserGroups'],
+            query=QUERY["getUserGroups"],
             params={
-                'id': userId,
+                "id": userId,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['user']['groups']
+        return data["user"]["groups"]
 
     def add_group(self, userId, group):
         """获取用户的分组列表
@@ -279,14 +265,11 @@ class UsersManagementClient(object):
             group (str): 分组的 code
         """
         data = self.graphqlClient.request(
-            query=QUERY['addUserToGroup'],
-            params={
-                'userIds': [userId],
-                'code': group
-            },
-            token=self.tokenProvider.getAccessToken()
+            query=QUERY["addUserToGroup"],
+            params={"userIds": [userId], "code": group},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['addUserToGroup']
+        return data["addUserToGroup"]
 
     def remove_group(self, userId, group):
         """获取用户的分组列表
@@ -296,84 +279,74 @@ class UsersManagementClient(object):
             group (str): 分组的 code
         """
         data = self.graphqlClient.request(
-            query=QUERY['removeUserFromGroup'],
-            params={
-                'userIds': [userId],
-                'code': group
-            },
-            token=self.tokenProvider.getAccessToken()
+            query=QUERY["removeUserFromGroup"],
+            params={"userIds": [userId], "code": group},
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['removeUserFromGroup']
+        return data["removeUserFromGroup"]
 
     def list_policies(self, userId, page=1, limit=10):
         # type:(str,int,int) -> any
-        """获取策略列表
-        """
+        """获取策略列表"""
         data = self.graphqlClient.request(
             query=QUERY["policyAssignments"],
             params={
-                'targetType': 'USER',
-                'targetIdentifier': userId,
-                'page': page,
-                'limit': limit
+                "targetType": "USER",
+                "targetIdentifier": userId,
+                "page": page,
+                "limit": limit,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['policyAssignments']
+        return data["policyAssignments"]
 
     def add_policies(self, userId, policies):
         # type:(str,object) -> any
-        """添加策略
-        """
+        """添加策略"""
         data = self.graphqlClient.request(
             query=QUERY["addPolicyAssignments"],
             params={
-                'policies': policies,
-                'targetType': 'USER',
-                'targetIdentifiers': [userId]
+                "policies": policies,
+                "targetType": "USER",
+                "targetIdentifiers": [userId],
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['addPolicyAssignments']
+        return data["addPolicyAssignments"]
 
     def remove_policies(self, userId, policies):
         # type:(str,object) -> any
-        """移除策略
-        """
+        """移除策略"""
         data = self.graphqlClient.request(
             query=QUERY["removePolicyAssignments"],
             params={
-                'policies': policies,
-                'targetType': 'USER',
-                'targetIdentifiers': [userId]
+                "policies": policies,
+                "targetType": "USER",
+                "targetIdentifiers": [userId],
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['removePolicyAssignments']
+        return data["removePolicyAssignments"]
 
     def list_udv(self, userId):
         # type:(str) -> any
-        """获取该用户的自定义数据列表
-        """
+        """获取该用户的自定义数据列表"""
         data = self.graphqlClient.request(
             query=QUERY["udv"],
-            params={
-                'targetType': 'USER',
-                'targetId': userId
-            },
-            token=self.tokenProvider.getAccessToken()
+            params={"targetType": "USER", "targetId": userId},
+            token=self.tokenProvider.getAccessToken(),
         )
-        data = data['udv']
+        data = data["udv"]
         for i, item in enumerate(data):
-            dataType, value = item['dataType'], item['value']
+            dataType, value = item["dataType"], item["value"]
             if dataType == "NUMBER":
-                data[i]['value'] = json.loads(value)
+                data[i]["value"] = json.loads(value)
             elif dataType == "BOOLEAN":
-                data[i]['value'] = json.loads(value)
-            elif dataType == 'DATETIME':
-                data[i]['value'] = parser.parse(value)
-            elif dataType == 'OBJECT':
-                data[i]['value'] = json.loads(value)
+                data[i]["value"] = json.loads(value)
+            elif dataType == "DATETIME":
+                data[i]["value"] = parser.parse(value)
+            elif dataType == "OBJECT":
+                data[i]["value"] = json.loads(value)
         return data
 
     def set_udv(self, userId, key, value):
@@ -386,28 +359,25 @@ class UsersManagementClient(object):
         """
 
         if isinstance(value, datetime.datetime):
+
             def default(o):
                 if isinstance(o, (datetime.date, datetime.datetime)):
                     return o.isoformat()
-            value = json.dumps(
-                value,
-                sort_keys=True,
-                indent=1,
-                default=default
-            )
+
+            value = json.dumps(value, sort_keys=True, indent=1, default=default)
         else:
             value = json.dumps(value)
         data = self.graphqlClient.request(
-            query=QUERY['setUdv'],
+            query=QUERY["setUdv"],
             params={
-                'targetType': 'USER',
-                'targetId': userId,
-                'key': key,
-                'value': value
+                "targetType": "USER",
+                "targetId": userId,
+                "key": key,
+                "value": value,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['setUdv']
+        return data["setUdv"]
 
     def remove_udv(self, userId, key):
         # type:(str,str) -> any
@@ -417,12 +387,12 @@ class UsersManagementClient(object):
             key ([str]): str
         """
         data = self.graphqlClient.request(
-            query=QUERY['removeUdv'],
+            query=QUERY["removeUdv"],
             params={
-                'targetType': 'USER',
-                'targetId': userId,
-                'key': key,
+                "targetType": "USER",
+                "targetId": userId,
+                "key": key,
             },
-            token=self.tokenProvider.getAccessToken()
+            token=self.tokenProvider.getAccessToken(),
         )
-        return data['removeUdv']
+        return data["removeUdv"]
