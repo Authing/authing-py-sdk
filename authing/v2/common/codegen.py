@@ -2111,8 +2111,8 @@ query emailTemplates {
 
 """,
 'findUser': """
-query findUser($email: String, $phone: String, $username: String) {
-  findUser(email: $email, phone: $phone, username: $username) {
+query findUser($email: String, $phone: String, $username: String, $externalId: String) {
+  findUser(email: $email, phone: $phone, username: $username, externalId: $externalId) {
     id
     arn
     userPoolId

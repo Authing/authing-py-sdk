@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from ...exceptions import AuthingException
-from ...common.utils import get_random_string, get_random_phone_number
+from ..utils import get_random_string
 from ...authentication import AuthenticationClientOptions
 from ...authentication.authing import AuthenticationClient
 from ...management.types import ManagementClientOptions
@@ -13,7 +13,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 management = ManagementClient(
     ManagementClientOptions(
         user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
@@ -23,22 +22,35 @@ management = ManagementClient(
 )
 
 
+def init_authentication_client():
+    authentication_client = AuthenticationClient(
+        options=AuthenticationClientOptions(
+            app_id=os.getenv("AUTHING_APP_ID"),
+            app_host=os.getenv("AUTHING_APP_HOST"),
+        )
+    )
+    return authentication_client
+
+
+def register_random_user():
+    authentication_client = init_authentication_client()
+    email = "%s@authing.cn" % get_random_string(10)
+    password = get_random_string(10)
+    user = authentication_client.register_by_email(email, password, force_login=True)
+    return email, password, user
+
+
 class TestAuthentication(unittest.TestCase):
     def test_init_with_no_userpoolid_and_appid(self):
         error = False
         try:
-            authentication = AuthenticationClient(options=AuthenticationClientOptions())
+            AuthenticationClient(options=AuthenticationClientOptions())
         except:
             error = True
         self.assertTrue(error)
 
     def test_catch_error(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         username = get_random_string(10)
         password = get_random_string(10)
 
@@ -50,14 +62,11 @@ class TestAuthentication(unittest.TestCase):
         except AuthingException as e:
             print(e.code)
             print(e.message)
+            self.assertTrue(e.code)
+            self.assertTrue(e.message)
 
     def test_register_by_email(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         user = authentication.register_by_email(
             email=email,
@@ -68,12 +77,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(user["email"] == email)
 
     def test_register_by_email_with_profile(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         user = authentication.register_by_email(
             email=email,
@@ -84,15 +88,39 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(user)
         self.assertTrue(user["id"])
         self.assertTrue(user["email"] == email)
-        self.assertTrue(user["token"] != None)
+        self.assertTrue(user["token"] is not None)
+
+    def test_register_by_email_with_custom_data(self):
+        authentication = init_authentication_client()
+        email = "%s@authing.cn" % get_random_string(10)
+        user = authentication.register_by_email(
+            email=email,
+            password=get_random_string(10),
+            custom_data={
+                'school': '华中科技大学',
+                'age': 22
+            },
+            force_login=True
+        )
+        self.assertTrue(user['id'])
+        udvs = authentication.get_udf_value()
+        self.assertTrue(udvs['school'], '华中科技大学')
+        self.assertTrue(udvs['age'], 22)
+
+    def test_register_by_email_with_context(self):
+        authentication = init_authentication_client()
+        email = "%s@authing.cn" % get_random_string(10)
+        user = authentication.register_by_email(
+            email=email,
+            password=get_random_string(10),
+            context={
+                'source': 'google'
+            }
+        )
+        self.assertTrue(user['id'])
 
     def test_register_by_username(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         username = get_random_string(10)
         user = authentication.register_by_username(
             username=username,
@@ -119,12 +147,7 @@ class TestAuthentication(unittest.TestCase):
     #     self.assertTrue(user.get('phone') == phone)
 
     def test_login_by_email(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         user = authentication.register_by_email(
@@ -139,13 +162,46 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(user.get("token"))
         self.assertTrue(user.get("email") == email)
 
-    def test_login_by_username(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
+    def test_login_by_email_with_custom_data(self):
+        authentication = init_authentication_client()
+        email = "%s@authing.cn" % get_random_string(10)
+        password = get_random_string(10)
+        user = authentication.register_by_email(
+            email=email,
+            password=password,
         )
+        user = authentication.login_by_email(
+            email=email,
+            password=password,
+            custom_data={
+                'school': '华中科技大学',
+                'age': 22
+            }
+        )
+        self.assertTrue(user['id'])
+        udvs = authentication.get_udf_value()
+        self.assertTrue(udvs['school'], '华中科技大学')
+        self.assertTrue(udvs['age'], 22)
+
+    def test_login_by_email_with_context(self):
+        authentication = init_authentication_client()
+        email = "%s@authing.cn" % get_random_string(10)
+        password = get_random_string(10)
+        user = authentication.register_by_email(
+            email=email,
+            password=password,
+        )
+        user = authentication.login_by_email(
+            email=email,
+            password=password,
+            context={
+                'source': 'google'
+            }
+        )
+        self.assertTrue(user['id'])
+
+    def test_login_by_username(self):
+        authentication = init_authentication_client()
         username = get_random_string(10)
         password = get_random_string(10)
         user = authentication.register_by_username(
@@ -192,12 +248,7 @@ class TestAuthentication(unittest.TestCase):
     #     self.assertTrue(user.get('token'))
 
     def test_init_by_token(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         user = authentication.register_by_email(
@@ -212,8 +263,8 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(token)
         authentication = AuthenticationClient(
             options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
+                app_id=os.getenv("AUTHING_APP_ID"),
+                app_host=os.getenv('AUTHING_APP_HOST'),
                 token=token,
             )
         )
@@ -224,13 +275,49 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(data)
         self.assertTrue(data.get("status"))
 
+    def test_check_password_strength(self):
+        authentication = init_authentication_client()
+        res = authentication.check_password_strength('')
+        valid, message = res['valid'], res['message']
+        self.assertTrue(valid is False)
+        self.assertTrue(message)
+
+    def test_send_email(self):
+        authentication = init_authentication_client()
+        email = 'cj@authing.cn'
+        res = authentication.send_email(email, 'RESET_PASSWORD')
+        code, message = res['code'], res['message']
+        self.assertTrue(code == 200)
+
+    @unittest.skip('need to send sms code')
+    def test_rest_password_by_phone_code(self):
+        authentication = init_authentication_client()
+        phone = '17670416754'
+        user = management.users.create({
+            'phone': phone
+        })
+        # authentication.send_sms_code(phone)
+
+        new_password = 'passw0rd'
+        authentication.reset_password_by_phone_code(phone, '1811', new_password)
+        user = authentication.login_by_phone_password(phone, new_password)
+        self.assertTrue(user['id'])
+
+    def test_reset_password_by_email_code(self):
+        authentication = init_authentication_client()
+        email = 'cj@authing.cn'
+        # user = management.users.create({
+        #     'email': email
+        # })
+
+        new_password = 'passw0rd'
+        # authentication.send_email(email, 'RESET_PASSWORD')
+        authentication.reset_password_by_email_code(email, '1670', new_password)
+        user = authentication.login_by_email(email, new_password)
+        self.assertTrue(user['id'])
+
     def test_update_profile(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         user = authentication.register_by_email(
@@ -246,12 +333,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(user.get("nickname") == "Nick")
 
     def test_update_password(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         user = authentication.register_by_email(
@@ -270,29 +352,8 @@ class TestAuthentication(unittest.TestCase):
         )
         self.assertTrue(user)
 
-    def test_refresh_token(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
-        email = "%s@authing.cn" % get_random_string(10)
-        password = get_random_string(10)
-        user = authentication.register_by_email(
-            email=email, password=password, generate_token=True
-        )
-        authentication.refresh_token()
-        user = authentication.get_current_user()
-        self.assertTrue(user)
-
     def test_add_udv_wrong_type(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         authentication.register_by_email(
@@ -333,12 +394,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(failed)
 
     def test_add_udv_string(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         authentication.register_by_email(
@@ -354,12 +410,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(isinstance(udvs[0]["value"], str))
 
     def test_add_udv_int(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         authentication.register_by_email(
@@ -372,12 +423,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(isinstance(udvs[0]["value"], int))
 
     def test_add_udv_boolean(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         authentication.register_by_email(
@@ -392,12 +438,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(isinstance(udvs[0]["value"], bool))
 
     def test_add_udv_datetime(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         authentication.register_by_email(
@@ -412,12 +453,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(isinstance(udvs[0]["value"], datetime))
 
     def test_add_udv_object(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         authentication.register_by_email(
@@ -432,12 +468,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(isinstance(udvs[0]["value"], dict))
 
     def test_remove_duv(self):
-        authentication = AuthenticationClient(
-            options=AuthenticationClientOptions(
-                user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
-                host=os.getenv("AUTHING_SERVER"),
-            )
-        )
+        authentication = init_authentication_client()
         email = "%s@authing.cn" % get_random_string(10)
         password = get_random_string(10)
         authentication.register_by_email(
@@ -450,3 +481,42 @@ class TestAuthentication(unittest.TestCase):
         )
         udvs = authentication.list_udv()
         self.assertTrue(len(udvs) == 0)
+
+    @unittest.skip('logout')
+    def test_logout(self):
+        authentication_client = init_authentication_client()
+        authentication_client.login_by_email('abc@authing.cn', 'abc@authing.cn')
+        success = authentication_client.logout()
+        self.assertTrue(success)
+
+    def test_logout_with_wrong_token(self):
+        try:
+            authentication_client = AuthenticationClient(
+                options=AuthenticationClientOptions(
+                    app_id=os.getenv("AUTHING_APP_ID"),
+                    app_host=os.getenv("AUTHING_APP_HOST"),
+                    token='wrong token'
+                )
+            )
+            authentication_client.logout()
+        except AuthingException as e:
+            self.assertTrue(e.code == 2020)
+
+    @unittest.skip('ldap')
+    def test_login_by_ldap(self):
+        authentication_client = init_authentication_client()
+        user = authentication_client.login_by_ldap('admin', 'admin')
+        self.assertTrue(user)
+
+    @unittest.skip('ad')
+    def test_login_by_ad(self):
+        authentication_client = init_authentication_client()
+        user = authentication_client.login_by_ad('admin', 'admin')
+        self.assertTrue(user)
+
+    # @unittest.skip('list_orgs')
+    def test_list_orgs(self):
+        authentication_client = init_authentication_client()
+        user = authentication_client.login_by_email('cj@authing.cn', 'cj@authing.cn')
+        data = authentication_client.list_orgs()
+        self.assertTrue(data)

@@ -9,9 +9,10 @@ class RestClient(object):
     def request(self, method, url, token=None, **kwargs):
         headers = {
             "x-authing-sdk-version": "python:%s" % __version__,
-            "x-authing-userpool-id": self.options.user_pool_id,
+            "x-authing-userpool-id": self.options.user_pool_id if hasattr(self.options, 'user_pool_id') else None,
             "x-authing-app-id": self.options.app_id,
             "x-authing-request-from": "sdk",
+            'x-authing-lang': self.options.lang or ''
         }
         if token:
             headers["authorization"] = "Bearer %s" % token

@@ -502,3 +502,9 @@ class TestUsers(unittest.TestCase):
         data = management.users.list_groups(user['id'])
         self.assertTrue(data['totalCount'] != None)
         self.assertTrue(data['list'] != None)
+
+    def list_archived_users(self):
+        res = management.users.list_archived_users()
+
+        self.assertTrue(res['list'] != None)
+        self.assertTrue(res['totalCount'] != None)

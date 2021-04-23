@@ -396,3 +396,21 @@ class UsersManagementClient(object):
             token=self.tokenProvider.getAccessToken(),
         )
         return data["removeUdv"]
+
+    def list_archived_users(self, page=1, limit=10):
+        """获取已归档用户列表
+
+        Args:
+            page (int, optional): 页码数，从 1 开始，默认为 1 。
+            limit (int, optional): 每页个数，默认为 10 。
+        """
+
+        data = self.graphqlClient.request(
+            query=QUERY["archivedUsers"],
+            params={
+                "page": page,
+                "limit": limit
+            },
+            token=self.tokenProvider.getAccessToken(),
+        )
+        return data["archivedUsers"]
