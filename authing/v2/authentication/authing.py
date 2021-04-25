@@ -893,7 +893,8 @@ class AuthenticationClient(object):
         获取用户拥有的角色列表
 
         Args:
-            namespace ([str], optional): 权限分组的 code，默认为 default - 默认权限分组
+            namespace ([str], optional): 权限分组的 code，默认为
+             - 默认权限分组
         """
         user = self._check_logged_in()
         data = self.graphqlClient.request(

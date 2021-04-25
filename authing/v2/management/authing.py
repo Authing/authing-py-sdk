@@ -9,6 +9,7 @@ from .users import UsersManagementClient
 from .roles import RolesManagementClient
 from .acl import AclManagementClient
 from .udf import UdfManagementClient
+from ..common.rest import RestClient
 
 
 class ManagementClient(object):
@@ -20,6 +21,7 @@ class ManagementClient(object):
         self.graphqlClient = GraphqlClient(
             options=self.options, endpoint=self.options.graphql_endpoint
         )
+        self.restClient = RestClient(options=self.options)
         self.tokenProvider = ManagementTokenProvider(
             options=self.options, graphqlClient=self.graphqlClient
         )
@@ -27,6 +29,7 @@ class ManagementClient(object):
         self.users = UsersManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
+            restClient=self.restClient,
             tokenProvider=self.tokenProvider,
         )
 

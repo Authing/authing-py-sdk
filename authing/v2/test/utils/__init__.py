@@ -8,6 +8,7 @@ def get_random_string(length):
     result_str = "".join(random.choice(letters) for i in range(length))
     return result_str
 
+
 def get_random_phone_number():
     # type:() -> str
     # 第二位数

@@ -1,10 +1,11 @@
 from datetime import datetime
 from ...management.types import ManagementClientOptions
 from ...management.authing import ManagementClient
-from ...common.utils import get_random_string
+from ...test.utils import get_random_string
 import unittest
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 management = ManagementClient(ManagementClientOptions(
@@ -12,6 +13,17 @@ management = ManagementClient(ManagementClientOptions(
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
     host=os.getenv('AUTHING_SERVER')
 ))
+
+
+def create_user():
+    user = management.users.create(
+        userInfo={
+            'username': get_random_string(10),
+            'password': get_random_string(10)
+        }
+    )
+
+    return user
 
 
 class TestUsers(unittest.TestCase):
@@ -503,8 +515,36 @@ class TestUsers(unittest.TestCase):
         self.assertTrue(data['totalCount'] != None)
         self.assertTrue(data['list'] != None)
 
-    def list_archived_users(self):
+    def test_list_archived_users(self):
         res = management.users.list_archived_users()
 
-        self.assertTrue(res['list'] != None)
-        self.assertTrue(res['totalCount'] != None)
+        self.assertTrue(res['list'] is not None)
+        self.assertTrue(res['totalCount'] is not None)
+
+    def test_exists(self):
+        user = create_user()
+
+        is_exists_user = management.users.exists(
+            username=user["username"],
+            email=user["email"],
+            phone=user["phone"]
+        )
+
+        self.assertTrue(is_exists_user)
+
+        random_user = management.users.exists(
+            username=get_random_string(10)
+        )
+
+        self.assertFalse(random_user)
+
+    def test_list_authorized_resources(self):
+        user = create_user()
+
+        resources_list = management.users.list_authorized_resources(
+            user_id=user["id"],
+            namespace="default",
+            resource_type="API"
+        )
+
+        print(resources_list)

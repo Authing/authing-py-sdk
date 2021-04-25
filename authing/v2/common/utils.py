@@ -1,4 +1,5 @@
 # coding: utf-8
+import urllib.parse
 
 import rsa
 import base64
@@ -41,3 +42,17 @@ def get_hostname_from_url(url):
     p = '(?:http.*://)?(?P<host>[^:/ ]+).?(?P<port>[0-9]*).*'
     m = re.search(p, url)
     return m.group('host')
+
+
+def url_join_args(api, query=None, **kwargs):
+    result = api
+    if not result.endswith('?') and (query or kwargs):
+        result = api + '?'
+    if query:
+        result = result + urllib.parse.urlencode(query)
+    if kwargs:
+        if query:
+            result = result + '&' + urllib.parse.urlencode(kwargs)
+        else:
+            result = result + urllib.parse.urlencode(kwargs)
+    return result

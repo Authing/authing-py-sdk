@@ -1,23 +1,28 @@
 # coding: utf-8
 
 from .types import ManagementClientOptions
-from ..common.utils import encrypt
+from ..common.rest import RestClient
+from ..common.utils import encrypt, url_join_args
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
 import json
 import datetime
 from dateutil import parser
+import urllib.parse
+
+from ..exceptions import AuthingWrongArgumentException
 
 
 class UsersManagementClient(object):
     """Authing Users Management Client"""
 
-    def __init__(self, options, graphqlClient, tokenProvider):
-        # type:(ManagementClientOptions,GraphqlClient,ManagementTokenProvider) -> UsersManagementClient
+    def __init__(self, options, graphqlClient, restClient, tokenProvider):
+        # type:(ManagementClientOptions,GraphqlClient,RestClient,ManagementTokenProvider) -> UsersManagementClient
         self.options = options
         self.graphqlClient = graphqlClient
         self.tokenProvider = tokenProvider
+        self.restClient = restClient
 
     def list(self, page=1, limit=10):
         # type:(int,int) -> any
@@ -170,17 +175,19 @@ class UsersManagementClient(object):
         )
         return data["deleteUsers"]
 
-    def list_roles(self, userId):
-        # type:(str) -> any
+    def list_roles(self, userId, namespace=None):
+        # type:(str, str) -> any
         """获取用户的角色列表
 
         Args:
             userId (str): 用户 ID
+            namespace (str): 权限分组的 Code
         """
         data = self.graphqlClient.request(
             query=QUERY["getUserRoles"],
             params={
                 "id": userId,
+                "namespace": namespace
             },
             token=self.tokenProvider.getAccessToken(),
         )
@@ -349,6 +356,19 @@ class UsersManagementClient(object):
                 data[i]["value"] = json.loads(value)
         return data
 
+    def get_udf_value(self, user_id):
+        return self.list_udv(user_id)
+
+    def get_udf_value_batch(self, user_ids):
+        if type(user_ids).__name__ != "list":
+            raise AuthingWrongArgumentException('empty user id list')
+
+        return self.graphqlClient.request(
+            query=QUERY["udfValueBatch"],
+            params={"targetType": "USER", "targetId": user_ids},
+            token=self.tokenProvider.getAccessToken()
+        )["udfValueBatch"]
+
     def set_udv(self, userId, key, value):
         # type:(str,str,any) -> any
         """设置自定义用户数据
@@ -379,6 +399,9 @@ class UsersManagementClient(object):
         )
         return data["setUdv"]
 
+    def set_udf_value(self, user_id, key, value):
+        self.set_udv(user_id, key, value)
+
     def remove_udv(self, userId, key):
         # type:(str,str) -> any
         """删除用户自定义字段数据
@@ -397,6 +420,9 @@ class UsersManagementClient(object):
         )
         return data["removeUdv"]
 
+    def remove_udf_value(self, user_id, key):
+        self.remove_udv(user_id, key)
+
     def list_archived_users(self, page=1, limit=10):
         """获取已归档用户列表
 
@@ -414,3 +440,139 @@ class UsersManagementClient(object):
             token=self.tokenProvider.getAccessToken(),
         )
         return data["archivedUsers"]
+
+    def exists(self, username=None, email=None, phone=None):
+        """
+        检查用户是否存在
+
+        Args:
+            username (str) 用户名，区分大小写
+            email (str) 邮箱，邮箱不区分大小写
+            phone (str) 手机号
+        """
+
+        data = self.graphqlClient.request(
+            query=QUERY["isUserExists"],
+            params={
+                "username": username,
+                "email": email,
+                "phone": phone
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return data["isUserExists"]
+
+    def list_org(self, user_id):
+        """
+        获取用户所在组织机构
+
+        Args:
+            user_id (str) 用户 ID
+        """
+
+        url = "%s/api/v2/users/%s/orgs" % (self.options.host, user_id)
+        res = self.restClient.request(
+            method="GET",
+            url=url,
+            token=self.tokenProvider.getAccessToken()
+        )
+
+        if res.get("code") == 200:
+            return res.get("data")
+        else:
+            self.options.on_error(res.get("code"), res.get("message"))
+
+    def list_department(self, user_id):
+        """
+        获取用户所在部门
+
+        Args:
+            user_id (str) 用户 ID
+        """
+
+        return self.graphqlClient.request(
+            query=QUERY["getUserDepartments"],
+            params={
+                "id": user_id
+            },
+            token=self.tokenProvider.getAccessToken()
+        )["user"]
+
+    def list_authorized_resources(self, user_id, namespace, resource_type=None):
+        """
+        获取用户被授权的所有资源
+
+        Args:
+            user_id ([str]) 用户 ID
+            namespace ([str])  权限分组的 Code
+            resource_type ([str], optional) 资源类型，可选值包含 DATA、API、MENU、UI、BUTTON
+        """
+
+        valid_resource_types = [
+            'DATA',
+            'API',
+            'MENU',
+            'UI',
+            'BUTTON'
+        ]
+        if not valid_resource_types.index(resource_type):
+            raise AuthingWrongArgumentException('invalid argument: resource_type')
+
+        data = self.graphqlClient.request(
+            query=QUERY["listUserAuthorizedResources"],
+            params={
+                "id": user_id,
+                "namespace": namespace,
+                "resourceType": resource_type
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+
+        return data["user"]["authorizedResources"]
+
+    def has_role(self, user_id, role_code, namespace=None):
+        role_list = self.list_roles(user_id, namespace)
+
+        if role_list["totalCount"] < 1:
+            return False
+
+        has_role = False
+
+        for item in role_list["list"]:
+            if item["code"] == role_code:
+                has_role = True
+
+        return has_role
+
+    def kick(self, user_ids):
+
+        if type(user_ids).__name__ != "list":
+            raise AuthingWrongArgumentException('empty user id list')
+
+        url = "%s/api/v2/users/kick" % self.options.host
+        return self.restClient.request(
+            method="POST",
+            url=url,
+            token=self.tokenProvider.getAccessToken(),
+            json={
+                "userIds": user_ids
+            }
+        )["data"]
+
+    def listUserActions(self, page=1, limit=10, client_ip=None, operation_name=None, operato_arn=None):
+
+        url = "%s/api/v2/analysis/user-action" % self.options.host
+
+        query = url_join_args(url, {
+            "page": page,
+            "limit": limit,
+            "clientip": client_ip,
+            "operation_name": operation_name,
+            "operator_arn": operato_arn
+        })
+
+        return self.restClient.request(
+            method="GET",
+            url=query,
+            token=self.tokenProvider.getAccessToken()
+        )["data"]
