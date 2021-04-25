@@ -5,6 +5,7 @@ from .types import AuthenticationClientOptions
 from ..common.graphql import GraphqlClient
 from ..common.utils import encrypt, convert_udv_data_type, convert_udv_list_to_dict, get_hostname_from_url
 from ..common.codegen import QUERY
+from ..exceptions import AuthingWrongArgumentException
 import json
 import datetime
 
@@ -722,6 +723,63 @@ class AuthenticationClient(object):
         data = data['udv']
         return convert_udv_list_to_dict(data)
 
+    def set_udf_value(self, data):
+        """
+        设置用户的自定义字段。
+        你需要先在用户池定义用户自定义数据元信息，且传入值的类型必须和定义的类型匹配。
+        如果设置失败，会抛出异常，你需要对异常进行捕捉。
+
+        Args:
+            data (dict): 自定义数据
+        """
+        user = self._check_logged_in()
+        if len(data.keys()) == 0:
+            raise AuthingWrongArgumentException('data must not be a empty dict')
+        list = []
+        for k, v in data.items():
+            if isinstance(v, datetime.datetime):
+                def default(o):
+                    if isinstance(o, (datetime.date, datetime.datetime)):
+                        return o.isoformat()
+
+                v = json.dumps(v, sort_keys=True,
+                                   indent=1, default=default)
+            else:
+                v = json.dumps(v)
+            list.append({
+                'key': k,
+                'value': v
+            })
+        self.graphqlClient.request(
+            query=QUERY['setUdvBatch'],
+            params={
+                'targetType': 'USER',
+                'targetId': user['id'],
+                'udvList': list
+            },
+            token=self._get_token()
+        )
+        return True
+
+    def remove_udf_value(self, key):
+        """
+        删除自定义数据。
+
+        Args:
+            key (str): 自定义字段 key
+        """
+        user = self._check_logged_in()
+        self.graphqlClient.request(
+            query=QUERY['removeUdv'],
+            params={
+                'targetType': 'USER',
+                'targetId': user['id'],
+                'key': key
+            },
+            token=self._get_token()
+        )
+        return True
+
     def list_udv(self):
         """【已废弃，请使用 get_udf_vale】获取当前用户的自定义用户数据"""
         user = self._check_logged_in()
@@ -768,7 +826,7 @@ class AuthenticationClient(object):
         """删除用户自定义字段数据
 
         Args:
-            key ([str]): str
+            key ([str]): 自定义字段 key
         """
         user = self._check_logged_in()
         data = self.graphqlClient.request(
@@ -812,3 +870,107 @@ class AuthenticationClient(object):
             return data
         else:
             self.options.on_error(code, message)
+
+    def get_security_level(self):
+        """
+        获取用户账号安全等级。
+        """
+        url = "%s/api/v2/users/me/security-level" % self.options.host
+        data = self.restClient.request(
+            method='GET',
+            url=url,
+            token=self._get_token()
+        )
+        code, message, data = data.get("code"), data.get(
+            "message"), data.get("data")
+        if code == 200:
+            return data
+        else:
+            self.options.on_error(code, message)
+
+    def list_roles(self, namespace=None):
+        """
+        获取用户拥有的角色列表
+
+        Args:
+            namespace ([str], optional): 权限分组的 code，默认为 default - 默认权限分组
+        """
+        user = self._check_logged_in()
+        data = self.graphqlClient.request(
+            query=QUERY["getUserRoles"],
+            params={
+                "id": user['id'],
+                "namespace": namespace
+            },
+            token=self._get_token()
+        )
+        res = data["user"]["roles"]
+        return res
+
+    def has_role(self, code, namespace=None):
+        """判断用户是否具有某在角色
+
+        Args:
+            code ([str]): 角色的唯一标志符 code
+            namespace ([str], optional): 权限分组的 code，默认为 default - 默认权限分组
+        """
+        data = self.list_roles(namespace)
+        _list, total_count = data['list'], data['totalCount']
+
+        if total_count == 0:
+            return False
+
+        has_role = False
+        for item in _list:
+            if item.get('code') == code:
+                has_role = True
+        return has_role
+
+    def list_applications(self, page=1, limit=10):
+        """
+        获取用户能够访问的应用列表
+
+        Args:
+            page ([int], optional) 页数，从 1 开始，默认为 1
+            limit ([int], optional) 每页个数，默认为 10
+        """
+        url = "%s/api/v2/users/me/applications/allowed?page=%s&limit=%s" % (self.options.host, page, limit)
+        data = self.restClient.request(
+            method="GET",
+            url=url,
+            token=self._get_token()
+        )
+        code, message, data = data.get("code"), data.get(
+            "message"), data.get("data")
+        if code == 200:
+            return data
+        else:
+            self.options.on_error(code, message)
+
+    def list_authorized_resources(self, namespace, resource_type=None):
+        """
+        获取一个用户被授权的所有资源，用户被授权的所有资源里面包括从角色、分组、组织机构继承的资源。
+
+        Args:
+            namespace ([str]) 权限分组的 code
+            resource_type ([str], optional) 资源类型，可选值包含 DATA、API、MENU、UI、BUTTON
+        """
+
+        user = self._check_logged_in()
+        valid_resource_types = [
+            'DATA',
+            'API',
+            'MENU',
+            'UI',
+            'BUTTON'
+        ]
+        if not valid_resource_types.index(resource_type):
+            raise AuthingWrongArgumentException('invalid argument: resource_type')
+        data = self.graphqlClient.request(
+            query=QUERY['listUserAuthorizedResources'],
+            params={
+                'id': user.get('id'),
+                'namespace': namespace,
+                'resourceType': resource_type
+            }
+        )

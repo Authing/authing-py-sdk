@@ -37,7 +37,7 @@ def register_random_user():
     email = "%s@authing.cn" % get_random_string(10)
     password = get_random_string(10)
     user = authentication_client.register_by_email(email, password, force_login=True)
-    return email, password, user
+    return email, password, user, authentication_client
 
 
 class TestAuthentication(unittest.TestCase):
@@ -520,3 +520,74 @@ class TestAuthentication(unittest.TestCase):
         user = authentication_client.login_by_email('cj@authing.cn', 'cj@authing.cn')
         data = authentication_client.list_orgs()
         self.assertTrue(data)
+
+    def test_set_udf_value(self):
+        authentication_client = init_authentication_client()
+        email = "%s@authing.cn" % get_random_string(10)
+        password = get_random_string(10)
+        user = authentication_client.register_by_email(email, password, force_login=True)
+
+        authentication_client.set_udf_value({
+            'school': '华中科技大学',
+            'age': 22
+        })
+
+        values = authentication_client.get_udf_value()
+        self.assertTrue(values['school'] == '华中科技大学')
+        self.assertTrue(values['age'] == 22)
+
+    def test_remove_udf_value(self):
+        authentication_client = init_authentication_client()
+        email = "%s@authing.cn" % get_random_string(10)
+        password = get_random_string(10)
+        user = authentication_client.register_by_email(email, password, force_login=True)
+        authentication_client.set_udf_value({
+            'school': '华中科技大学',
+            'age': 22
+        })
+        authentication_client.remove_udf_value('school')
+
+        values = authentication_client.get_udf_value()
+        self.assertTrue(values.get('school') is None)
+        self.assertTrue(values['age'] == 22)
+
+    def test_get_security_level(self):
+        authentication_client = init_authentication_client()
+        email = "%s@authing.cn" % get_random_string(10)
+        password = get_random_string(10)
+        user = authentication_client.register_by_email(email, password, force_login=True)
+
+        data = authentication_client.get_security_level()
+        self.assertTrue(data.get('email'))
+        self.assertTrue(data.get('password'))
+        self.assertFalse(data.get('mfa'))
+        self.assertTrue(isinstance(data.get('passwordSecurityLevel'), int))
+
+    def test_list_roles(self):
+        _, _, user, authentication_client = register_random_user()
+        code = get_random_string(10)
+        role = management.roles.create(
+            code=code
+        )
+        management.users.add_roles(user.get('id'), [code])
+
+        data = authentication_client.list_roles()
+        total_count, roles = data['totalCount'], data['list']
+        self.assertTrue(total_count == 1)
+
+    def test_has_role(self):
+        _, _, user, authentication_client = register_random_user()
+        code = get_random_string(10)
+        role = management.roles.create(
+            code=code
+        )
+        management.users.add_roles(user.get('id'), [code])
+        has_role = authentication_client.has_role(code)
+        self.assertTrue(has_role)
+
+    def test_list_applications(self):
+        _, _, user, authentication_client = register_random_user()
+        data = authentication_client.list_applications()
+        list, total_count = data.get('list'), data.get('totalCount')
+        self.assertTrue(len(list))
+        self.assertTrue(total_count > 0)

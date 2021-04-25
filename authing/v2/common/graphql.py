@@ -34,7 +34,7 @@ class GraphqlClient(object):
             "x-authing-app-id": self.options.app_id
             if hasattr(self.options, "app_id")
             else None,
-            'x-authing-lang': self.options.lang or ''
+            'x-authing-lang': self.options.lang if hasattr(self.options, 'lang') else None
         }
         if token:
             headers["authorization"] = "Bearer %s" % token
