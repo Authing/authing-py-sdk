@@ -1,10 +1,13 @@
 # coding: utf-8
+import json
 
 from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
-
+from ..common.utils import format_authorized_resources, convert_udv_list_to_dict
+from ..exceptions import AuthingWrongArgumentException, AuthingException
+import datetime
 
 class RolesManagementClient(object):
     """Authing Roles Management Client"""
@@ -205,3 +208,193 @@ class RolesManagementClient(object):
             token=self.tokenProvider.getAccessToken(),
         )
         return data["removePolicyAssignments"]
+
+
+    def list_authorized_resources(self, code, namespace, resource_type=None):
+        """
+        获取一个角色被授权的所有资源。
+
+        Args:
+            code (str): 角色 code；
+            namespace (str): 权限分组的 code；
+            resource_type (str): 可选，资源类型，默认会返回所有有权限的资源，现有资源类型如下：
+                                - DATA: 数据类型；
+                                - API: API 类型数据；
+                                - MENU: 菜单类型数据；
+                                - BUTTON: 按钮类型数据。
+        """
+        if resource_type:
+            valid_resource_types = [
+                'DATA',
+                'API',
+                'MENU',
+                'UI',
+                'BUTTON'
+            ]
+            if not valid_resource_types.index(resource_type):
+                raise AuthingWrongArgumentException('invalid argument: resource_type')
+
+        data = self.graphqlClient.request(
+            query=QUERY['listRoleAuthorizedResources'],
+            params={
+                'code': code,
+                'namespace': namespace,
+                'resourceType': resource_type
+            }
+        )
+        role = data.get('role')
+        if not role:
+            raise AuthingException(500, 'role not exists')
+
+        authorized_resources = data.get('authorizedResources')
+        total_count, _list = authorized_resources.get('list'), authorized_resources.get('totalCount')
+        _list = format_authorized_resources(_list)
+        return {
+            'totalCount': total_count,
+            'list': _list
+        }
+
+    def get_udf_value(self, id):
+        """
+        获取角色的所有自定义字段数据。
+
+        Args:
+            id (str): 角色 ID
+        """
+        data = self.graphqlClient.request(
+            query=QUERY["udv"],
+            params={"targetType": "ROLE", "targetId": id},
+            token=self.tokenProvider.getAccessToken()
+        )
+        values = data['udv']
+        return convert_udv_list_to_dict(values)
+
+    def get_udf_value_batch(self, ids):
+        """
+        获取多个角色的扩展字段列表。
+
+        Args:
+            ids (list): 角色 ID 列表
+        """
+
+        data = self.graphqlClient.request(
+            query=QUERY['udfValueBatch'],
+            params={
+                'targetType': 'ROLE',
+                'targetIds': ids
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        raw_result = data['udfValueBatch']
+        ret = {}
+        for item in raw_result:
+            target_id, value = item.get('targetId'), item.get('data')
+            ret[target_id] = convert_udv_list_to_dict(value)
+        return ret
+
+    def get_specific_udf_value(self, id, key):
+        """
+        获取角色的某个自定义字段值。
+
+        Args:
+            id (str): 角色 ID
+            key (str): 自定义字段的 key
+        """
+        values = self.get_udf_value(id)
+        return values.get(key)
+
+    def set_udf_value(self, id, data):
+        """
+        设置角色的自定义数据。
+
+        Args:
+            id (str): 角色 ID
+            data (dict): 自定义数据，类型是一个字段，如 { 'school': '清华大学' }
+        """
+        if not isinstance(data, dict):
+            raise AuthingWrongArgumentException('data must be a dict, received a %s' % type(data))
+
+        _list = []
+        for k, v in data.items():
+            if isinstance(v, datetime.datetime):
+                def default(o):
+                    if isinstance(o, (datetime.date, datetime.datetime)):
+                        return o.isoformat()
+                v = json.dumps(v, sort_keys=True, indent=1, default=default)
+            else:
+                v = json.dumps(v)
+            _list.append({
+                'key': k,
+                'value': v
+            })
+        self.graphqlClient.request(
+            query=QUERY['setUdvBatch'],
+            params={
+                'targetType': 'ROLE',
+                'targetId': id,
+                'udvList': _list
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return True
+
+    def set_udf_value_batch(self, data):
+        """
+        批量设置多个角色的自定义数据。
+
+        Args:
+            data (dict): 输入数据，格式为一个字典，key 为角色 ID，value 为自定义数据；value 格式要求为一个字典，key 为自定义字段的 key，value 为需要设置的值。
+                        示例：{ roleId1: { 'school': '清华大学' } }
+        """
+        if not isinstance(data, dict):
+            raise AuthingWrongArgumentException('data must be a list')
+
+        for k, v in data.items():
+            if not isinstance(v, dict):
+                raise AuthingWrongArgumentException('invalid data input')
+
+        params = []
+        for role_id in data.keys():
+            for k, v in data[role_id].items():
+                if isinstance(v, datetime.datetime):
+                    def default(o):
+                        if isinstance(o, (datetime.date, datetime.datetime)):
+                            return o.isoformat()
+
+                    v = json.dumps(v, sort_keys=True, indent=1, default=default)
+                else:
+                    v = json.dumps(v)
+                params.append({
+                    'targetId': role_id,
+                    'key': k,
+                    'value': v
+                })
+
+        self.graphqlClient.request(
+            query=QUERY['setUdfValueBatch'],
+            params={
+                'targetType': 'ROLE',
+                'input': params
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return True
+
+    def remove_udf_value(self, id, key):
+        """
+        删除角色的自定义字段。
+
+        Args:
+            id (str): 角色 ID；
+            key (str): 自定义字段 key
+        """
+        self.graphqlClient.request(
+            query=QUERY['removeUdv'],
+            params={
+                'targetType': 'ROLE',
+                'targetId': id,
+                'key': key
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return True

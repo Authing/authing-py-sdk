@@ -423,6 +423,7 @@ mutation createPolicy($namespace: String, $code: String!, $description: String, 
 'createRole': """
 mutation createRole($namespace: String, $code: String!, $description: String, $parent: String) {
   createRole(namespace: $namespace, code: $code, description: $description, parent: $parent) {
+    id
     namespace
     code
     arn
@@ -1830,6 +1831,7 @@ mutation updatePolicy($namespace: String, $code: String!, $description: String, 
 'updateRole': """
 mutation updateRole($code: String!, $description: String, $newCode: String, $namespace: String) {
   updateRole(code: $code, description: $description, newCode: $newCode, namespace: $namespace) {
+    id
     namespace
     code
     arn
@@ -2041,6 +2043,19 @@ query archivedUsers($page: Int, $limit: Int) {
       createdAt
       updatedAt
       externalId
+    }
+  }
+}
+
+""",
+'authorizedTargets': """
+query authorizedTargets($namespace: String!, $resourceType: ResourceType!, $resource: String!, $targetType: PolicyAssignmentTargetType, $actions: AuthorizedTargetsActionsInput) {
+  authorizedTargets(namespace: $namespace, resource: $resource, resourceType: $resourceType, targetType: $targetType, actions: $actions) {
+    totalCount
+    list {
+      targetType
+      targetIdentifier
+      actions
     }
   }
 }
@@ -2358,8 +2373,8 @@ query groups($userId: String, $page: Int, $limit: Int, $sortBy: SortByEnum) {
 
 """,
 'isActionAllowed': """
-query isActionAllowed($resource: String!, $action: String!, $userId: String!) {
-  isActionAllowed(resource: $resource, action: $action, userId: $userId)
+query isActionAllowed($resource: String!, $action: String!, $userId: String!, $namespace: String) {
+  isActionAllowed(resource: $resource, action: $action, userId: $userId, namespace: $namespace)
 }
 
 """,
@@ -2382,8 +2397,8 @@ query isRootNode($nodeId: String!, $orgId: String!) {
 
 """,
 'isUserExists': """
-query isUserExists($email: String, $phone: String, $username: String) {
-  isUserExists(email: $email, phone: $phone, username: $username)
+query isUserExists($email: String, $phone: String, $username: String, $externalId: String) {
+  isUserExists(email: $email, phone: $phone, username: $username, externalId: $externalId)
 }
 
 """,
@@ -2856,22 +2871,10 @@ query queryMfa($id: String, $userId: String, $userPoolId: String) {
 }
 
 """,
-'resourcePermissions': """
-query resourcePermissions($namespace: String!, $resourceType: ResourceType!, $resource: String!, $targetType: PolicyAssignmentTargetType, $actions: ResourcePermissionsActionsInput) {
-  resourcePermissions(namespace: $namespace, resource: $resource, resourceType: $resourceType, targetType: $targetType, actions: $actions) {
-    totalCount
-    list {
-      targetType
-      targetIdentifier
-      actions
-    }
-  }
-}
-
-""",
 'role': """
 query role($code: String!, $namespace: String) {
   role(code: $code, namespace: $namespace) {
+    id
     namespace
     code
     arn
@@ -2957,6 +2960,7 @@ query roles($namespace: String, $page: Int, $limit: Int, $sortBy: SortByEnum) {
   roles(namespace: $namespace, page: $page, limit: $limit, sortBy: $sortBy) {
     totalCount
     list {
+      id
       namespace
       code
       arn
@@ -3015,8 +3019,8 @@ query searchNodes($keyword: String!) {
 
 """,
 'searchUser': """
-query searchUser($query: String!, $fields: [String], $page: Int, $limit: Int, $departmentOpts: [SearchUserDepartmentOpt]) {
-  searchUser(query: $query, fields: $fields, page: $page, limit: $limit, departmentOpts: $departmentOpts) {
+query searchUser($query: String!, $fields: [String], $page: Int, $limit: Int, $departmentOpts: [SearchUserDepartmentOpt], $groupOpts: [SearchUserGroupOpt], $roleOpts: [SearchUserRoleOpt]) {
+  searchUser(query: $query, fields: $fields, page: $page, limit: $limit, departmentOpts: $departmentOpts, groupOpts: $groupOpts, roleOpts: $roleOpts) {
     totalCount
     list {
       id

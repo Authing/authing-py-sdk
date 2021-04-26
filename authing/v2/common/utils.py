@@ -71,7 +71,7 @@ def format_authorized_resources(arr):
     return arr
 
 
-def get_random_string(length):
+def get_random_string(length=10):
     # type:(int) -> str
     letters = string.ascii_lowercase
     result_str = "".join(random.choice(letters) for i in range(length))
