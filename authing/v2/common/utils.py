@@ -5,6 +5,8 @@ import rsa
 import base64
 import json
 import re
+import string
+import random
 from dateutil import parser
 
 
@@ -56,3 +58,21 @@ def url_join_args(api, query=None, **kwargs):
         else:
             result = result + urllib.parse.urlencode(kwargs)
     return result
+
+
+def format_authorized_resources(arr):
+    def func(item):
+        for key in item.keys():
+            if not item[key]:
+                del item[key]
+        return item
+
+    arr = list(map(func, arr))
+    return arr
+
+
+def get_random_string(length):
+    # type:(int) -> str
+    letters = string.ascii_lowercase
+    result_str = "".join(random.choice(letters) for i in range(length))
+    return result_str

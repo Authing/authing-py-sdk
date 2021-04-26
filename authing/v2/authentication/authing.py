@@ -1,13 +1,17 @@
 # coding: utf-8
+import re
 
 from ..common.rest import RestClient
 from .types import AuthenticationClientOptions
 from ..common.graphql import GraphqlClient
-from ..common.utils import encrypt, convert_udv_data_type, convert_udv_list_to_dict, get_hostname_from_url
+from ..common.utils import encrypt, convert_udv_data_type, convert_udv_list_to_dict, get_hostname_from_url, \
+    format_authorized_resources, get_random_string, url_join_args
 from ..common.codegen import QUERY
-from ..exceptions import AuthingWrongArgumentException
+from ..exceptions import AuthingWrongArgumentException, AuthingException
 import json
 import datetime
+import base64
+import hashlib
 
 
 class AuthenticationClient(object):
@@ -465,7 +469,6 @@ class AuthenticationClient(object):
         else:
             self.options.on_error(code, message)
 
-
     def check_password_strength(self, password):
         """检查密码强度，详情请见 https://docs.authing.co/v2/guides/security/config-password.html"""
         data = self.graphqlClient.request(
@@ -743,7 +746,7 @@ class AuthenticationClient(object):
                         return o.isoformat()
 
                 v = json.dumps(v, sort_keys=True,
-                                   indent=1, default=default)
+                               indent=1, default=default)
             else:
                 v = json.dumps(v)
             list.append({
@@ -975,3 +978,605 @@ class AuthenticationClient(object):
                 'resourceType': resource_type
             }
         )
+        user = data.get('user')
+        if not user:
+            raise AuthingException(500, 'user not exists')
+
+        authorized_resources = data.get('authorizedResources')
+        total_count, _list = authorized_resources.get('list'), authorized_resources.get('totalCount')
+        _list = format_authorized_resources(_list)
+        return {
+            'totalCount': total_count,
+            'list': _list
+        }
+
+    def compute_password_security_level(self, password):
+        """
+        计算密码安全等级。
+
+        Args:
+            password ([str]) 明文密码
+        """
+        high_level_regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^]{12,}$"
+        middle_level_regex = r"^(?=.*[a-zA-Z])(?=.*\d)[^]{8,}$"
+        if re.match(high_level_regex, password):
+            return 1
+
+    def ___get_access_token_by_code_with_client_secret_post(self, code, code_verifier=None):
+        url = "%s/%s/token" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        data = self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'client_id': self.options.app_id,
+                'client_secret': self.options.secret,
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': self.options.redirect_uri,
+                'code_verifier': code_verifier
+            }
+        )
+        return data
+
+    def ___get_access_token_by_code_with_client_secret_basic(self, code, code_verifier=None):
+        url = "%s/%s/token" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        data = self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': self.options.redirect_uri,
+                'code_verifier': code_verifier
+            },
+            basic_token=base64.b64encode(('%s:%s' % (self.options.app_id, self.options.secret)).encode()).decode()
+        )
+        return data
+
+    def __get_access_token_by_code_with_none(self, code, code_verifier=None):
+        url = "%s/%s/token" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        data = self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'client_id': self.options.app_id,
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': self.options.redirect_uri,
+                'code_verifier': code_verifier
+            }
+        )
+        return data
+
+    def get_access_token_by_code(self, code, code_verifier=None):
+        """
+        使用授权码 Code 获取用户的 Token 信息。
+
+        Args:
+            code (str): 授权码 Code，用户在认证成功后，Authing 会将授权码 Code 发送到回调地址。
+            code_verifier (str, optional): 发起 PKCE 授权登录时需要填写此参数。
+        """
+
+        if self.options.protocol not in ['oidc', 'oauth']:
+            raise AuthingWrongArgumentException('argument protocol must be oidc or oauth')
+
+        if not self.options.redirect_uri:
+            raise AuthingWrongArgumentException('argument redirect_uri must be oidc or oauth')
+
+        if not self.options.secret and self.options.token_endpoint_auth_method != 'none':
+            raise AuthingWrongArgumentException('argument secret must be provided')
+
+        if self.options.token_endpoint_auth_method == 'client_secret_post':
+            return self.___get_access_token_by_code_with_client_secret_post(code, code_verifier)
+
+        elif self.options.token_endpoint_auth_method == 'client_secret_basic':
+            return self.___get_access_token_by_code_with_client_secret_basic(code, code_verifier)
+
+        elif self.options.token_endpoint_auth_method == 'none':
+            return self.__get_access_token_by_code_with_none(code, code_verifier)
+
+        raise AuthingWrongArgumentException(
+            'unsupported argument token_endpoint_auth_method, must be client_secret_post, client_secret_basic or none')
+
+    def get_access_token_by_client_credentials(self, scope, access_key, access_secret):
+        """
+        使用编程访问账号获取具备权限的 Access Token。
+
+        Args:
+            scope (str): 权限项目，空格分隔的字符串，每一项代表一个权限。
+            access_key (str): 编程访问账号 AccessKey
+            access_secret (str): 编程访问账号 SecretKey
+        """
+
+        if not scope:
+            raise AuthingWrongArgumentException(
+                'must provide scope argument, see doc here: '
+                'https://docs.authing.cn/v2/guides/authorization/m2m-authz.html')
+
+        url = "%s/%s/token" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        data = self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'client_id': access_key,
+                'client_secret': access_secret,
+                'grant_type': 'client_credentials',
+                'scope': scope
+            }
+        )
+        return data
+
+    def get_user_info_by_access_token(self, access_token):
+        """
+        使用 Access token 获取用户信息。
+
+        Args:
+            access_token (str) Access token，使用授权码 Code 换取的 Access token 的内容。
+        """
+        url = "%s/%s/me" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+
+        data = self.restClient.request(
+            method='POST',
+            url=url,
+            token=access_token
+        )
+        return data
+
+    def __build_saml_authorize_url(self):
+        return "%s/api/v2/saml-idp/%s" % (self.options.app_host, self.options.app_id)
+
+    def __build_cas_authorize_url(self, service=None):
+        if service:
+            return "%s/cas-idp/%s?service=%s" % (self.options.app_host, self.options.app_id, service)
+        else:
+            return "%s/cas-idp/%s?service" % (self.options.app_host, self.options.app_id)
+
+    def __build_oauth_authorize_url(self, scope=None, redirect_uri=None, state=None, response_type=None):
+        res = {
+            'state': get_random_string(10),
+            'scope': 'user',
+            'client_id': self.options.app_id,
+            'redirect_uri': self.options.redirect_uri,
+            'response_type': 'code'
+        }
+        if scope:
+            res['scope'] = scope
+
+        if redirect_uri:
+            res['redirect_uri'] = redirect_uri
+
+        if state:
+            res['state'] = state
+
+        if response_type:
+            if response_type not in ['code', 'token']:
+                raise AuthingWrongArgumentException('response_type must be code or token')
+            res['response_type'] = response_type
+
+        return url_join_args('%s/oauth/auth' % self.options.app_host, res)
+
+    def __build_oidc_authorize_url(self, redirect_uri=None, response_type=None, response_mode=None,
+                                   state=None, nonce=None, scope=None,
+                                   code_challenge_method=None, code_challenge=None):
+        """
+        生成 OIDC 协议的用户登录地址。
+
+        Args:
+            redirect_uri (str): 回调地址，选填，默认为 SDK 初始化时的 redirectUri 参数。
+            response_type (str): 响应类型，选填，可选值为 code、code id_token token、code id_token、code id_token、code token、id_token token、id_token、none；默认为 code，授权码模式。
+            response_mode (str):  响应类型，选填，可选值为 query、fragment、form_post；默认为 query，即通过浏览器重定向发送 code 到回调地址。
+            state (str): 随机字符串，选填，默认自动生成。
+            nonce (str): 随机字符串，选填，默认自动生成。
+            scope (str): 请求的权限项目，选填，OIDC 协议默认为 openid profile email phone address，OAuth 2.0 协议默认为 user。
+            code_challenge_method (str): 可以为 plain、S256，表示计算 code_challenge 时使用的摘要算法，plain 表示不用任何算法，S256 表示 code_challenge 是使用 SHA256 计算的。
+            code_challenge (str): 一个长度大于等于 43 的字符串，作为 code_challenge 发送到 Authing。
+        """
+        res = {
+            'nonce': get_random_string(10),
+            'state': get_random_string(10),
+            'scope': 'openid profile email phone address',
+            'client_id': self.options.app_id,
+            'redirect_uri': self.options.redirect_uri,
+            'response_type': 'code'
+        }
+
+        if redirect_uri:
+            res['redirect_uri'] = redirect_uri
+
+        if response_type:
+            res['response_type'] = response_type
+
+        if response_mode:
+            res['response_mode'] = response_mode
+
+        if state:
+            res['state'] = state
+
+        if scope:
+            if 'offline_access' in scope:
+                res['prompt'] = 'consent'
+
+        if nonce:
+            res['nonce'] = nonce
+
+        if code_challenge:
+            res['code_challenge'] = code_challenge
+
+        if code_challenge_method:
+            res['code_challenge_method'] = code_challenge_method
+
+        return url_join_args('%s/oidc/auth' % self.options.app_host, res)
+
+    def build_authorize_url(self,
+                            redirect_uri=None,
+                            response_type=None,
+                            response_mode=None,
+                            state=None,
+                            nonce=None,
+                            scope=None,
+                            code_challenge_method=None,
+                            code_challenge=None,
+                            service=None
+                            ):
+        """
+        生成用于用户登录的地址链接。
+        """
+        if not self.options.app_host:
+            raise AuthingWrongArgumentException('must provider app_host when you init AuthenticationClient')
+
+        if self.options.protocol == 'oidc':
+            return self.__build_oidc_authorize_url(
+                response_mode=response_mode,
+                response_type=response_type,
+                redirect_uri=redirect_uri,
+                state=state,
+                nonce=nonce,
+                scope=scope,
+                code_challenge=code_challenge,
+                code_challenge_method=code_challenge_method
+            )
+        elif self.options.protocol == 'oauth':
+            return self.__build_oauth_authorize_url(
+                scope=scope,
+                redirect_uri=redirect_uri,
+                state=state,
+                response_type=response_type
+            )
+        elif self.options.protocol == 'saml':
+            return self.__build_saml_authorize_url()
+
+        elif self.options.protocol == 'cas':
+            return self.__build_cas_authorize_url(service=service)
+
+        else:
+            raise AuthingWrongArgumentException('protocol must be oidc oauth saml or cas')
+
+    def generate_code_challenge(self, length=43):
+        """
+        生成一个 PKCE 校验码，长度必须大于等于 43。
+
+        Args:
+            length (int): 校验码长度，默认为 43。
+        """
+        if not isinstance(length, int):
+            raise AuthingWrongArgumentException('length must be a int')
+
+        if length < 43:
+            raise AuthingWrongArgumentException('length must be grater than 43')
+
+        return get_random_string(length)
+
+    def generate_code_challenge_digest(self, code_verifier, method=None):
+        """
+        生成一个 PKCE 校验码摘要值。
+
+        Args:
+            code_verifier (str): 待生成摘要值的 code_challenge 原始值，一个长度大于等于 43 的随机字符串。
+            method (str): 可以为 plain、S256，表示计算 code_challenge 时使用的摘要算法，plain 表示不用任何算法原样返回，S256 表示使用 SHA256 计算 code_challenge 摘要。
+        """
+        if len(code_verifier) < 43:
+            raise AuthingWrongArgumentException('code_challenge must be a string length grater than 43')
+
+        if not method:
+            method = 'S256'
+
+        if method not in ['S256', 'plain']:
+            raise AuthingWrongArgumentException('method must be S256 or plain')
+
+        if method == 'S256':
+            code_challenge = hashlib.sha256(code_verifier.encode('utf-8')).digest()
+            code_challenge = base64.urlsafe_b64encode(code_challenge).decode('utf-8')
+            code_challenge = code_challenge.replace('=', '')
+            return code_challenge
+
+        elif method == 'plain':
+            return code_verifier
+
+        else:
+            raise AuthingWrongArgumentException('unsupported method, must be S256 or plain')
+
+    def __build_oidc_logout_url(self, redirect_uri=None, id_token=None):
+        if redirect_uri:
+            return "%s/oidc/session/end?id_token_hint=%s&post_logout_redirect_uri=%s" % (
+                self.options.app_host,
+                id_token,
+                redirect_uri
+            )
+        else:
+            return "%s/oidc/session/end" % self.options.app_host
+
+    def __build_easy_logout_url(self, redirect_uri=None):
+        if redirect_uri:
+            return "%s/login/profile/logout?post_logout_redirect_uri=%s" % (
+                self.options.app_host,
+                redirect_uri
+            )
+        else:
+            return "%s/login/profile/logout" % (
+                self.options.app_host
+            )
+
+    def __build_cas_logout_url(self, redirect_uri=None):
+        if redirect_uri:
+            return "%s/cas-idp/logout?url=%s" % (
+                self.options.app_host,
+                redirect_uri
+            )
+        else:
+            return "%s/cas-idp/logout" % (
+                self.options.app_host
+            )
+
+    def build_logout_url(self, expert=None, redirect_uri=None, id_token=None):
+        """拼接登出 URL。"""
+        if not self.options.app_host:
+            raise AuthingWrongArgumentException('must provider app_host when you init AuthenticationClient')
+
+        if self.options.protocol == 'oidc':
+            if not expert:
+                return self.__build_easy_logout_url(redirect_uri)
+            else:
+                return self.__build_oidc_logout_url(
+                    id_token=id_token,
+                    redirect_uri=redirect_uri
+                )
+        elif self.options.protocol == 'cas':
+            return self.__build_cas_logout_url(redirect_uri=redirect_uri)
+
+    def __get_new_access_token_by_refresh_token_with_client_secret_post(self, refresh_token):
+        url = "%s/%s/token" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        data = self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'client_id': self.options.app_id,
+                'client_secret': self.options.secret,
+                'grant_type': 'refresh_token',
+                'refresh_token': refresh_token
+            }
+        )
+        return data
+
+    def __get_new_access_token_by_refresh_token_with_client_secret_basic(self, refresh_token):
+        url = "%s/%s/token" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        data = self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'grant_type': 'refresh_token',
+                'refresh_token': refresh_token
+            },
+            basic_token=base64.b64encode(('%s:%s' % (self.options.app_id, self.options.secret)).encode()).decode()
+        )
+        return data
+
+    def __get_new_access_token_by_refresh_token_with_none(self, refresh_token):
+        url = "%s/%s/token" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        data = self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'client_id': self.options.app_id,
+                'grant_type': 'refresh_token',
+                'refresh_token': refresh_token
+            }
+        )
+        return data
+
+    def get_new_access_token_by_refresh_token(self, refresh_token):
+        """
+        使用 Refresh token 获取新的 Access token。
+
+        Args:
+            refresh_token (str): Refresh token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 refresh_token 获得。
+                                注意: refresh_token 只有在 scope 中包含 offline_access 才会返回。
+
+        """
+        if self.options.protocol not in ['oauth', 'oidc']:
+            raise AuthingWrongArgumentException('protocol must be oauth or oidc')
+
+        if not self.options.secret and self.options.token_endpoint_auth_method != 'none':
+            raise AuthingWrongArgumentException('secret must be provided')
+
+        if self.options.token_endpoint_auth_method == 'client_secret_post':
+            return self.__get_new_access_token_by_refresh_token_with_client_secret_post(refresh_token)
+        elif self.options.token_endpoint_auth_method == 'client_secret_basic':
+            return self.__get_new_access_token_by_refresh_token_with_client_secret_basic(refresh_token)
+        elif self.options.token_endpoint_auth_method == 'none':
+            return self.__get_new_access_token_by_refresh_token_with_none(refresh_token)
+        else:
+            raise AuthingWrongArgumentException('unsupported argument token_endpoint_auth_method')
+
+    def __revoke_token_with_client_secret_post(self, token):
+        url = "%s/%s/token/revocation" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        return self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'client_id': self.options.app_id,
+                'client_secret': self.options.secret,
+                'token': token
+            }
+        )
+
+    def __revoke_token_with_client_secret_basic(self, token):
+        url = "%s/%s/token/revocation" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        return self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'token': token
+            },
+            basic_token=base64.b64encode(('%s:%s' % (self.options.app_id, self.options.secret)).encode()).decode()
+        )
+
+    def __revoke_token_with_none(self, token):
+        url = "%s/%s/token/revocation" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        return self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'client_id': self.options.app_id,
+                'token': token
+            }
+        )
+
+    def revoke_token(self, token):
+        """
+        撤回 Access token 或 Refresh token。Access token 或 Refresh token 的持有者可以通知 Authing 已经不再需要令牌，希望 Authing 将其吊销。
+
+        Args:
+            token (str): Access token 或 Refresh token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 access_token、refresh_token 获得。
+                        注意: refresh_token 只有在 scope 中包含 offline_access 才会返回。
+        """
+        if self.options.protocol not in ['oauth', 'oidc']:
+            raise AuthingWrongArgumentException('protocol must be oauth or oidc')
+
+        if not self.options.secret and self.options.token_endpoint_auth_method != 'none':
+            raise AuthingWrongArgumentException('secret must be provided')
+
+        if self.options.token_endpoint_auth_method == 'client_secret_post':
+            return self.__revoke_token_with_client_secret_post(token)
+
+        elif self.options.token_endpoint_auth_method == 'client_secret_basic':
+            return self.__revoke_token_with_client_secret_basic(token)
+
+        elif self.options.token_endpoint_auth_method == 'none':
+            return self.__revoke_token_with_none(token)
+
+        else:
+            raise AuthingWrongArgumentException('unsupported argument token_endpoint_auth_method')
+
+    def __introspect_token_with_client_secret_post(self, token):
+        url = "%s/%s/token/introspection" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        return self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'client_id': self.options.app_id,
+                'client_secret': self.options.secret,
+                'token': token
+            }
+        )
+
+    def __introspect_token_with_client_secret_basic(self, token):
+        url = "%s/%s/token/introspection" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        return self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'token': token
+            },
+            basic_token=base64.b64encode(('%s:%s' % (self.options.app_id, self.options.secret)).encode()).decode()
+        )
+
+    def __introspect_token_with_none(self, token):
+        url = "%s/%s/token/introspection" % (self.options.host, 'oidc' if self.options.protocol == 'oidc' else 'oauth')
+        return self.restClient.request(
+            method='POST',
+            url=url,
+            data={
+                'client_id': self.options.app_id,
+                'token': token
+            }
+        )
+
+    def introspect_token(self, token):
+        """
+        检查 Access token 或 Refresh token 的状态。
+
+        Args:
+            token (str): Access token 或 Refresh token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 access_token、refresh_token 获得。
+                        注意: refresh_token 只有在 scope 中包含 offline_access 才会返回。
+        """
+        if self.options.protocol not in ['oauth', 'oidc']:
+            raise AuthingWrongArgumentException('protocol must be oauth or oidc')
+
+        if not self.options.secret and self.options.token_endpoint_auth_method != 'none':
+            raise AuthingWrongArgumentException('secret must be provided')
+
+        if self.options.token_endpoint_auth_method == 'client_secret_post':
+            return self.__introspect_token_with_client_secret_post(token)
+
+        elif self.options.token_endpoint_auth_method == 'client_secret_basic':
+            return self.__introspect_token_with_client_secret_basic(token)
+
+        elif self.options.token_endpoint_auth_method == 'none':
+            return self.__introspect_token_with_none(token)
+
+        else:
+            raise AuthingWrongArgumentException('unsupported argument token_endpoint_auth_method')
+
+    def __validate_id_token(self, id_token):
+        url = "%s/api/v2/oidc/validate_token?id_token=%s" % (self.options.app_host, id_token)
+        return self.restClient.request(
+            method='GET',
+            url=url,
+        )
+
+    def __validate_access_token(self, access_token):
+        url = "%s/api/v2/oidc/validate_token?access_token=%s" % (self.options.app_host, access_token)
+        return self.restClient.request(
+            method='GET',
+            url=url,
+        )
+
+    def validate_token(self, id_token=None, access_token=None):
+        """
+        通过 Authing 提供的在线接口验证 Id token 或 Access token。会产生网络请求。
+
+        Args:
+            id_token (str, optional):
+            access_token (str, optional): Access token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 access_token 获得。
+        """
+
+        if not access_token and not id_token:
+            raise AuthingWrongArgumentException('must provide id_token or access_token')
+
+        if id_token:
+            return self.__validate_id_token(id_token)
+        elif access_token:
+            return self.__validate_access_token(access_token)
+
+    def validate_ticket_v1(self, ticket, service):
+        """
+        检验 CAS 1.0 Ticket 合法性。
+
+        Args:
+            ticket (str): CAS 认证成功后，Authing 颁发的 ticket。
+            service (str): CAS 回调地址。
+        """
+        url = '%s/cas-idp/%s/validate?service=%s&ticket=%s' % (self.options.app_host, self.options.app_id, service, ticket)
+        data = self.restClient.request(
+            method='GET',
+            url=url
+        )
+        raw_valid, username = data.split('\n')
+        valid = raw_valid == 'yes'
+        res = {
+            'valid': valid
+        }
+        if username:
+            res['username'] = username
+        if not valid:
+            res['message'] = 'ticket is not valid'

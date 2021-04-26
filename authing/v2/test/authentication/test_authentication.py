@@ -10,6 +10,7 @@ import unittest
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+from urllib.parse import urlparse, parse_qs
 
 load_dotenv()
 
@@ -591,3 +592,249 @@ class TestAuthentication(unittest.TestCase):
         list, total_count = data.get('list'), data.get('totalCount')
         self.assertTrue(len(list))
         self.assertTrue(total_count > 0)
+
+    def test_list_authorized_resources(self):
+        pass
+
+    @unittest.skip('test_get_access_token_by_code_with_client_secret_post')
+    def test_oidc_get_access_token_by_code_with_client_secret_post(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_post'
+        ))
+        data = authentication_client.get_access_token_by_code('Qzi_nSKjqgzFyDwjPpiGS5q01OGqcePVMR1MqJ8dnp7')
+        self.assertTrue(data.get('access_token'))
+
+    @unittest.skip('test_oidc_get_access_token_by_code_with_client_secret_basic')
+    def test_oidc_get_access_token_by_code_with_client_secret_basic(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_basic'
+        ))
+        data = authentication_client.get_access_token_by_code('ZfHkrJNaByvLophVTVLKdCmvCNIzuQwtcCTXK1E08cS')
+        self.assertTrue(data.get('access_token'))
+
+    @unittest.skip('test_oidc_get_access_token_by_code_with_none')
+    def test_oidc_get_access_token_by_code_with_none(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='none'
+        ))
+        data = authentication_client.get_access_token_by_code('O36lNUcRrpB2wcbyUbGh1lQuP9ERrc79LKrKKB8hDkb')
+        self.assertTrue(data.get('access_token'))
+
+    @unittest.skip('test_oauth_get_access_token_by_code_with_client_secret_post')
+    def test_oauth_get_access_token_by_code_with_client_secret_post(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_post'
+        ))
+        data = authentication_client.get_access_token_by_code('a910d08497c69fd04867851b9ad82755aa1dd127')
+        self.assertTrue(data.get('access_token'))
+        self.assertTrue(data.get('refresh_token'))
+
+    @unittest.skip('test_oauth_get_access_token_by_code_with_client_secret_basic')
+    def test_oauth_get_access_token_by_code_with_client_secret_basic(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_basic'
+        ))
+        data = authentication_client.get_access_token_by_code('b77ca8b05009a6bf695d212f1ae02d5b812fb4cb')
+        self.assertTrue(data.get('access_token'))
+        self.assertTrue(data.get('refresh_token'))
+
+    @unittest.skip('test_oauth_get_access_token_by_code_with_none')
+    def test_oauth_get_access_token_by_code_with_none(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='none'
+        ))
+        data = authentication_client.get_access_token_by_code('5ff759fa7fd649cc2b8b29a11b7c800f6829cc9d')
+        self.assertTrue(data.get('access_token'))
+        self.assertTrue(data.get('refresh_token'))
+
+    @unittest.skip('test_get_access_token_by_client_credentials')
+    def test_get_access_token_by_client_credentials(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+        ))
+        scope = 'customer'
+        access_key = '608521d72488c6bf44ceb6c8'
+        access_secret = '6bfdea5545f52d1644ac0ba696592f94'
+        data = authentication_client.get_access_token_by_client_credentials(scope, access_key, access_secret)
+        self.assertTrue(data.get('access_token'))
+
+    @unittest.skip('test_get_user_info_by_access_token')
+    def test_get_user_info_by_access_token(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_post'
+        ))
+        data = authentication_client.get_access_token_by_code('VgVaLlOsY3GcB8TTzwPn12kcm1OqJ0zbBpLYCW_Gfib')
+        access_token = data.get('access_token')
+        if not access_token:
+            self.fail()
+        user_info = authentication_client.get_user_info_by_access_token(access_token)
+        self.assertTrue(user_info.get('sub'))
+
+    # 拼接 OIDC 授权码模式授权链接
+    def test_oidc_build_authorize_url_authorization_code_mode(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_basic'
+        ))
+        url = authentication_client.build_authorize_url(response_mode='form_post')
+        parsed_url = urlparse(url)
+        queries = parse_qs(parsed_url.query)
+
+        self.assertTrue(queries.get('nonce') is not None)
+        self.assertTrue(queries.get('state') is not None)
+        self.assertTrue(queries.get('scope') is not None)
+        self.assertTrue(queries.get('client_id')[0] == os.getenv('AUTHING_APP_ID'))
+        self.assertTrue(queries.get('redirect_uri')[0] == os.getenv('AUTHING_APP_REDIRECT_URI'))
+        self.assertTrue(queries.get('response_type')[0] == 'code')
+        self.assertTrue(queries.get('response_mode')[0] == 'form_post')
+
+    # 拼接 OIDC 隐式模式授权链接
+    def test_oidc_build_authorize_url_implicit_mode(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_basic'
+        ))
+        url = authentication_client.build_authorize_url(response_type='id_token token')
+        parsed_url = urlparse(url)
+        queries = parse_qs(parsed_url.query)
+        self.assertTrue(queries.get('response_type')[0] == 'id_token token')
+
+    # 拼接 OIDC 带 refresh_token 能力的授权链接
+    def test_oidc_build_authorize_url_offline_access(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_basic'
+        ))
+        url = authentication_client.build_authorize_url(scope='openid profile offline_access')
+        parsed_url = urlparse(url)
+        queries = parse_qs(parsed_url.query)
+        self.assertTrue(queries.get('prompt')[0] == 'consent')
+
+    # 拼接 OIDC 授权码 + PKCE 带 refresh_token 能力的授权链接
+    def test_oidc_build_authorize_url_pkce_s256(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_basic'
+        ))
+        code_verifier = authentication_client.generate_code_challenge()
+        code_challenge = authentication_client.generate_code_challenge_digest(code_verifier)
+        url = authentication_client.build_authorize_url(
+            code_challenge=code_challenge,
+            code_challenge_method='S256'
+        )
+        parsed_url = urlparse(url)
+        queries = parse_qs(parsed_url.query)
+
+        self.assertTrue(queries.get('code_challenge')[0] == code_challenge)
+        self.assertTrue(queries.get('code_challenge_method')[0] == 'S256')
+
+        print(code_challenge)
+        print(url)
+
+    # 拼接 OIDC 授权码 + PKCE 带 refresh_token 能力的授权链接
+    def test_oidc_build_authorize_url_pkce_plain(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_basic'
+        ))
+        code_verifier = authentication_client.generate_code_challenge()
+        code_challenge = authentication_client.generate_code_challenge_digest(code_verifier, method='plain')
+        url = authentication_client.build_authorize_url(
+            code_challenge=code_challenge,
+            code_challenge_method='plain',
+            scope='openid profile offline_access'
+        )
+        parsed_url = urlparse(url)
+        queries = parse_qs(parsed_url.query)
+
+        self.assertTrue(queries.get('code_challenge')[0] == code_challenge)
+        self.assertTrue(queries.get('code_challenge_method')[0] == 'plain')
+        self.assertTrue(queries.get('prompt')[0] == 'consent')
+
+    # OIDC 授权码 + PKCE code 换 token
+    def test_oidc_get_access_token_by_code_with_pkce(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_post'
+        ))
+        data = authentication_client.get_access_token_by_code(
+            't2wMl5im8glCz-ILg1KY9i8b-8OazHtvRnKXO8ojo59',
+            code_verifier='qPpNQbYT_fFa4bnKwf8udH5JjMz1f3b93WrmYmL7nZg'
+        )
+
+    def test_oauth_build_authorize_url(self):
+        authentication_client = AuthenticationClient(options=AuthenticationClientOptions(
+            app_id=os.getenv('AUTHING_APP_ID'),
+            app_host=os.getenv('AUTHING_APP_HOST'),
+            secret=os.getenv('AUTHING_APP_SECRET'),
+            protocol=os.getenv('AUTHING_APP_PROTOCOL'),
+            redirect_uri=os.getenv('AUTHING_APP_REDIRECT_URI'),
+            token_endpoint_auth_method='client_secret_post'
+        ))
+        url = authentication_client.build_authorize_url()
+        parsed_url = urlparse(url)
+        queries = parse_qs(parsed_url.query)
+        self.assertTrue(queries.get('response_type')[0] == 'code')
+        self.assertTrue(queries.get('scope')[0] == 'user')

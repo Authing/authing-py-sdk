@@ -27,7 +27,11 @@ class AuthenticationClientOptions:
         on_error=None,
         timeout=10.0,
         lang=None,
-        websocket_host=None
+        websocket_host=None,
+        protocol=None,
+        secret=None,
+        token_endpoint_auth_method=None,
+        redirect_uri=None
     ):
 
         """
@@ -41,6 +45,10 @@ class AuthenticationClientOptions:
             timeout [(int), optional]: 请求超时时间，位为毫秒，默认为 10000（10 秒）
             lang [(str), optional]: 接口 Message 返回语言格式（可选），可选值为 zh-CN 和 en-US，默认为 zh-CN。
             websocket_host [(str), optional]: Authing Websocket 服务器域名，如果不填写，将默认为 http(s)://ws.YOUR_AUTHING_SERVER
+            protocol (str, optional): 协议类型，可选值为 oidc、oauth、saml、cas
+            secret (str, optional): 应用密钥
+            token_endpoint_auth_method (str, optional): 获取 token 端点验证方式，可选值为 client_secret_post、client_secret_basic、none，默认为 client_secret_post。
+            redirect_uri (str, optional): 业务回调 URL
         """
         if not app_id and not user_pool_id:
             raise Exception('Please provide app_id or user_pool_id')
@@ -48,6 +56,7 @@ class AuthenticationClientOptions:
         self.app_id = app_id
         self.user_pool_id = user_pool_id
         self.host = app_host or host or "https://core.authing.cn"
+        self.app_host = app_host
         self.on_error = on_error or DEFAULT_ONERROR
         self.timeout = timeout
         self.graphql_endpoint = "%s/graphql/v2" % self.host
@@ -55,3 +64,7 @@ class AuthenticationClientOptions:
         self.token = token
         self.lang = lang
         self.websocket_host = websocket_host
+        self.protocol = protocol
+        self.secret = secret
+        self.token_endpoint_auth_method = token_endpoint_auth_method
+        self.redirect_uri = redirect_uri
