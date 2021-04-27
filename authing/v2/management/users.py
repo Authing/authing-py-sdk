@@ -43,7 +43,7 @@ class UsersManagementClient(object):
         return data["users"]
 
     def create(self, userInfo):
-        # type:(object) -> any
+        # type:(dict) -> any
         """创建用户
 
         Args:
@@ -66,7 +66,7 @@ class UsersManagementClient(object):
         return data["createUser"]
 
     def update(self, userId, updates):
-        # type:(str,object) -> any
+        # type:(str, dict) -> any
         """修改用户信息
 
         Args:

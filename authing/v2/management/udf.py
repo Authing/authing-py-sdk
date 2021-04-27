@@ -95,7 +95,7 @@ class UdfManagementClient(object):
         Args:
             target_type (str) 自定义字段目标类型， USER 表示用户、ROLE 表示角色。
             target_id (str) 自定义字段目标 id，如用户 ID
-            udf_value_list ({ key: str, value: str }[]) 存放 Key Value 的数组
+            udf_value_list (list) 存放 Key Value 的数组
         """
 
         return self.graphqlClient.request(
