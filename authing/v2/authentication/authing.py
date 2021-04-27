@@ -55,7 +55,7 @@ class AuthenticationClient(object):
         """获取当前用户的资料
 
         Args:
-            token (str, optional): 用户登录凭证
+            token (str): 用户登录凭证
         """
         url = "%s/api/v2/users/me" % self.options.host
         data = self.restClient.request(
@@ -85,12 +85,12 @@ class AuthenticationClient(object):
         Args:
             email (str): 邮箱
             password (str): 密码
-            profile ([type], optional): 用户资料
-            force_login (bool, optional): 强制登录
-            generate_token ([bool], optional): 自动生成 token
-            client_ip ([str], optional): 客户端真实 IP
-            custom_data ([dict], optional): 用户自定义数据
-            context ([dict], optional): 请求上下文，将会传递到 Pipeline 中
+            profile (dict): 用户资料
+            force_login (bool): 强制登录
+            generate_token (bool): 自动生成 token
+            client_ip (str): 客户端真实 IP
+            custom_data (dict): 用户自定义数据
+            context (dict): 请求上下文，将会传递到 Pipeline 中
         """
         password = encrypt(password, self.options.enc_public_key)
 
@@ -139,12 +139,12 @@ class AuthenticationClient(object):
         Args:
             username (str): 用户名
             password (str): 密码
-            profile ([type], optional): 用户资料
-            force_login (bool, optional): 强制登录
-            generate_token ([type], optional): 自动生成 token
-            client_ip ([str], optional): 客户端真实 IP
-            custom_data ([dict], optional): 用户自定义数据
-            context ([dict], optional): 请求上下文，将会传递到 Pipeline 中
+            profile (dict): 用户资料
+            force_login (bool): 强制登录
+            generate_token (bool): 自动生成 token
+            client_ip (str): 客户端真实 IP
+            custom_data (dict): 用户自定义数据
+            context (dict): 请求上下文，将会传递到 Pipeline 中
         """
         password = encrypt(password, self.options.enc_public_key)
         params = []
@@ -194,12 +194,12 @@ class AuthenticationClient(object):
             phone (str): 手机号
             code (str): 手机号验证码
             password (str): 密码
-            profile ([type], optional): 用户资料
-            force_login (bool, optional): 强制登录
-            generate_token ([type], optional): 自动生成 token
-            client_ip ([str], optional): 客户端真实 IP
-            custom_data ([dict], optional): 用户自定义数据
-            context ([dict], optional): 请求上下文，将会传递到 Pipeline 中
+            profile (dict): 用户资料
+            force_login (bool): 强制登录
+            generate_token (bool): 自动生成 token
+            client_ip (str): 客户端真实 IP
+            custom_data (dict): 用户自定义数据
+            context (dict): 请求上下文，将会传递到 Pipeline 中
         """
         if password:
             password = encrypt(password, self.options.enc_public_key)
@@ -256,11 +256,11 @@ class AuthenticationClient(object):
         Args:
             email (str): 邮箱
             password (str): 密码
-            auto_register (bool, optional): 如果用户不存在，是否自动注册。
-            captcha_code (str, optional): 图形验证码
-            client_ip ([str], optional): 客户端真实 IP
-            custom_data ([dict], optional): 用户自定义数据
-            context ([dict], optional): 请求上下文，将会传递到 Pipeline 中
+            auto_register (bool): 如果用户不存在，是否自动注册。
+            captcha_code (str): 图形验证码
+            client_ip (str): 客户端真实 IP
+            custom_data (dict): 用户自定义数据
+            context (dict): 请求上下文，将会传递到 Pipeline 中
         """
         password = encrypt(password, self.options.enc_public_key)
         params = []
@@ -301,11 +301,11 @@ class AuthenticationClient(object):
         Args:
             username (str): 用户名
             password (str): 密码
-            auto_register (bool, optional): 如果用户不存在，是否自动注册。
-            captcha_code (str, optional): 图形验证码
-            client_ip ([str], optional): 客户端真实 IP
-            custom_data ([dict], optional): 用户自定义数据
-            context ([dict], optional): 请求上下文，将会传递到 Pipeline 中
+            auto_register (bool): 如果用户不存在，是否自动注册。
+            captcha_code (str): 图形验证码
+            client_ip (str): 客户端真实 IP
+            custom_data (dict): 用户自定义数据
+            context (dict): 请求上下文，将会传递到 Pipeline 中
         """
         password = encrypt(password, self.options.enc_public_key)
         params = []
@@ -345,9 +345,9 @@ class AuthenticationClient(object):
         Args:
             phone (str): 手机号
             code (str): 手机号验证码
-            client_ip ([str], optional): 客户端真实 IP
-            custom_data ([dict], optional): 用户自定义数据
-            context ([dict], optional): 请求上下文，将会传递到 Pipeline 中
+            client_ip (str): 客户端真实 IP
+            custom_data (dict): 用户自定义数据
+            context (dict): 请求上下文，将会传递到 Pipeline 中
         """
         params = []
         if custom_data:
@@ -385,11 +385,11 @@ class AuthenticationClient(object):
         Args:
             phone (str): 手机号
             password (str): 密码
-            auto_register (bool, optional): 如果用户不存在，是否自动注册。
-            captcha_code (str, optional): 图形验证码
-            client_ip ([str], optional): 客户端真实 IP
-            custom_data ([dict], optional): 用户自定义数据
-            context ([dict], optional): 请求上下文，将会传递到 Pipeline 中
+            auto_register (bool): 如果用户不存在，是否自动注册。
+            captcha_code (str): 图形验证码
+            client_ip (str): 客户端真实 IP
+            custom_data (dict): 用户自定义数据
+            context (dict): 请求上下文，将会传递到 Pipeline 中
         """
         password = encrypt(password, self.options.enc_public_key)
         params = []
@@ -483,7 +483,7 @@ class AuthenticationClient(object):
         """检查 token 的登录状态
 
         Args:
-            token (str, optional): token
+            token (str): token
         """
         data = self.graphqlClient.request(
             query=QUERY["checkLoginStatus"], params={
@@ -502,9 +502,9 @@ class AuthenticationClient(object):
         """通过手机号验证码重置密码
 
         Args:
-            phone ([str]): 手机号
-            code ([str]): 手机号验证码
-            new_password ([str]): 新的密码
+            phone (str): 手机号
+            code (str): 手机号验证码
+            new_password (str): 新的密码
         """
         new_password = encrypt(new_password, self.options.enc_public_key)
         data = self.graphqlClient.request(
@@ -517,9 +517,9 @@ class AuthenticationClient(object):
         """通过邮件验证码修改密码
 
         Args:
-            email ([str]): 邮箱
-            code ([str]): 邮箱验证码
-            new_password ([str]): 新的密码
+            email (str): 邮箱
+            code (str): 邮箱验证码
+            new_password (str): 新的密码
         """
         new_password = encrypt(new_password, self.options.enc_public_key)
         data = self.graphqlClient.request(
@@ -544,8 +544,8 @@ class AuthenticationClient(object):
         """修改密码
 
         Args:
-            new_password ([str]): 新密码
-            old_password ([str]): 老密码
+            new_password (str): 新密码
+            old_password (str): 老密码
         """
         new_password = encrypt(new_password, self.options.enc_public_key)
         old_password = encrypt(old_password, self.options.enc_public_key)
@@ -565,10 +565,10 @@ class AuthenticationClient(object):
         用户首次绑定手机号请使用 bind_phone 接口。
 
         Args:
-            phone ([str]): 新手机号
-            phone_code ([str]): 新手机号的验证码
-            old_phone ([str], optional): 原手机号
-            old_phone_code ([str], optional): 原手机号验证码
+            phone (str): 新手机号
+            phone_code (str): 新手机号的验证码
+            old_phone (str): 原手机号
+            old_phone_code (str): 原手机号验证码
         """
         data = self.graphqlClient.request(
             query=QUERY["updatePhone"],
@@ -593,10 +593,10 @@ class AuthenticationClient(object):
         用户首次绑定邮箱请使用 bind_email 接口。
 
         Args:
-            email ([str]): 新邮箱
-            email_code ([str]): 新邮箱的验证码
-            old_email ([str], optional): 原邮箱
-            old_email_code ([str], optional): 原邮箱验证码
+            email (str): 新邮箱
+            email_code (str): 新邮箱的验证码
+            old_email (str): 原邮箱
+            old_email_code (str): 原邮箱验证码
         """
         data = self.graphqlClient.request(
             query=QUERY["updateEmail"],
@@ -616,8 +616,8 @@ class AuthenticationClient(object):
         """绑定账号。将一个社交账号（如微信账号、GitHub 账号）绑定到一个主账号（手机号、邮箱账号）。
 
         Args:
-            primary_user_token ([str]): 主账号的 Token
-            secondary_user_token ([str]): 社交账号 Token
+            primary_user_token (str): 主账号的 Token
+            secondary_user_token (str): 社交账号 Token
         """
         url = "%s/api/v2/users/link" % self.options.host
         self.restClient.request(
@@ -632,8 +632,8 @@ class AuthenticationClient(object):
         """"主账号解绑社会化登录账号。
 
         Args:
-            primary_user_token ([str]): 主账号的 Token
-            provider ([str]): 社会化登录类型
+            primary_user_token (str): 主账号的 Token
+            provider (str): 社会化登录类型
         """
         url = "%s/api/v2/users/unlink" % self.options.host
         self.restClient.request(
@@ -664,8 +664,8 @@ class AuthenticationClient(object):
         发送验证码请使用 send_sms_code 方法。
 
         Args:
-            phone ([str]): 手机号
-            phone_code ([str]): 手机号验证码
+            phone (str): 手机号
+            phone_code (str): 手机号验证码
         """
         data = self.graphqlClient.request(
             query=QUERY["bindPhone"],
@@ -692,8 +692,8 @@ class AuthenticationClient(object):
         如果该邮箱已被绑定，将会绑定失败。发送邮件验证码请使用 send_email 方法。
 
         Args:
-            email ([str]): 邮箱
-            email_code ([str]): 邮箱验证码
+            email (str): 邮箱
+            email_code (str): 邮箱验证码
         """
         data = self.graphqlClient.request(
             query=QUERY["bindEmail"], params={
@@ -798,8 +798,8 @@ class AuthenticationClient(object):
         """设置自定义用户数据
 
         Args:
-            key ([type]): key
-            value ([type]): valud
+            key (type): key
+            value (type): value
         """
         user = self._check_logged_in()
         if isinstance(value, datetime.datetime):
@@ -829,7 +829,7 @@ class AuthenticationClient(object):
         """删除用户自定义字段数据
 
         Args:
-            key ([str]): 自定义字段 key
+            key (str): 自定义字段 key
         """
         user = self._check_logged_in()
         data = self.graphqlClient.request(
@@ -896,7 +896,7 @@ class AuthenticationClient(object):
         获取用户拥有的角色列表
 
         Args:
-            namespace ([str], optional): 权限分组的 code，默认为
+            namespace (str): 权限分组的 code，默认为
              - 默认权限分组
         """
         user = self._check_logged_in()
@@ -915,8 +915,8 @@ class AuthenticationClient(object):
         """判断用户是否具有某在角色
 
         Args:
-            code ([str]): 角色的唯一标志符 code
-            namespace ([str], optional): 权限分组的 code，默认为 default - 默认权限分组
+            code (str): 角色的唯一标志符 code
+            namespace (str): 权限分组的 code，默认为 default - 默认权限分组
         """
         data = self.list_roles(namespace)
         _list, total_count = data['list'], data['totalCount']
@@ -935,8 +935,8 @@ class AuthenticationClient(object):
         获取用户能够访问的应用列表
 
         Args:
-            page ([int], optional) 页数，从 1 开始，默认为 1
-            limit ([int], optional) 每页个数，默认为 10
+            page (int) 页数，从 1 开始，默认为 1
+            limit (int) 每页个数，默认为 10
         """
         url = "%s/api/v2/users/me/applications/allowed?page=%s&limit=%s" % (self.options.host, page, limit)
         data = self.restClient.request(
@@ -956,8 +956,8 @@ class AuthenticationClient(object):
         获取一个用户被授权的所有资源，用户被授权的所有资源里面包括从角色、分组、组织机构继承的资源。
 
         Args:
-            namespace ([str]) 权限分组的 code
-            resource_type ([str], optional) 资源类型，可选值包含 DATA、API、MENU、UI、BUTTON
+            namespace (str) 权限分组的 code
+            resource_type (str) 资源类型，可选值包含 DATA、API、MENU、UI、BUTTON
         """
 
         user = self._check_logged_in()
@@ -995,7 +995,7 @@ class AuthenticationClient(object):
         计算密码安全等级。
 
         Args:
-            password ([str]) 明文密码
+            password (str) 明文密码
         """
         high_level_regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^]{12,}$"
         middle_level_regex = r"^(?=.*[a-zA-Z])(?=.*\d)[^]{8,}$"
@@ -1054,7 +1054,7 @@ class AuthenticationClient(object):
 
         Args:
             code (str): 授权码 Code，用户在认证成功后，Authing 会将授权码 Code 发送到回调地址。
-            code_verifier (str, optional): 发起 PKCE 授权登录时需要填写此参数。
+            code_verifier (str): 发起 PKCE 授权登录时需要填写此参数。
         """
 
         if self.options.protocol not in ['oidc', 'oauth']:
@@ -1546,8 +1546,8 @@ class AuthenticationClient(object):
         通过 Authing 提供的在线接口验证 Id token 或 Access token。会产生网络请求。
 
         Args:
-            id_token (str, optional):
-            access_token (str, optional): Access token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 access_token 获得。
+            id_token (str):
+            access_token (str): Access token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 access_token 获得。
         """
 
         if not access_token and not id_token:

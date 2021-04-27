@@ -40,15 +40,15 @@ class AuthenticationClientOptions:
         Args:
             app_id (str): 应用 ID
             app_host (str): 应用地址，如 https://your-app.authing.cn
-            token [(str), optional]: 用户的 id_token，你可以使用 id_token 初始化 SDK，从而实现记住登录的目的
-            enc_public_key [(str), optional]: 密码非对称加密公钥（可选），如果你使用的是 Authing 公有云服务，可以忽略；如果你使用的是私有化部署的 Authing，请联系 Authing IDaaS 服务管理员
-            timeout [(int), optional]: 请求超时时间，位为毫秒，默认为 10000（10 秒）
-            lang [(str), optional]: 接口 Message 返回语言格式（可选），可选值为 zh-CN 和 en-US，默认为 zh-CN。
-            websocket_host [(str), optional]: Authing Websocket 服务器域名，如果不填写，将默认为 http(s)://ws.YOUR_AUTHING_SERVER
-            protocol (str, optional): 协议类型，可选值为 oidc、oauth、saml、cas
-            secret (str, optional): 应用密钥
-            token_endpoint_auth_method (str, optional): 获取 token 端点验证方式，可选值为 client_secret_post、client_secret_basic、none，默认为 client_secret_post。
-            redirect_uri (str, optional): 业务回调 URL
+            token (str): 用户的 id_token，你可以使用 id_token 初始化 SDK，从而实现记住登录的目的
+            enc_public_key (str): 密码非对称加密公钥（可选），如果你使用的是 Authing 公有云服务，可以忽略；如果你使用的是私有化部署的 Authing，请联系 Authing IDaaS 服务管理员
+            timeout (int): 请求超时时间，位为毫秒，默认为 10000（10 秒）
+            lang (str): 接口 Message 返回语言格式（可选），可选值为 zh-CN 和 en-US，默认为 zh-CN。
+            websocket_host (str): Authing Websocket 服务器域名，如果不填写，将默认为 http(s)://ws.YOUR_AUTHING_SERVER
+            protocol (str): 协议类型，可选值为 oidc、oauth、saml、cas
+            secret (str): 应用密钥
+            token_endpoint_auth_method (str): 获取 token 端点验证方式，可选值为 client_secret_post、client_secret_basic、none，默认为 client_secret_post。
+            redirect_uri (str): 业务回调 URL
         """
         if not app_id and not user_pool_id:
             raise Exception('Please provide app_id or user_pool_id')

@@ -26,7 +26,7 @@ class AclManagementClient(object):
             resource (str): 资源的 code
             action (str): 资源操作类型
             user_id (str): 用户 ID
-            role (str, optional): 角色的 code
+            role (str): 角色的 code
             namespace (str): 权限分组的 code
         """
 
@@ -75,7 +75,7 @@ class AclManagementClient(object):
         Args:
             code (str): 权限分组唯一标识符；
             name (str): 权限分组名称；
-            description (str, optional): 可选，权限分组描述。
+            description (str): 可选，权限分组描述。
         """
 
         url = "%s/api/v2/resource-namespace/%s" % (self.options.host, self.options.user_pool_id)
@@ -102,9 +102,9 @@ class AclManagementClient(object):
 
         Args:
             id (number): 权限分组的 ID；
-            name (str, optional): 新的权限分组名称；
-            code (str, optional): 新的 code；
-            description (str, optional): 描述信息
+            name (str): 新的权限分组名称；
+            code (str): 新的 code；
+            description (str): 描述信息
         """
         url = "%s/api/v2/resource-namespace/%s/%s" % (self.options.host, self.options.user_pool_id, id)
         data = self.restClient.request(
@@ -189,7 +189,7 @@ class AclManagementClient(object):
             code (str): 资源标识符;
             resource_type (str): 资源类型，可选值为 DATA、API、MENU、UI、BUTTON；
             actions (list): 资源操作对象数组。其中 name 为操作名称，填写一个动词，description 为操作描述，填写描述信息。
-            description (str, optional): 描述信息
+            description (str): 描述信息
         """
 
         self.__check_resource_actions(actions)
@@ -222,9 +222,9 @@ class AclManagementClient(object):
         Args:
             namespace (str): 权限分组 code；
             code (str): 资源唯一标志符 code；
-            resource_type (str, optional): 新的资源类型；
-            actions (list, optional): 资源操作对象数组。其中 name 为操作名称，填写一个动词，description 为操作描述，填写描述信息。
-            description (str, optional): 描述信息
+            resource_type (str): 新的资源类型；
+            actions (list): 资源操作对象数组。其中 name 为操作名称，填写一个动词，description 为操作描述，填写描述信息。
+            description (str): 描述信息
         """
 
         body = {
@@ -262,9 +262,9 @@ class AclManagementClient(object):
 
         Args:
             namespace (str): 权限分组 code；
-            resource_type (str, optional): 资源类型，可选值为 DATA、API、MENU、UI、BUTTON；
-            page (int, optional): 页码数据，从 1 开始，默认为 1；
-            limit (int, optional): 每页个数，默认为 10；
+            resource_type (str): 资源类型，可选值为 DATA、API、MENU、UI、BUTTON；
+            page (int): 页码数据，从 1 开始，默认为 1；
+            limit (int): 每页个数，默认为 10；
         """
 
         if not isinstance(namespace, str):

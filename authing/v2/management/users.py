@@ -25,12 +25,11 @@ class UsersManagementClient(object):
         self.restClient = restClient
 
     def list(self, page=1, limit=10):
-        # type:(int,int) -> any
         """获取用户池用户列表
 
         Args:
-            page (int, optional): 页码数，从 1 开始，默认为 1 。
-            limit (int, optional): 每页个数，默认为 10 。
+            page (int): 页码数，从 1 开始，默认为 1 。
+            limit (int): 每页个数，默认为 10 。
 
         Returns:
             [totalCount, _list]: 返回一个 tuple，第一个值为用户总数，第二个为元素为用户信息的列表。
@@ -43,11 +42,10 @@ class UsersManagementClient(object):
         return data["users"]
 
     def create(self, userInfo):
-        # type:(dict) -> any
         """创建用户
 
         Args:
-            userInfo (object): 用户信息
+            userInfo (dict): 用户信息
 
         Returns:
             [User]: 用户详情
@@ -66,12 +64,11 @@ class UsersManagementClient(object):
         return data["createUser"]
 
     def update(self, userId, updates):
-        # type:(str, dict) -> any
         """修改用户信息
 
         Args:
             userId (str): 用户 ID
-            updates: 需要修改的用户字段
+            updates (dict): 需要修改的用户字段
         """
         if updates.get("password"):
             updates["password"] = encrypt(
@@ -86,7 +83,6 @@ class UsersManagementClient(object):
         return data["updateUser"]
 
     def detail(self, userId):
-        # type:(str) -> any
         """获取用户资料详情
 
         Args:
@@ -103,9 +99,10 @@ class UsersManagementClient(object):
         """查找用户
 
         Args:
-            email (str, optional): 邮箱
-            username (str, optional): 用户名
-            phone (str, optional): 手机号
+            email (str): 邮箱
+            username (str): 用户名
+            phone (str): 手机号
+            external_id (str): 外部员工 ID
         """
         data = self.graphqlClient.request(
             query=QUERY["findUser"],
@@ -124,8 +121,8 @@ class UsersManagementClient(object):
 
         Args:
             query (str): 查询语句
-            page (int, optional): 页码数，从 1 开始，默认为 1 。
-            limit (int, optional): 每页个数，默认为 10 。
+            page (int): 页码数，从 1 开始，默认为 1 。
+            limit (int): 每页个数，默认为 10 。
         """
         data = self.graphqlClient.request(
             query=QUERY["searchUser"],
@@ -135,11 +132,10 @@ class UsersManagementClient(object):
         return data["searchUser"]
 
     def batch(self, userIds):
-        # type:(str) -> any
         """批量获取用户详情
 
         Args:
-            userIds: 用户 ID 列表，以英文逗号分隔
+            userIds (list): 用户 ID 列表，以英文逗号分隔
         """
         data = self.graphqlClient.request(
             query=QUERY["userBatch"],
@@ -149,7 +145,6 @@ class UsersManagementClient(object):
         return data["userBatch"]
 
     def delete(self, userId):
-        # type:(str) -> any
         """删除用户
 
         Args:
@@ -166,11 +161,10 @@ class UsersManagementClient(object):
         return data["deleteUser"]
 
     def delete_many(self, userIds):
-        # type:(str) -> any
         """批量删除用户
 
         Args:
-            userIds: 用户 ID 列表
+            userIds (list): 用户 ID 列表
         """
         data = self.graphqlClient.request(
             query=QUERY["deleteUsers"],
@@ -180,7 +174,6 @@ class UsersManagementClient(object):
         return data["deleteUsers"]
 
     def list_roles(self, userId, namespace=None):
-        # type:(str, str) -> any
         """获取用户的角色列表
 
         Args:
@@ -198,7 +191,6 @@ class UsersManagementClient(object):
         return data["user"]["roles"]
 
     def add_roles(self, userId, roles):
-        # type:(str,object) -> any
         """批量授权用户角色
 
         Args:
@@ -216,7 +208,6 @@ class UsersManagementClient(object):
         return data["assignRole"]
 
     def remove_roles(self, userId, roles):
-        # type:(str,object) -> any
         """批量撤销用户角色
 
         Args:
@@ -234,7 +225,6 @@ class UsersManagementClient(object):
         return data["revokeRole"]
 
     def refresh_token(self, userId):
-        # type:(str) -> any
         """刷新某个用户的 token
 
         Args:
@@ -297,7 +287,6 @@ class UsersManagementClient(object):
         return data["removeUserFromGroup"]
 
     def list_policies(self, userId, page=1, limit=10):
-        # type:(str,int,int) -> any
         """获取策略列表"""
         data = self.graphqlClient.request(
             query=QUERY["policyAssignments"],
@@ -312,7 +301,6 @@ class UsersManagementClient(object):
         return data["policyAssignments"]
 
     def add_policies(self, userId, policies):
-        # type:(str,object) -> any
         """添加策略"""
         data = self.graphqlClient.request(
             query=QUERY["addPolicyAssignments"],
@@ -326,7 +314,6 @@ class UsersManagementClient(object):
         return data["addPolicyAssignments"]
 
     def remove_policies(self, userId, policies):
-        # type:(str,object) -> any
         """移除策略"""
         data = self.graphqlClient.request(
             query=QUERY["removePolicyAssignments"],
@@ -340,7 +327,6 @@ class UsersManagementClient(object):
         return data["removePolicyAssignments"]
 
     def list_udv(self, userId):
-        # type:(str) -> any
         """获取该用户的自定义数据列表"""
         data = self.graphqlClient.request(
             query=QUERY["udv"],
@@ -374,12 +360,12 @@ class UsersManagementClient(object):
         )["udfValueBatch"]
 
     def set_udv(self, userId, key, value):
-        # type:(str,str,any) -> any
         """设置自定义用户数据
 
         Args:
-            key ([type]): key
-            value ([type]): valud
+            userId (str): 用户 ID
+            key (str): key
+            value (str): value
         """
 
         if isinstance(value, datetime.datetime):
@@ -407,11 +393,11 @@ class UsersManagementClient(object):
         self.set_udv(user_id, key, value)
 
     def remove_udv(self, userId, key):
-        # type:(str,str) -> any
         """删除用户自定义字段数据
 
         Args:
-            key ([str]): str
+            userId (str): 用户 ID
+            key (str): str
         """
         data = self.graphqlClient.request(
             query=QUERY["removeUdv"],
@@ -431,8 +417,8 @@ class UsersManagementClient(object):
         """获取已归档用户列表
 
         Args:
-            page (int, optional): 页码数，从 1 开始，默认为 1 。
-            limit (int, optional): 每页个数，默认为 10 。
+            page (int): 页码数，从 1 开始，默认为 1 。
+            limit (int): 每页个数，默认为 10 。
         """
 
         data = self.graphqlClient.request(
@@ -507,9 +493,9 @@ class UsersManagementClient(object):
         获取用户被授权的所有资源
 
         Args:
-            user_id ([str]) 用户 ID
-            namespace ([str])  权限分组的 Code
-            resource_type ([str], optional) 资源类型，可选值包含 DATA、API、MENU、UI、BUTTON
+            user_id (str) 用户 ID
+            namespace (str)  权限分组的 Code
+            resource_type (str) 资源类型，可选值包含 DATA、API、MENU、UI、BUTTON
         """
 
         valid_resource_types = [
