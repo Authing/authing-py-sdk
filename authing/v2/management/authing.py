@@ -1,5 +1,5 @@
 # coding: utf-8
-
+from .applications import ApplicationsManagementClient
 from .policies import PolicyManagementClient
 from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
@@ -55,6 +55,13 @@ class ManagementClient(object):
         self.udf = UdfManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
+            tokenProvider=self.tokenProvider,
+        )
+
+        self.applications = ApplicationsManagementClient(
+            options=self.options,
+            graphqlClient=self.graphqlClient,
+            restClient=self.restClient,
             tokenProvider=self.tokenProvider,
         )
 
