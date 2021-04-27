@@ -9,6 +9,7 @@ from ..common.utils import format_authorized_resources, convert_udv_list_to_dict
 from ..exceptions import AuthingWrongArgumentException, AuthingException
 import datetime
 
+
 class RolesManagementClient(object):
     """Authing Roles Management Client"""
 
@@ -209,7 +210,6 @@ class RolesManagementClient(object):
         )
         return data["removePolicyAssignments"]
 
-
     def list_authorized_resources(self, code, namespace, resource_type=None):
         """
         获取一个角色被授权的所有资源。
@@ -320,6 +320,7 @@ class RolesManagementClient(object):
                 def default(o):
                     if isinstance(o, (datetime.date, datetime.datetime)):
                         return o.isoformat()
+
                 v = json.dumps(v, sort_keys=True, indent=1, default=default)
             else:
                 v = json.dumps(v)

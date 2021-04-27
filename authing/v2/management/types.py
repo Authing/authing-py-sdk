@@ -24,6 +24,7 @@ class ManagementClientOptions:
         enc_public_key=None,
         on_error=None,
         timeout=10.0,
+        lang=None,
     ):
         # type:(str,str,str,str,any,float) -> ManagementClientOptions
         self.user_pool_id = user_pool_id
@@ -33,3 +34,4 @@ class ManagementClientOptions:
         self.timeout = timeout
         self.graphql_endpoint = "%s/graphql/v2" % self.host
         self.enc_public_key = enc_public_key or DEFAULT_ENCRYPT_PUBLICKEY
+        self.lang = lang

@@ -62,7 +62,7 @@ def url_join_args(api, query=None, **kwargs):
 
 def format_authorized_resources(arr):
     def func(item):
-        for key in item.keys():
+        for key in list(item.keys()):
             if not item[key]:
                 del item[key]
         return item
