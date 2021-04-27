@@ -48,6 +48,7 @@ class ManagementClient(object):
         self.acl = AclManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
+            restClient=self.restClient,
             tokenProvider=self.tokenProvider,
         )
 

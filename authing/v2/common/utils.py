@@ -68,7 +68,7 @@ def camel_to_snake(string):
 
 def format_authorized_resources(arr):
     def func(item):
-        for key in item.keys():
+        for key in list(item.keys()):
             if not item[key]:
                 del item[key]
         return item
