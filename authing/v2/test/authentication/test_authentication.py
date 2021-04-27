@@ -42,6 +42,8 @@ def register_random_user():
 
 
 class TestAuthentication(unittest.TestCase):
+
+
     def test_init_with_no_userpoolid_and_appid(self):
         error = False
         try:

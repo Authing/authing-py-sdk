@@ -1,4 +1,5 @@
 # coding: utf-8
+from functools import singledispatch
 
 from .types import ManagementClientOptions
 from ..common.rest import RestClient
@@ -99,7 +100,7 @@ class UsersManagementClient(object):
         )
         return data["user"]
 
-    def find(self, email=None, username=None, phone=None):
+    def find(self, email=None, username=None, phone=None, external_id=None):
         """查找用户
 
         Args:
@@ -109,13 +110,18 @@ class UsersManagementClient(object):
         """
         data = self.graphqlClient.request(
             query=QUERY["findUser"],
-            params={"email": email, "username": username, "phone": phone},
+            params={
+                "email": email,
+                "username": username,
+                "phone": phone,
+                "externalId": external_id
+            },
             token=self.tokenProvider.getAccessToken(),
         )
         return data["findUser"]
 
+    @singledispatch
     def search(self, query, page=1, limit=10):
-        # type:(str,int,int) -> any
         """搜索用户
 
         Args:
@@ -129,6 +135,23 @@ class UsersManagementClient(object):
             token=self.tokenProvider.getAccessToken(),
         )
         return data["searchUser"]
+
+    @search.register(str, object)
+    def search(self, query, options):
+        if options.get("page") is None:
+            options["page"] = 1
+        if options.get("limit") is None:
+            options["limit"] = 10
+
+        params = options
+
+        params["query"] = query
+
+        return self.graphqlClient.request(
+            query=QUERY["searchUser"],
+            params=params,
+            token=self.tokenProvider.getAccessToken()
+        )["searchUser"]
 
     def batch(self, userIds):
         # type:(str) -> any
@@ -559,7 +582,7 @@ class UsersManagementClient(object):
             }
         )["data"]
 
-    def listUserActions(self, page=1, limit=10, client_ip=None, operation_name=None, operato_arn=None):
+    def list_user_actions(self, page=1, limit=10, client_ip=None, operation_name=None, operato_arn=None):
 
         url = "%s/api/v2/analysis/user-action" % self.options.host
 

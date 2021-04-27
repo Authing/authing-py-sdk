@@ -60,6 +60,12 @@ def url_join_args(api, query=None, **kwargs):
     return result
 
 
+def camel_to_snake(string):
+    string = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', string)
+    string = re.sub('(.)([0-9]+)', r'\1_\2', string)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', string).lower()
+
+
 def format_authorized_resources(arr):
     def func(item):
         for key in item.keys():
