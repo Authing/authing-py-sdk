@@ -10,7 +10,6 @@ from ..common.codegen import QUERY
 import json
 import datetime
 from dateutil import parser
-import urllib.parse
 
 from ..exceptions import AuthingWrongArgumentException
 
@@ -120,7 +119,6 @@ class UsersManagementClient(object):
         )
         return data["findUser"]
 
-    @singledispatch
     def search(self, query, page=1, limit=10):
         """搜索用户
 
@@ -135,23 +133,6 @@ class UsersManagementClient(object):
             token=self.tokenProvider.getAccessToken(),
         )
         return data["searchUser"]
-
-    @search.register(str, object)
-    def search(self, query, options):
-        if options.get("page") is None:
-            options["page"] = 1
-        if options.get("limit") is None:
-            options["limit"] = 10
-
-        params = options
-
-        params["query"] = query
-
-        return self.graphqlClient.request(
-            query=QUERY["searchUser"],
-            params=params,
-            token=self.tokenProvider.getAccessToken()
-        )["searchUser"]
 
     def batch(self, userIds):
         # type:(str) -> any

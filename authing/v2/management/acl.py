@@ -19,7 +19,7 @@ class AclManagementClient(object):
         # type:(str,str,str,str) -> object
         """允许某个用户操作某个资源"""
         if not userId and not role:
-            raise "userId 和 role 必填其一"
+            raise Exception("userId 和 role 必填其一")
         data = self.graphqlClient.request(
             query=QUERY["allow"],
             params={
