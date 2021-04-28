@@ -246,8 +246,12 @@ class AuthenticationClient(object):
         return data
 
     def login_by_email(
-            self, email, password, auto_register=False, captcha_code=None, client_ip=None,
-
+            self,
+            email,
+            password,
+            auto_register=False,
+            captcha_code=None,
+            client_ip=None,
             custom_data=None,
             context=None
     ):
@@ -292,7 +296,12 @@ class AuthenticationClient(object):
         return user
 
     def login_by_username(
-            self, username, password, auto_register=False, captcha_code=None, client_ip=None,
+            self,
+            username,
+            password,
+            auto_register=False,
+            captcha_code=None,
+            client_ip=None,
             custom_data=None,
             context=None
     ):
@@ -336,10 +345,14 @@ class AuthenticationClient(object):
         self._set_current_user(user)
         return user
 
-    def login_by_phone_code(self, phone, code, client_ip=None,
-                            custom_data=None,
-                            context=None
-                            ):
+    def login_by_phone_code(
+            self,
+            phone,
+            code,
+            client_ip=None,
+            custom_data=None,
+            context=None
+        ):
         """使用邮箱登录
 
         Args:
@@ -376,7 +389,12 @@ class AuthenticationClient(object):
         return user
 
     def login_by_phone_password(
-            self, phone, password, auto_register=False, captcha_code=None, client_ip=None,
+            self,
+            phone,
+            password,
+            auto_register=False,
+            captcha_code=None,
+            client_ip=None,
             custom_data=None,
             context=None
     ):
@@ -1207,17 +1225,18 @@ class AuthenticationClient(object):
 
         return url_join_args('%s/oidc/auth' % self.options.app_host, res)
 
-    def build_authorize_url(self,
-                            redirect_uri=None,
-                            response_type=None,
-                            response_mode=None,
-                            state=None,
-                            nonce=None,
-                            scope=None,
-                            code_challenge_method=None,
-                            code_challenge=None,
-                            service=None
-                            ):
+    def build_authorize_url(
+            self,
+            redirect_uri=None,
+            response_type=None,
+            response_mode=None,
+            state=None,
+            nonce=None,
+            scope=None,
+            code_challenge_method=None,
+            code_challenge=None,
+            service=None
+    ):
         """
         生成用于用户登录的地址链接。
         """
@@ -1266,15 +1285,15 @@ class AuthenticationClient(object):
 
         return get_random_string(length)
 
-    def generate_code_challenge_digest(self, code_verifier, method=None):
+    def generate_code_challenge_digest(self, code_challenge, method=None):
         """
         生成一个 PKCE 校验码摘要值。
 
         Args:
-            code_verifier (str): 待生成摘要值的 code_challenge 原始值，一个长度大于等于 43 的随机字符串。
+            code_challenge (str): 待生成摘要值的 code_challenge 原始值，一个长度大于等于 43 的随机字符串。
             method (str): 可以为 plain、S256，表示计算 code_challenge 时使用的摘要算法，plain 表示不用任何算法原样返回，S256 表示使用 SHA256 计算 code_challenge 摘要。
         """
-        if len(code_verifier) < 43:
+        if len(code_challenge) < 43:
             raise AuthingWrongArgumentException('code_challenge must be a string length grater than 43')
 
         if not method:
@@ -1284,13 +1303,13 @@ class AuthenticationClient(object):
             raise AuthingWrongArgumentException('method must be S256 or plain')
 
         if method == 'S256':
-            code_challenge = hashlib.sha256(code_verifier.encode('utf-8')).digest()
+            code_challenge = hashlib.sha256(code_challenge.encode('utf-8')).digest()
             code_challenge = base64.urlsafe_b64encode(code_challenge).decode('utf-8')
             code_challenge = code_challenge.replace('=', '')
             return code_challenge
 
         elif method == 'plain':
-            return code_verifier
+            return code_challenge
 
         else:
             raise AuthingWrongArgumentException('unsupported method, must be S256 or plain')
@@ -1452,16 +1471,16 @@ class AuthenticationClient(object):
         if self.options.protocol not in ['oauth', 'oidc']:
             raise AuthingWrongArgumentException('protocol must be oauth or oidc')
 
-        if not self.options.secret and self.options.token_endpoint_auth_method != 'none':
+        if not self.options.secret and self.options.revocation_endpoint_auth_method != 'none':
             raise AuthingWrongArgumentException('secret must be provided')
 
-        if self.options.token_endpoint_auth_method == 'client_secret_post':
+        if self.options.revocation_endpoint_auth_method == 'client_secret_post':
             return self.__revoke_token_with_client_secret_post(token)
 
-        elif self.options.token_endpoint_auth_method == 'client_secret_basic':
+        elif self.options.revocation_endpoint_auth_method == 'client_secret_basic':
             return self.__revoke_token_with_client_secret_basic(token)
 
-        elif self.options.token_endpoint_auth_method == 'none':
+        elif self.options.revocation_endpoint_auth_method == 'none':
             return self.__revoke_token_with_none(token)
 
         else:
@@ -1512,16 +1531,16 @@ class AuthenticationClient(object):
         if self.options.protocol not in ['oauth', 'oidc']:
             raise AuthingWrongArgumentException('protocol must be oauth or oidc')
 
-        if not self.options.secret and self.options.token_endpoint_auth_method != 'none':
+        if not self.options.secret and self.options.introspection_endpoint_auth_method != 'none':
             raise AuthingWrongArgumentException('secret must be provided')
 
-        if self.options.token_endpoint_auth_method == 'client_secret_post':
+        if self.options.introspection_endpoint_auth_method == 'client_secret_post':
             return self.__introspect_token_with_client_secret_post(token)
 
-        elif self.options.token_endpoint_auth_method == 'client_secret_basic':
+        elif self.options.introspection_endpoint_auth_method == 'client_secret_basic':
             return self.__introspect_token_with_client_secret_basic(token)
 
-        elif self.options.token_endpoint_auth_method == 'none':
+        elif self.options.introspection_endpoint_auth_method == 'none':
             return self.__introspect_token_with_none(token)
 
         else:

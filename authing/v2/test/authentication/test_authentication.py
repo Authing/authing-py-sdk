@@ -1,4 +1,5 @@
 # coding: utf-8
+import json
 
 from ...exceptions import AuthingException
 from ..utils import get_random_string
@@ -275,6 +276,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(user)
 
         data = authentication.check_login_status()
+        print(json.dumps(data, indent=4, ensure_ascii=False))
         self.assertTrue(data)
         self.assertTrue(data.get("status"))
 

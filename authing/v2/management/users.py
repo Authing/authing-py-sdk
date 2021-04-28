@@ -3,7 +3,7 @@ from functools import singledispatch
 
 from .types import ManagementClientOptions
 from ..common.rest import RestClient
-from ..common.utils import encrypt, url_join_args
+from ..common.utils import encrypt, url_join_args, convert_udv_list_to_dict
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
@@ -41,15 +41,21 @@ class UsersManagementClient(object):
         )
         return data["users"]
 
-    def create(self, userInfo):
+    def create(self, userInfo, keep_password=False):
         """创建用户
 
         Args:
             userInfo (dict): 用户信息
+            keep_password (bool): 该参数一般在迁移旧有用户数据到 Authing 的时候会设置。开启这个开关，password 字段会直接写入 Authing 数据库，
+                                    Authing 不会再次加密此字段。如果你的密码不是明文存储，你应该保持开启，并编写密码函数计算。
 
         Returns:
             [User]: 用户详情
         """
+
+        if not isinstance(userInfo, dict):
+            raise AuthingWrongArgumentException('userInfo must be a dict')
+
         if userInfo.get("password"):
             userInfo["password"] = encrypt(
                 userInfo["password"], self.options.enc_public_key
@@ -58,6 +64,7 @@ class UsersManagementClient(object):
             query=QUERY["createUser"],
             params={
                 "userInfo": userInfo,
+                "keepPassword": keep_password
             },
             token=self.tokenProvider.getAccessToken(),
         )
@@ -116,26 +123,62 @@ class UsersManagementClient(object):
         )
         return data["findUser"]
 
-    def search(self, query, page=1, limit=10):
+    def search(self, query, page=1, limit=10, department_opts=None, group_opts=None, role_opts=None):
         """搜索用户
 
         Args:
             query (str): 查询语句
             page (int): 页码数，从 1 开始，默认为 1 。
             limit (int): 每页个数，默认为 10 。
+            department_opts (list): 限制条件，用户所在的部门
+            group_opts (list): 限制条件，用户所在的分组
+            role_opts (list): 限制条件，用户所在的角色
         """
+
+        if department_opts:
+            if not isinstance(department_opts, list):
+                raise AuthingWrongArgumentException('department_opts must be a list')
+
+        if group_opts:
+            if not isinstance(group_opts, list):
+                raise AuthingWrongArgumentException('group_opts must be a list')
+
+        if role_opts:
+            if not isinstance(role_opts, list):
+                raise AuthingWrongArgumentException('group_opts must be a list')
+
         data = self.graphqlClient.request(
             query=QUERY["searchUser"],
-            params={"query": query, "page": page, "limit": limit},
+            params={
+                "query": query,
+                "page": page,
+                "limit": limit,
+                'departmentOpts': department_opts,
+                'groupOpts': group_opts,
+                'roleOpts': role_opts
+            },
             token=self.tokenProvider.getAccessToken(),
         )
         return data["searchUser"]
 
-    def batch(self, userIds):
-        """批量获取用户详情
+    def batch_get(self, identifiers, query_field='id'):
+        """
+        通过 id、username、email、phone、email、externalId 批量获取用户详情。一次最多支持查询 80 个用户。
+        """
+        url = "%s/api/v2/users/batch" % self.options.host
+        return self.restClient.request(
+            method='POST',
+            url=url,
+            json={
+                'ids': identifiers,
+                'type': query_field
+            },
+            token=self.tokenProvider.getAccessToken(),
+            auto_parse_result=True
+        )
 
-        Args:
-            userIds (list): 用户 ID 列表，以英文逗号分隔
+    def batch(self, userIds):
+        """已废弃，请使用 batch_get 接口
         """
         data = self.graphqlClient.request(
             query=QUERY["userBatch"],
@@ -190,35 +233,39 @@ class UsersManagementClient(object):
         )
         return data["user"]["roles"]
 
-    def add_roles(self, userId, roles):
+    def add_roles(self, userId, roles, namespace=None):
         """批量授权用户角色
 
         Args:
             userId (str): 用户 ID
             roles: 角色 code 列表
+            namespace (str): 权限分组的 Code
         """
         data = self.graphqlClient.request(
             query=QUERY["assignRole"],
             params={
                 "userIds": [userId],
                 "roleCodes": roles,
+                "namespace": namespace
             },
             token=self.tokenProvider.getAccessToken(),
         )
         return data["assignRole"]
 
-    def remove_roles(self, userId, roles):
+    def remove_roles(self, userId, roles, namespace=None):
         """批量撤销用户角色
 
         Args:
             userId (str): 用户 ID
             roles: 用户角色 code 列表
+            namespace (str): 权限分组的 Code
         """
         data = self.graphqlClient.request(
             query=QUERY["revokeRole"],
             params={
                 "userIds": [userId],
                 "roleCodes": roles,
+                'namespace': namespace
             },
             token=self.tokenProvider.getAccessToken(),
         )
@@ -347,7 +394,13 @@ class UsersManagementClient(object):
         return data
 
     def get_udf_value(self, user_id):
-        return self.list_udv(user_id)
+        data = self.graphqlClient.request(
+            query=QUERY["udv"],
+            params={"targetType": "USER", "targetId": user_id},
+            token=self.tokenProvider.getAccessToken()
+        )
+        data = data['udv']
+        return convert_udv_list_to_dict(data)
 
     def get_udf_value_batch(self, user_ids):
         if type(user_ids).__name__ != "list":
@@ -389,8 +442,89 @@ class UsersManagementClient(object):
         )
         return data["setUdv"]
 
-    def set_udf_value(self, user_id, key, value):
-        self.set_udv(user_id, key, value)
+    def set_udf_value(self, user_id, data):
+        """
+        设置用户的自定义数据。
+
+        Args:
+            user_id (str): 用户 ID；
+            data (dict): 自定义数据，类型为一个字典
+        """
+
+
+        if not isinstance(data, dict):
+            raise AuthingWrongArgumentException('data must be a dict')
+
+        if len(data.keys()) == 0:
+            raise AuthingWrongArgumentException('data must not be a empty dict')
+
+        list = []
+        for k, v in data.items():
+            if isinstance(v, datetime.datetime):
+                def default(o):
+                    if isinstance(o, (datetime.date, datetime.datetime)):
+                        return o.isoformat()
+
+                v = json.dumps(v, sort_keys=True,
+                               indent=1, default=default)
+            else:
+                v = json.dumps(v)
+            list.append({
+                'key': k,
+                'value': v
+            })
+        self.graphqlClient.request(
+            query=QUERY['setUdvBatch'],
+            params={
+                'targetType': 'USER',
+                'targetId': user_id,
+                'udvList': list
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return True
+
+    def set_udf_value_batch(self, data):
+        """
+        批量设置多个用户的自定义数据。
+
+        Args:
+            data (dict): 输入数据，格式为一个字典，key 为角色 ID，value 为自定义数据；value 格式要求为一个字典，key 为自定义字段的 key，value 为需要设置的值。
+                        示例：{ 'USER_ID1': { 'school': '清华大学' } }
+        """
+        if not isinstance(data, dict):
+            raise AuthingWrongArgumentException('data must be a list')
+
+        for k, v in data.items():
+            if not isinstance(v, dict):
+                raise AuthingWrongArgumentException('invalid data input')
+
+        params = []
+        for role_id in data.keys():
+            for k, v in data[role_id].items():
+                if isinstance(v, datetime.datetime):
+                    def default(o):
+                        if isinstance(o, (datetime.date, datetime.datetime)):
+                            return o.isoformat()
+
+                    v = json.dumps(v, sort_keys=True, indent=1, default=default)
+                else:
+                    v = json.dumps(v)
+                params.append({
+                    'targetId': role_id,
+                    'key': k,
+                    'value': v
+                })
+
+        self.graphqlClient.request(
+            query=QUERY['setUdfValueBatch'],
+            params={
+                'targetType': 'USER',
+                'input': params
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return True
 
     def remove_udv(self, userId, key):
         """删除用户自定义字段数据
@@ -431,7 +565,7 @@ class UsersManagementClient(object):
         )
         return data["archivedUsers"]
 
-    def exists(self, username=None, email=None, phone=None):
+    def exists(self, username=None, email=None, phone=None, external_id=None):
         """
         检查用户是否存在
 
@@ -439,6 +573,7 @@ class UsersManagementClient(object):
             username (str) 用户名，区分大小写
             email (str) 邮箱，邮箱不区分大小写
             phone (str) 手机号
+            external_id (str) External ID
         """
 
         data = self.graphqlClient.request(
@@ -446,7 +581,8 @@ class UsersManagementClient(object):
             params={
                 "username": username,
                 "email": email,
-                "phone": phone
+                "phone": phone,
+                'externalId': external_id
             },
             token=self.tokenProvider.getAccessToken()
         )

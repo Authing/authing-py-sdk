@@ -548,3 +548,52 @@ class TestUsers(unittest.TestCase):
         )
 
         print(resources_list)
+
+    def test_set_udf_value(self):
+        user = create_user()
+        management.users.set_udf_value(
+            user_id=user.get('id'),
+            data={
+                'school': '华中科技大学',
+                'age': 22
+            }
+        )
+        values = management.users.get_udf_value(user_id=user.get('id'))
+        self.assertTrue(values['school'] == '华中科技大学')
+        self.assertTrue(values['age'] == 22)
+
+    def test_set_udf_value_batch(self):
+        user1 = create_user()
+        user2 = create_user()
+
+        user1_id = user1.get('id')
+        user2_id = user2.get('id')
+        management.users.set_udf_value_batch(
+            {
+                user1_id: {
+                    'school': '华中科技大学',
+                    'age': 22
+                },
+                user2_id: {
+                    'school': '华中科技大学',
+                    'age': 22
+                }
+            }
+        )
+
+        values1 = management.users.get_udf_value(user_id=user1_id)
+        self.assertTrue(values1['school'] == '华中科技大学')
+        self.assertTrue(values1['age'] == 22)
+
+        values2 = management.users.get_udf_value(user_id=user2_id)
+        self.assertTrue(values2['school'] == '华中科技大学')
+        self.assertTrue(values2['age'] == 22)
+
+    def test_batch_get(self):
+        user1 = create_user()
+        user2 = create_user()
+        user1_id = user1.get('id')
+        user2_id = user2.get('id')
+
+        users = management.users.batch_get([user1_id, user2_id])
+        self.assertTrue(len(users) == 2)

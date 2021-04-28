@@ -31,6 +31,8 @@ class AuthenticationClientOptions:
         protocol=None,
         secret=None,
         token_endpoint_auth_method=None,
+        introspection_endpoint_auth_method=None,
+        revocation_endpoint_auth_method=None,
         redirect_uri=None
     ):
 
@@ -48,6 +50,8 @@ class AuthenticationClientOptions:
             protocol (str): 协议类型，可选值为 oidc、oauth、saml、cas
             secret (str): 应用密钥
             token_endpoint_auth_method (str): 获取 token 端点验证方式，可选值为 client_secret_post、client_secret_basic、none，默认为 client_secret_post。
+            introspection_endpoint_auth_method (str): 检验 token 端点验证方式，可选值为 `client_secret_post`、`client_secret_basic`、`none`，默认为 `client_secret_post`。
+            revocation_endpoint_auth_method (str): 撤回 token 端点验证方式，可选值为 `client_secret_post`、`client_secret_basic`、`none`，默认为 `client_secret_post`。
             redirect_uri (str): 业务回调 URL
         """
         if not app_id and not user_pool_id:
@@ -64,7 +68,9 @@ class AuthenticationClientOptions:
         self.token = token
         self.lang = lang
         self.websocket_host = websocket_host
-        self.protocol = protocol
+        self.protocol = protocol or 'oidc'
         self.secret = secret
         self.token_endpoint_auth_method = token_endpoint_auth_method
+        self.introspection_endpoint_auth_method = introspection_endpoint_auth_method
+        self.revocation_endpoint_auth_method = revocation_endpoint_auth_method
         self.redirect_uri = redirect_uri
