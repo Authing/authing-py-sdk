@@ -8,7 +8,7 @@ class RestClient(object):
     def __init__(self, options):
         self.options = options
 
-    def request(self, method, url, token=None, basic_token=None, json=None, **kwargs):
+    def request(self, method, url, token=None, basic_token=None, json=None, auto_parse_result=False, **kwargs):
         headers = {
             "x-authing-sdk-version": "python:%s" % __version__,
             "x-authing-userpool-id": self.options.user_pool_id if hasattr(self.options, 'user_pool_id') else None,
@@ -30,4 +30,12 @@ class RestClient(object):
                     del json[key]
 
         r = requests.request(method=method, url=url, headers=headers, json=json, **kwargs)
-        return r.json()
+        data = r.json()
+        if auto_parse_result:
+            code, data, message = data.get("code"), data.get("data"), data.get("message")
+            if code == 200:
+                return data
+            else:
+                self.options.on_error(code, message)
+        else:
+            return data

@@ -1,5 +1,6 @@
 # coding: utf-8
 from .applications import ApplicationsManagementClient
+from .check_type import CheckType
 from .policies import PolicyManagementClient
 from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
@@ -63,10 +64,15 @@ class ManagementClient(object):
             graphqlClient=self.graphqlClient,
             restClient=self.restClient,
             tokenProvider=self.tokenProvider,
+            managementClient=self
         )
 
         # 用户池详情
         self._userpool_detail = None
+
+        # Check
+
+        self.check = CheckType()
 
     def _get_userpool_detail(self):
         if self._userpool_detail:
