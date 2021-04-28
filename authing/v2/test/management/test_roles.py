@@ -4,8 +4,9 @@ import os
 from ...management.types import ManagementClientOptions
 from ...management.authing import ManagementClient
 from dotenv import load_dotenv
-load_dotenv()
+from datetime import datetime
 
+load_dotenv()
 
 management = ManagementClient(ManagementClientOptions(
     user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
@@ -14,13 +15,14 @@ management = ManagementClient(ManagementClientOptions(
 ))
 
 
-def createRole():
+def create_role():
     code = get_random_string(5)
     role = management.roles.create(code=code)
     return role
 
 
-namespace = '605c09f03ef7084037104dc2'
+namespace = 'default'
+
 
 class TestRoles(unittest.TestCase):
     def test_list(self):
@@ -34,7 +36,7 @@ class TestRoles(unittest.TestCase):
         self.assertTrue(_list)
 
     def test_create(self):
-        role = createRole()
+        role = create_role()
         self.assertTrue(role)
         self.assertTrue(role['code'])
 
@@ -50,7 +52,7 @@ class TestRoles(unittest.TestCase):
         role = management.roles.detail(code=code)
         self.assertTrue(role)
         self.assertTrue(role['code'] == code)
-    
+
     def test_detail_with_namespace(self):
         code = get_random_string(5)
         management.roles.create(code=code, namespace=namespace)
@@ -208,7 +210,6 @@ class TestRoles(unittest.TestCase):
         self.assertTrue(totalCount == 0)
         self.assertTrue(len(users) == 0)
 
-
     def test_remove_users_with_namespace(self):
         role = management.roles.create(
             code=get_random_string(5),
@@ -228,7 +229,6 @@ class TestRoles(unittest.TestCase):
         self.assertTrue(totalCount == 0)
         self.assertTrue(len(users) == 0)
 
-
     def test_add_policies(self):
         policy = management.policies.create(
             code=get_random_string(10),
@@ -240,7 +240,7 @@ class TestRoles(unittest.TestCase):
                 }
             ]
         )
-        role = createRole()
+        role = create_role()
         management.roles.add_policies(role['code'], [policy['code']])
         data = management.roles.list_policies(role['code'])
         totalCount = data['totalCount']
@@ -257,9 +257,169 @@ class TestRoles(unittest.TestCase):
                 }
             ]
         )
-        role = createRole()
+        role = create_role()
         management.roles.add_policies(role['code'], [policy['code']])
         management.roles.remove_policies(role['code'], [policy['code']])
         data = management.roles.list_policies(role['code'])
         totalCount = data['totalCount']
         self.assertTrue(totalCount == 0)
+
+    def test_get_udf_value(self):
+        role = create_role()
+        id = role.get('id')
+        values = management.roles.get_udf_value(id)
+        self.assertTrue(values is not None)
+
+    def test_get_specific_udf_value(self):
+        role = create_role()
+        id = role.get('id')
+        key = get_random_string(10)
+        value = get_random_string(10)
+        management.udf.set(
+            targetType='ROLE',
+            key=key,
+            dataType='STRING',
+            label=get_random_string()
+        )
+        management.roles.set_udf_value(id, {key: value})
+        ret_value = management.roles.get_specific_udf_value(id, key)
+        self.assertTrue(ret_value == value)
+
+    def test_set_udf_value_int_type(self):
+        role = create_role()
+        key = get_random_string()
+        value = 10
+        management.udf.set(
+            targetType='ROLE',
+            key=key,
+            dataType='NUMBER',
+            label=get_random_string()
+        )
+        management.roles.set_udf_value(role.get('id'), {
+            key: value
+        })
+        ret_value = management.roles.get_specific_udf_value(role.get('id'), key)
+        self.assertTrue(value == ret_value)
+
+    def test_set_udf_value_boolean_type(self):
+        role = create_role()
+        key = get_random_string()
+        value = False
+        management.udf.set(
+            targetType='ROLE',
+            key=key,
+            dataType='BOOLEAN',
+            label=get_random_string()
+        )
+        management.roles.set_udf_value(role.get('id'), {
+            key: value
+        })
+        ret_value = management.roles.get_specific_udf_value(role.get('id'), key)
+        self.assertTrue(value == ret_value)
+
+    def test_set_udf_value_datetime_type(self):
+        role = create_role()
+        key = get_random_string()
+        value = datetime.now()
+        management.udf.set(
+            targetType='ROLE',
+            key=key,
+            dataType='DATETIME',
+            label='生日'
+        )
+        management.roles.set_udf_value(role.get('id'), {
+            key: value
+        })
+        ret_value = management.roles.get_specific_udf_value(role.get('id'), key)
+        self.assertTrue(isinstance(ret_value, datetime))
+
+    def test_set_udf_value_dict_type(self):
+        role = create_role()
+        key = get_random_string()
+        value = {
+            'favorColor': 'red'
+        }
+        management.udf.set(
+            targetType='ROLE',
+            key=key,
+            dataType='OBJECT',
+            label='设置'
+        )
+        management.roles.set_udf_value(role.get('id'), {
+            key: value
+        })
+        ret_value = management.roles.get_specific_udf_value(role.get('id'), key)
+        self.assertTrue(isinstance(ret_value, dict))
+
+    def test_get_udf_value_batch(self):
+        role1 = create_role()
+        role2 = create_role()
+        key = get_random_string(10)
+        value = get_random_string(10)
+        management.udf.set(
+            targetType='ROLE',
+            key=key,
+            dataType='STRING',
+            label=get_random_string()
+        )
+        management.roles.set_udf_value(role1.get('id'), {
+            key: value
+        })
+        management.roles.set_udf_value(role2.get('id'), {
+            key: value
+        })
+
+        data = management.roles.get_udf_value_batch([role1.get('id'), role2.get('id')])
+        role1_udvs = data.get(role1.get('id'))
+        role2_udvs = data.get(role2.get('id'))
+
+        self.assertTrue(role1_udvs.get(key) == value)
+        self.assertTrue(role2_udvs.get(key) == value)
+
+    def test_set_udf_value_batch(self):
+        role1 = create_role()
+        role2 = create_role()
+        role1_id = role1.get('id')
+        role2_id = role2.get('id')
+        key = get_random_string(10)
+        value = get_random_string(10)
+        management.udf.set(
+            targetType='ROLE',
+            key=key,
+            dataType='STRING',
+            label=get_random_string()
+        )
+
+        management.roles.set_udf_value_batch(
+            {
+                role1_id: {
+                    key: value
+                },
+                role2_id: {
+                    key: value
+                }
+            }
+        )
+        data = management.roles.get_udf_value_batch([role1_id, role2_id])
+        role1_udvs = data.get(role1.get('id'))
+        role2_udvs = data.get(role2.get('id'))
+
+        self.assertTrue(role1_udvs.get(key) == value)
+        self.assertTrue(role2_udvs.get(key) == value)
+
+    def test_remove_udf_value(self):
+        role = create_role()
+        key = get_random_string()
+        value = 10
+        management.udf.set(
+            targetType='ROLE',
+            key=key,
+            dataType='NUMBER',
+            label=get_random_string()
+        )
+        management.roles.set_udf_value(role.get('id'), {
+            key: value
+        })
+        management.roles.remove_udf_value(role.get('id'), key)
+        ret_value = management.roles.get_specific_udf_value(role.get('id'), key)
+        self.assertTrue(ret_value is None)

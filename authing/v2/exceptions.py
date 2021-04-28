@@ -11,3 +11,7 @@ class AuthingException(Exception):
         message = self.message.encode(
             'utf-8') if sys.version_info[0] == 2 else self.message
         return 'Authing Request Error: {} {}'.format(self.code, message)
+
+
+class AuthingWrongArgumentException(Exception):
+    pass

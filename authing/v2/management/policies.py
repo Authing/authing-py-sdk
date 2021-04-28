@@ -17,12 +17,11 @@ class PolicyManagementClient(object):
         self.tokenProvider = tokenProvider
 
     def list(self, page=1, limit=10):
-        # type:(int,int) -> any
         """获取策略列表
 
         Args:
-            page (int, optional): 页码数，从 1 开始，默认为 1 。
-            limit (int, optional): 每页个数，默认为 10 。
+            page (int): 页码数，从 1 开始，默认为 1 。
+            limit (int): 每页个数，默认为 10 。
         """
         data = self.graphqlClient.request(
             query=QUERY["policies"],
@@ -32,7 +31,6 @@ class PolicyManagementClient(object):
         return data["policies"]
 
     def create(self, code, statements, description=None):
-        # type:(str,any,str) -> any
         """创建策略"""
         data = self.graphqlClient.request(
             query=QUERY["createPolicy"],

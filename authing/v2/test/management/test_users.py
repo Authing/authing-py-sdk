@@ -1,10 +1,11 @@
 from datetime import datetime
 from ...management.types import ManagementClientOptions
 from ...management.authing import ManagementClient
-from ...common.utils import get_random_string
+from ...test.utils import get_random_string
 import unittest
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 management = ManagementClient(ManagementClientOptions(
@@ -12,6 +13,17 @@ management = ManagementClient(ManagementClientOptions(
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
     host=os.getenv('AUTHING_SERVER')
 ))
+
+
+def create_user():
+    user = management.users.create(
+        userInfo={
+            'username': get_random_string(10),
+            'password': get_random_string(10)
+        }
+    )
+
+    return user
 
 
 class TestUsers(unittest.TestCase):
@@ -502,3 +514,86 @@ class TestUsers(unittest.TestCase):
         data = management.users.list_groups(user['id'])
         self.assertTrue(data['totalCount'] != None)
         self.assertTrue(data['list'] != None)
+
+    def test_list_archived_users(self):
+        res = management.users.list_archived_users()
+
+        self.assertTrue(res['list'] is not None)
+        self.assertTrue(res['totalCount'] is not None)
+
+    def test_exists(self):
+        user = create_user()
+
+        is_exists_user = management.users.exists(
+            username=user["username"],
+            email=user["email"],
+            phone=user["phone"]
+        )
+
+        self.assertTrue(is_exists_user)
+
+        random_user = management.users.exists(
+            username=get_random_string(10)
+        )
+
+        self.assertFalse(random_user)
+
+    def test_list_authorized_resources(self):
+        user = create_user()
+
+        resources_list = management.users.list_authorized_resources(
+            user_id=user["id"],
+            namespace="default",
+            resource_type="API"
+        )
+
+        print(resources_list)
+
+    def test_set_udf_value(self):
+        user = create_user()
+        management.users.set_udf_value(
+            user_id=user.get('id'),
+            data={
+                'school': '华中科技大学',
+                'age': 22
+            }
+        )
+        values = management.users.get_udf_value(user_id=user.get('id'))
+        self.assertTrue(values['school'] == '华中科技大学')
+        self.assertTrue(values['age'] == 22)
+
+    def test_set_udf_value_batch(self):
+        user1 = create_user()
+        user2 = create_user()
+
+        user1_id = user1.get('id')
+        user2_id = user2.get('id')
+        management.users.set_udf_value_batch(
+            {
+                user1_id: {
+                    'school': '华中科技大学',
+                    'age': 22
+                },
+                user2_id: {
+                    'school': '华中科技大学',
+                    'age': 22
+                }
+            }
+        )
+
+        values1 = management.users.get_udf_value(user_id=user1_id)
+        self.assertTrue(values1['school'] == '华中科技大学')
+        self.assertTrue(values1['age'] == 22)
+
+        values2 = management.users.get_udf_value(user_id=user2_id)
+        self.assertTrue(values2['school'] == '华中科技大学')
+        self.assertTrue(values2['age'] == 22)
+
+    def test_batch_get(self):
+        user1 = create_user()
+        user2 = create_user()
+        user1_id = user1.get('id')
+        user2_id = user2.get('id')
+
+        users = management.users.batch_get([user1_id, user2_id])
+        self.assertTrue(len(users) == 2)

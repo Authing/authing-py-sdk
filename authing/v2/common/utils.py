@@ -1,9 +1,13 @@
 # coding: utf-8
+import urllib.parse
 
 import rsa
 import base64
+import json
+import re
 import string
 import random
+from dateutil import parser
 
 
 def encrypt(plainText, publicKey):
@@ -14,28 +18,67 @@ def encrypt(plainText, publicKey):
     return base64.b64encode(data).decode()
 
 
-def get_random_string(length):
+def convert_udv_data_type(data):
+    for i, item in enumerate(data):
+        dataType, value = item["dataType"], item["value"]
+        if dataType == "NUMBER":
+            data[i]["value"] = json.loads(value)
+        elif dataType == "BOOLEAN":
+            data[i]["value"] = json.loads(value)
+        elif dataType == "DATETIME":
+            data[i]["value"] = parser.parse(value)
+        elif dataType == "OBJECT":
+            data[i]["value"] = json.loads(value)
+    return data
+
+
+def convert_udv_list_to_dict(data):
+    data = convert_udv_data_type(data)
+    ret = {}
+    for item in data:
+        ret[item['key']] = item['value']
+    return ret
+
+
+def get_hostname_from_url(url):
+    p = '(?:http.*://)?(?P<host>[^:/ ]+).?(?P<port>[0-9]*).*'
+    m = re.search(p, url)
+    return m.group('host')
+
+
+def url_join_args(api, query=None, **kwargs):
+    result = api
+    if not result.endswith('?') and (query or kwargs):
+        result = api + '?'
+    if query:
+        result = result + urllib.parse.urlencode(query)
+    if kwargs:
+        if query:
+            result = result + '&' + urllib.parse.urlencode(kwargs)
+        else:
+            result = result + urllib.parse.urlencode(kwargs)
+    return result
+
+
+def camel_to_snake(string):
+    string = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', string)
+    string = re.sub('(.)([0-9]+)', r'\1_\2', string)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', string).lower()
+
+
+def format_authorized_resources(arr):
+    def func(item):
+        for key in list(item.keys()):
+            if not item[key]:
+                del item[key]
+        return item
+
+    arr = list(map(func, arr))
+    return arr
+
+
+def get_random_string(length=10):
     # type:(int) -> str
     letters = string.ascii_lowercase
     result_str = "".join(random.choice(letters) for i in range(length))
     return result_str
-
-
-def get_random_phone_number():
-    # type:() -> str
-    # 第二位数
-    second = [3, 4, 5, 7, 8][random.randint(0, 4)]
-    # 第三位数
-    third = {
-        3: random.randint(0, 9),
-        4: [5, 7][random.randint(0, 1)],
-        5: [i for i in range(0, 10) if i != 4][random.randint(0, 8)],
-        7: [6, 7, 8][random.randint(0, 2)],
-        8: random.randint(0, 9),
-    }[second]
-    # 后八位数
-    suffix = ""
-    for j in range(0, 8):
-        suffix = suffix + str(random.randint(0, 9))
-
-    return "1{}{}{}".format(second, third, suffix)
