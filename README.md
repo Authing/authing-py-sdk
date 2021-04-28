@@ -1,9 +1,3 @@
----
-meta:
-  - name: description
-    content: Python SDK
----
-
 # Authing - Python
 
 <LastUpdated/>
