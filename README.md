@@ -4,7 +4,8 @@
 
 Authing Python SDK 由两部分组成：`ManagementClient` 和 `AuthenticationClient`。
 
-`AuthenticationClient` 以终端用户（End User）的身份进行请求，提供了登录、注册、登出、管理用户资料、获取授权资源等所有管理用户身份的方法；此模块还提供了各种身份协议的 SDK，如 [OpenID Connect](/guides/federation/oidc.md), [OAuth 2.0](/guides/federation/oauth.md), [SAML](/guides/federation/saml.md) 和 [CAS](/guides/federation/cas.md)。此模块适合用于纯后端交互的服务器环境。
+`AuthenticationClient` 以终端用户（End User）的身份进行请求，提供了登录、注册、登出、管理用户资料、获取授权资源等所有管理用户身份的方法；此模块还提供了各种身份协议的 SDK，如 [OpenID Connect](https://docs.authing.co/v2/guides/federation/oidc.html), [OAuth 2.0](https://docs.authing.co/v2/guides/federation/oauth.html), [SAML](https://docs.authing.co/v2/guides/federation/saml.html) 和 
+[CAS](https://docs.authing.co/v2/guides/federation/cas.html) 。此模块适合用于纯后端交互的服务器环境。
 
 `ManagementClient` 以管理员（Administrator）的身份进行请求，用于管理用户池资源和执行管理任务，提供了管理用户、角色、应用、资源等方法；一般来说，你在 [Authing 控制台](https://console.authing.cn/console/userpool) 中能做的所有操作，都能用此模块完成。此模块适合在后端服务器环境使用。
 
@@ -200,7 +201,7 @@ except AuthingException as e:
     print(e.message) # 用户不存在
 ```
 
-> 完整的错误代码请见[此文档](https://docs.authing.co/v2/reference/error-code.html)。
+> 完整的错误代码请见[此文档](https://docs.authing.co/v2/reference/error-code.html) 。
 
 ## 私有化部署
 
@@ -217,6 +218,10 @@ management_client = ManagementClient(
     enc_public_key="YOUR_PUBLIC_KEY"
 ))
 ```
+
+## 查看完整文档
+
+你可以[在此查看完整文档](https://docs.authing.co/v2/reference/sdk-for-python/) 。
 
 ## 获取帮助
 
