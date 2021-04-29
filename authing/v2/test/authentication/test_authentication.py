@@ -519,7 +519,7 @@ class TestAuthentication(unittest.TestCase):
         user = authentication_client.login_by_ad('admin', 'admin')
         self.assertTrue(user)
 
-    # @unittest.skip('list_orgs')
+    @unittest.skip('list_orgs')
     def test_list_orgs(self):
         authentication_client = init_authentication_client()
         user = authentication_client.login_by_email('cj@authing.cn', 'cj@authing.cn')
