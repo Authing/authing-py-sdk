@@ -50,6 +50,6 @@ setup(
         'graphql-core>=2.3.2,<3',
         'requests',
         'python-dateutil',
-        'rsa==4.0'
+        'rsa==4.7'
     ]
 )
