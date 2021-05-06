@@ -1,6 +1,4 @@
 # coding: utf-8
-import urllib.parse
-
 import rsa
 import base64
 import json
@@ -9,6 +7,12 @@ import string
 import random
 from dateutil import parser
 
+try:
+    # python 3
+    from urllib.parse import urlencode
+except:
+    # python 2
+    from urllib import urlencode
 
 def encrypt(plainText, publicKey):
     # type:(str,str) -> str
@@ -51,12 +55,12 @@ def url_join_args(api, query=None, **kwargs):
     if not result.endswith('?') and (query or kwargs):
         result = api + '?'
     if query:
-        result = result + urllib.parse.urlencode(query)
+        result = result + urlencode(query)
     if kwargs:
         if query:
-            result = result + '&' + urllib.parse.urlencode(kwargs)
+            result = result + '&' + urlencode(kwargs)
         else:
-            result = result + urllib.parse.urlencode(kwargs)
+            result = result + urlencode(kwargs)
     return result
 
 
