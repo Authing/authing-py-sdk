@@ -104,6 +104,7 @@ class UdfManagementClient(object):
                 "targetType": target_type,
                 "targetId": target_id,
                 "udvList": udf_value_list
-            }
+            },
+            token=self.tokenProvider.getAccessToken()
         )["setUdvBatch"]
 

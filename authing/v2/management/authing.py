@@ -10,6 +10,7 @@ from .users import UsersManagementClient
 from .roles import RolesManagementClient
 from .acl import AclManagementClient
 from .udf import UdfManagementClient
+from .groups import GroupsManagementClient
 from ..common.rest import RestClient
 
 
@@ -65,6 +66,12 @@ class ManagementClient(object):
             restClient=self.restClient,
             tokenProvider=self.tokenProvider,
             managementClient=self
+        )
+
+        self.groups = GroupsManagementClient(
+            options=self.options,
+            graphqlClient=self.graphqlClient,
+            tokenProvider=self.tokenProvider
         )
 
         # 用户池详情

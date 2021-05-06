@@ -43,7 +43,6 @@ class GraphqlClient(object):
 
         result = client.execute(gql(query), variable_values=params)
         if result.errors:
-            print(result.errors)
             errmsg = None
             errcode = None
             for _, err in enumerate(result.errors):

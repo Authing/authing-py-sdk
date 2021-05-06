@@ -996,12 +996,12 @@ class AuthenticationClient(object):
                 'resourceType': resource_type
             }
         )
-        user = data.get('user')
-        if not user:
+        data = data.get('user')
+        if not data:
             raise AuthingException(500, 'user not exists')
 
         authorized_resources = data.get('authorizedResources')
-        total_count, _list = authorized_resources.get('list'), authorized_resources.get('totalCount')
+        _list, total_count = authorized_resources.get('list'), authorized_resources.get('totalCount')
         _list = format_authorized_resources(_list)
         return {
             'totalCount': total_count,

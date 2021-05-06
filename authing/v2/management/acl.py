@@ -446,7 +446,8 @@ class AclManagementClient(object):
                 'resource': resource,
                 'targetType': target_type,
                 'actions': actions
-            }
+            },
+            token=self.tokenProvider.getAccessToken()
         )
 
         return data['authorizedTargets']

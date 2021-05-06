@@ -235,14 +235,15 @@ class RolesManagementClient(object):
                 'code': code,
                 'namespace': namespace,
                 'resourceType': resource_type
-            }
+            },
+            token=self.tokenProvider.getAccessToken()
         )
-        role = data.get('role')
-        if not role:
+        data = data.get('role')
+        if not data:
             raise AuthingException(500, 'role not exists')
 
         authorized_resources = data.get('authorizedResources')
-        total_count, _list = authorized_resources.get('list'), authorized_resources.get('totalCount')
+        _list, total_count = authorized_resources.get('list'), authorized_resources.get('totalCount')
         _list = format_authorized_resources(_list)
         return {
             'totalCount': total_count,

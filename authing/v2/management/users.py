@@ -3,7 +3,7 @@ from functools import singledispatch
 
 from .types import ManagementClientOptions
 from ..common.rest import RestClient
-from ..common.utils import encrypt, url_join_args, convert_udv_list_to_dict
+from ..common.utils import encrypt, url_join_args, convert_udv_list_to_dict, format_authorized_resources
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
@@ -654,7 +654,13 @@ class UsersManagementClient(object):
             token=self.tokenProvider.getAccessToken()
         )
 
-        return data["user"]["authorizedResources"]
+        authorized_resources = data.get('authorizedResources')
+        _list, total_count = authorized_resources.get('list'), authorized_resources.get('totalCount')
+        _list = format_authorized_resources(_list)
+        return {
+            'totalCount': total_count,
+            'list': _list
+        }
 
     def has_role(self, user_id, role_code, namespace=None):
         role_list = self.list_roles(user_id, namespace)
