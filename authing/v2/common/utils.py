@@ -14,6 +14,7 @@ except:
     # python 2
     from urllib import urlencode
 
+
 def encrypt(plainText, publicKey):
     # type:(str,str) -> str
     data = rsa.encrypt(
@@ -42,6 +43,12 @@ def convert_udv_list_to_dict(data):
     for item in data:
         ret[item['key']] = item['value']
     return ret
+
+
+def convert_nested_pagination_custom_data_list_to_dict(data):
+    lst = data['list']
+    for user in lst:
+        user['customData'] = convert_udv_list_to_dict(user['customData'])
 
 
 def get_hostname_from_url(url):

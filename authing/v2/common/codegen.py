@@ -512,6 +512,69 @@ mutation createUser($userInfo: CreateUserInput!, $keepPassword: Boolean) {
 }
 
 """,
+'createUserWithCustomData': """
+mutation createUserWithCustomData($userInfo: CreateUserInput!, $keepPassword: Boolean, $params: String) {
+  createUser(userInfo: $userInfo, keepPassword: $keepPassword, params: $params) {
+    id
+    arn
+    userPoolId
+    status
+    username
+    email
+    emailVerified
+    phone
+    phoneVerified
+    unionid
+    openid
+    nickname
+    registerSource
+    photo
+    password
+    oauth
+    token
+    tokenExpiredAt
+    loginsCount
+    lastLogin
+    lastIP
+    signedUp
+    blocked
+    isDeleted
+    device
+    browser
+    company
+    name
+    givenName
+    familyName
+    middleName
+    profile
+    preferredUsername
+    website
+    gender
+    birthdate
+    zoneinfo
+    locale
+    address
+    formatted
+    streetAddress
+    locality
+    region
+    postalCode
+    city
+    province
+    country
+    createdAt
+    updatedAt
+    externalId
+    customData {
+      key
+      value
+      dataType
+      label
+    }
+  }
+}
+
+""",
 'createUserpool': """
 mutation createUserpool($name: String!, $domain: String!, $description: String, $logo: String, $userpoolTypes: [String!]) {
   createUserpool(name: $name, domain: $domain, description: $description, logo: $logo, userpoolTypes: $userpoolTypes) {
@@ -2182,6 +2245,69 @@ query findUser($email: String, $phone: String, $username: String, $externalId: S
 }
 
 """,
+'findUserWithCustomData': """
+query findUserWithCustomData($email: String, $phone: String, $username: String, $externalId: String) {
+  findUser(email: $email, phone: $phone, username: $username, externalId: $externalId) {
+    id
+    arn
+    userPoolId
+    status
+    username
+    email
+    emailVerified
+    phone
+    phoneVerified
+    unionid
+    openid
+    nickname
+    registerSource
+    photo
+    password
+    oauth
+    token
+    tokenExpiredAt
+    loginsCount
+    lastLogin
+    lastIP
+    signedUp
+    blocked
+    isDeleted
+    device
+    browser
+    company
+    name
+    givenName
+    familyName
+    middleName
+    profile
+    preferredUsername
+    website
+    gender
+    birthdate
+    zoneinfo
+    locale
+    address
+    formatted
+    streetAddress
+    locality
+    region
+    postalCode
+    city
+    province
+    country
+    createdAt
+    updatedAt
+    externalId
+    customData {
+      key
+      value
+      dataType
+      label
+    }
+  }
+}
+
+""",
 'function': """
 query function($id: String) {
   function(id: $id) {
@@ -2351,6 +2477,73 @@ query groupWithUsers($code: String!, $page: Int, $limit: Int) {
         createdAt
         updatedAt
         externalId
+      }
+    }
+  }
+}
+
+""",
+'groupWithUsersWithCustomData': """
+query groupWithUsersWithCustomData($code: String!, $page: Int, $limit: Int) {
+  group(code: $code) {
+    users(page: $page, limit: $limit) {
+      totalCount
+      list {
+        id
+        arn
+        userPoolId
+        username
+        email
+        emailVerified
+        phone
+        phoneVerified
+        unionid
+        openid
+        nickname
+        registerSource
+        photo
+        password
+        oauth
+        token
+        tokenExpiredAt
+        loginsCount
+        lastLogin
+        lastIP
+        signedUp
+        blocked
+        isDeleted
+        device
+        browser
+        company
+        name
+        givenName
+        familyName
+        middleName
+        profile
+        preferredUsername
+        website
+        gender
+        birthdate
+        zoneinfo
+        locale
+        address
+        formatted
+        streetAddress
+        locality
+        region
+        postalCode
+        city
+        province
+        country
+        createdAt
+        updatedAt
+        externalId
+        customData {
+          key
+          value
+          dataType
+          label
+        }
       }
     }
   }
@@ -2894,9 +3087,9 @@ query role($code: String!, $namespace: String) {
 
 """,
 'roleWithUsers': """
-query roleWithUsers($code: String!, $namespace: String) {
+query roleWithUsers($code: String!, $namespace: String, $page: Int, $limit: Int) {
   role(code: $code, namespace: $namespace) {
-    users {
+    users(page: $page, limit: $limit) {
       totalCount
       list {
         id
@@ -2949,6 +3142,74 @@ query roleWithUsers($code: String!, $namespace: String) {
         createdAt
         updatedAt
         externalId
+      }
+    }
+  }
+}
+
+""",
+'roleWithUsersWithCustomData': """
+query roleWithUsersWithCustomData($code: String!, $namespace: String, $page: Int, $limit: Int) {
+  role(code: $code, namespace: $namespace) {
+    users(page: $page, limit: $limit) {
+      totalCount
+      list {
+        id
+        arn
+        status
+        userPoolId
+        username
+        email
+        emailVerified
+        phone
+        phoneVerified
+        unionid
+        openid
+        nickname
+        registerSource
+        photo
+        password
+        oauth
+        token
+        tokenExpiredAt
+        loginsCount
+        lastLogin
+        lastIP
+        signedUp
+        blocked
+        isDeleted
+        device
+        browser
+        company
+        name
+        givenName
+        familyName
+        middleName
+        profile
+        preferredUsername
+        website
+        gender
+        birthdate
+        zoneinfo
+        locale
+        address
+        formatted
+        streetAddress
+        locality
+        region
+        postalCode
+        city
+        province
+        country
+        createdAt
+        updatedAt
+        externalId
+        customData {
+          key
+          value
+          dataType
+          label
+        }
       }
     }
   }
@@ -3073,6 +3334,72 @@ query searchUser($query: String!, $fields: [String], $page: Int, $limit: Int, $d
       createdAt
       updatedAt
       externalId
+    }
+  }
+}
+
+""",
+'searchUserWithCustomData': """
+query searchUserWithCustomData($query: String!, $fields: [String], $page: Int, $limit: Int, $departmentOpts: [SearchUserDepartmentOpt], $groupOpts: [SearchUserGroupOpt], $roleOpts: [SearchUserRoleOpt]) {
+  searchUser(query: $query, fields: $fields, page: $page, limit: $limit, departmentOpts: $departmentOpts, groupOpts: $groupOpts, roleOpts: $roleOpts) {
+    totalCount
+    list {
+      id
+      arn
+      userPoolId
+      status
+      username
+      email
+      emailVerified
+      phone
+      phoneVerified
+      unionid
+      openid
+      nickname
+      registerSource
+      photo
+      password
+      oauth
+      token
+      tokenExpiredAt
+      loginsCount
+      lastLogin
+      lastIP
+      signedUp
+      blocked
+      isDeleted
+      device
+      browser
+      company
+      name
+      givenName
+      familyName
+      middleName
+      profile
+      preferredUsername
+      website
+      gender
+      birthdate
+      zoneinfo
+      locale
+      address
+      formatted
+      streetAddress
+      locality
+      region
+      postalCode
+      city
+      province
+      country
+      createdAt
+      updatedAt
+      externalId
+      customData {
+        key
+        value
+        dataType
+        label
+      }
     }
   }
 }
@@ -3248,8 +3575,8 @@ query user($id: String) {
 
 """,
 'userBatch': """
-query userBatch($ids: [String!]!) {
-  userBatch(ids: $ids) {
+query userBatch($ids: [String!]!, $type: String) {
+  userBatch(ids: $ids, type: $type) {
     id
     arn
     userPoolId
@@ -3300,6 +3627,141 @@ query userBatch($ids: [String!]!) {
     createdAt
     updatedAt
     externalId
+  }
+}
+
+""",
+'userBatchWithCustomData': """
+query userBatchWithCustomData($ids: [String!]!, $type: String) {
+  userBatch(ids: $ids, type: $type) {
+    id
+    arn
+    userPoolId
+    status
+    username
+    email
+    emailVerified
+    phone
+    phoneVerified
+    unionid
+    openid
+    nickname
+    registerSource
+    photo
+    password
+    oauth
+    token
+    tokenExpiredAt
+    loginsCount
+    lastLogin
+    lastIP
+    signedUp
+    blocked
+    isDeleted
+    device
+    browser
+    company
+    name
+    givenName
+    familyName
+    middleName
+    profile
+    preferredUsername
+    website
+    gender
+    birthdate
+    zoneinfo
+    locale
+    address
+    formatted
+    streetAddress
+    locality
+    region
+    postalCode
+    city
+    province
+    country
+    createdAt
+    updatedAt
+    externalId
+    customData {
+      key
+      value
+      dataType
+      label
+    }
+  }
+}
+
+""",
+'userWithCustomData': """
+query userWithCustomData($id: String) {
+  user(id: $id) {
+    id
+    arn
+    userPoolId
+    status
+    username
+    email
+    emailVerified
+    phone
+    phoneVerified
+    identities {
+      openid
+      userIdInIdp
+      userId
+      connectionId
+      isSocial
+      provider
+      userPoolId
+    }
+    unionid
+    openid
+    nickname
+    registerSource
+    photo
+    password
+    oauth
+    token
+    tokenExpiredAt
+    loginsCount
+    lastLogin
+    lastIP
+    signedUp
+    blocked
+    isDeleted
+    device
+    browser
+    company
+    name
+    givenName
+    familyName
+    middleName
+    profile
+    preferredUsername
+    website
+    gender
+    birthdate
+    zoneinfo
+    locale
+    address
+    formatted
+    streetAddress
+    locality
+    region
+    postalCode
+    city
+    province
+    country
+    createdAt
+    updatedAt
+    externalId
+    customData {
+      key
+      value
+      dataType
+      label
+    }
   }
 }
 
@@ -3475,6 +3937,72 @@ query users($page: Int, $limit: Int, $sortBy: SortByEnum) {
       createdAt
       updatedAt
       externalId
+    }
+  }
+}
+
+""",
+'usersWithCustomData': """
+query usersWithCustomData($page: Int, $limit: Int, $sortBy: SortByEnum) {
+  users(page: $page, limit: $limit, sortBy: $sortBy) {
+    totalCount
+    list {
+      id
+      arn
+      userPoolId
+      status
+      username
+      email
+      emailVerified
+      phone
+      phoneVerified
+      unionid
+      openid
+      nickname
+      registerSource
+      photo
+      password
+      oauth
+      token
+      tokenExpiredAt
+      loginsCount
+      lastLogin
+      lastIP
+      signedUp
+      blocked
+      isDeleted
+      device
+      browser
+      company
+      name
+      givenName
+      familyName
+      middleName
+      profile
+      preferredUsername
+      website
+      gender
+      birthdate
+      zoneinfo
+      locale
+      address
+      formatted
+      streetAddress
+      locality
+      region
+      postalCode
+      city
+      province
+      country
+      createdAt
+      updatedAt
+      externalId
+      customData {
+        key
+        value
+        dataType
+        label
+      }
     }
   }
 }

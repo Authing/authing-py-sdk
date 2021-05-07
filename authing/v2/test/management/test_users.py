@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from ...management.types import ManagementClientOptions
 from ...management.authing import ManagementClient
@@ -15,12 +16,21 @@ management = ManagementClient(ManagementClientOptions(
 ))
 
 
-def create_user():
+def create_user(custom_data=None):
+    if custom_data:
+        for key, value in custom_data.items():
+            management.udf.set(
+                targetType='USER',
+                dataType='STRING',
+                label=get_random_string(10),
+                key=key
+            )
     user = management.users.create(
         userInfo={
             'username': get_random_string(10),
             'password': get_random_string(10)
-        }
+        },
+        custom_data=custom_data
     )
 
     return user
@@ -36,6 +46,21 @@ class TestUsers(unittest.TestCase):
         self.assertTrue(totalCount)
         self.assertTrue(users)
 
+    def test_list_with_custom_data(self):
+        key = get_random_string(10)
+        value = get_random_string(10)
+        create_user(
+            custom_data={
+                key: value
+            }
+        )
+        data = management.users.list(with_custom_data=True)
+        totalCount = data['totalCount']
+        users = data['list']
+        self.assertTrue(totalCount)
+        self.assertTrue(users)
+        self.assertTrue(users[0]['customData'][key] == value)
+
     def test_create(self):
         user = management.users.create(
             userInfo={
@@ -45,6 +70,26 @@ class TestUsers(unittest.TestCase):
         )
         self.assertTrue(user)
         self.assertTrue(user['id'])
+
+    def test_create_with_custom_data(self):
+        udf_key = get_random_string(10)
+        udf_value = get_random_string(10)
+        management.udf.set(
+            targetType='USER',
+            dataType='STRING',
+            key=udf_key,
+            label=get_random_string(10)
+        )
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            },
+            custom_data={
+                udf_key: udf_value
+            }
+        )
+        self.assertTrue(user['customData'][udf_key] == udf_value)
 
     def test_update(self):
         username = get_random_string(10)
@@ -75,6 +120,108 @@ class TestUsers(unittest.TestCase):
         self.assertTrue(user['id'] == newUser['id'])
         self.assertTrue(user['username'] == newUser['username'])
 
+    def test_detail_with_custom_data_string(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        udf_key = get_random_string(10)
+        udf_value = get_random_string(10)
+        management.udf.set(
+            targetType='USER',
+            key=udf_key,
+            dataType='STRING',
+            label=get_random_string(10)
+        )
+        management.users.set_udf_value(user.get('id'), {
+            udf_key: udf_value
+        })
+
+        user = management.users.detail(
+            user_id=user.get('id'),
+            with_custom_data=True
+        )
+        self.assertTrue(user['customData'][udf_key] == udf_value)
+
+    def test_detail_with_custom_data_number(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        udf_key = get_random_string(10)
+        udf_value = 10
+        management.udf.set(
+            targetType='USER',
+            key=udf_key,
+            dataType='NUMBER',
+            label=get_random_string(10)
+        )
+        management.users.set_udf_value(user.get('id'), {
+            udf_key: udf_value
+        })
+
+        user = management.users.detail(
+            user_id=user.get('id'),
+            with_custom_data=True
+        )
+        self.assertTrue(user['customData'][udf_key] == udf_value)
+
+    def test_detail_with_custom_data_datetime(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        udf_key = get_random_string(10)
+        udf_value = datetime.now()
+        management.udf.set(
+            targetType='USER',
+            key=udf_key,
+            dataType='DATETIME',
+            label=get_random_string(10)
+        )
+        management.users.set_udf_value(user.get('id'), {
+            udf_key: udf_value
+        })
+        user = management.users.detail(
+            user_id=user.get('id'),
+            with_custom_data=True
+        )
+        self.assertTrue(isinstance(user['customData'][udf_key], datetime))
+        self.assertTrue(user['customData'][udf_key] == udf_value)
+
+    def test_detail_with_custom_data_object(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        udf_key = get_random_string(10)
+        udf_value = {
+            'key': 'value'
+        }
+        management.udf.set(
+            targetType='USER',
+            key=udf_key,
+            dataType='OBJECT',
+            label=get_random_string(10)
+        )
+        management.users.set_udf_value(user.get('id'), {
+            udf_key: udf_value
+        })
+        user = management.users.detail(
+            user_id=user.get('id'),
+            with_custom_data=True
+        )
+        self.assertTrue(isinstance(user['customData'][udf_key], dict))
+        self.assertTrue(user['customData'][udf_key] == udf_value)
+
     def test_batch(self):
         user = management.users.create(
             userInfo={
@@ -100,6 +247,113 @@ class TestUsers(unittest.TestCase):
         user = management.users.find(username=username)
         self.assertTrue(user)
 
+    def test_find_with_custom_data_string(self):
+        username = get_random_string(10)
+        user = management.users.create(
+            userInfo={
+                'username': username,
+                'password': get_random_string(10)
+            }
+        )
+        udf_key = get_random_string(10)
+        udf_value = get_random_string(10)
+        management.udf.set(
+            targetType='USER',
+            key=udf_key,
+            dataType='STRING',
+            label=get_random_string(10)
+        )
+        management.users.set_udf_value(user.get('id'), {
+            udf_key: udf_value
+        })
+
+        user = management.users.find(
+            username=username,
+            with_custom_data=True
+        )
+        self.assertTrue(user['customData'][udf_key] == udf_value)
+
+    def test_find_with_custom_data_number(self):
+        username = get_random_string(10)
+        user = management.users.create(
+            userInfo={
+                'username': username,
+                'password': get_random_string(10)
+            }
+        )
+        udf_key = get_random_string(10)
+        udf_value = 10
+        management.udf.set(
+            targetType='USER',
+            key=udf_key,
+            dataType='NUMBER',
+            label=get_random_string(10)
+        )
+        management.users.set_udf_value(user.get('id'), {
+            udf_key: udf_value
+        })
+
+        user = management.users.find(
+            username=username,
+            with_custom_data=True
+        )
+        self.assertTrue(user['customData'][udf_key] == udf_value)
+
+    def test_find_with_custom_data_datetime(self):
+        username = get_random_string(10)
+        user = management.users.create(
+            userInfo={
+                'username': username,
+                'password': get_random_string(10)
+            }
+        )
+        udf_key = get_random_string(10)
+        udf_value = datetime.now()
+        management.udf.set(
+            targetType='USER',
+            key=udf_key,
+            dataType='DATETIME',
+            label=get_random_string(10)
+        )
+        management.users.set_udf_value(user.get('id'), {
+            udf_key: udf_value
+        })
+        user = management.users.find(
+            username=username,
+            with_custom_data=True
+        )
+        self.assertTrue(isinstance(user['customData'][udf_key], datetime))
+        self.assertTrue(user['customData'][udf_key] == udf_value)
+
+    def test_find_with_custom_data_object(self):
+        username = get_random_string(10)
+        user = management.users.create(
+            userInfo={
+                'username': username,
+                'password': get_random_string(10)
+            }
+        )
+        udf_key = get_random_string(10)
+        udf_value = {
+            'key': 'value'
+        }
+        management.udf.set(
+            targetType='USER',
+            key=udf_key,
+            dataType='OBJECT',
+            label=get_random_string(10)
+        )
+        management.users.set_udf_value(user.get('id'), {
+            udf_key: udf_value
+        })
+        user = management.users.find(
+            username=username,
+            with_custom_data=True
+        )
+        self.assertTrue(isinstance(user['customData'][udf_key], dict))
+        self.assertTrue(user['customData'][udf_key] == udf_value)
+
+
     def test_search(self):
         nickname = get_random_string(10)
         user = management.users.create(
@@ -113,6 +367,32 @@ class TestUsers(unittest.TestCase):
         _list = data['list']
         userIds = list(map(lambda x: x['id'], _list))
         self.assertTrue(user['id'] in userIds)
+
+    def test_search_with_custom_data(self):
+        nickname = get_random_string(10)
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10),
+                'nickname': nickname
+            }
+        )
+        udf_key = get_random_string(10)
+        udf_value = {
+            'key': 'value'
+        }
+        management.udf.set(
+            targetType='USER',
+            key=udf_key,
+            dataType='OBJECT',
+            label=get_random_string(10)
+        )
+        management.users.set_udf_value(user.get('id'), {
+            udf_key: udf_value
+        })
+        data = management.users.search(query=nickname, with_custom_data=True)
+        user = data['list'][0]
+        self.assertTrue(user['customData'][udf_key] == udf_value)
 
     def test_delete(self):
         user = management.users.create(
@@ -585,11 +865,21 @@ class TestUsers(unittest.TestCase):
         self.assertTrue(values2['school'] == '华中科技大学')
         self.assertTrue(values2['age'] == 22)
 
-    def test_batch_get(self):
-        user1 = create_user()
-        user2 = create_user()
+    def test_batch_get_with_custom_data(self):
+        key = get_random_string(10)
+        value1 = get_random_string(10)
+        value2 = get_random_string(10)
+        user1 = create_user({
+            key: value1
+        })
+        user2 = create_user({
+            key: value2
+        })
         user1_id = user1.get('id')
         user2_id = user2.get('id')
 
-        users = management.users.batch_get([user1_id, user2_id])
+        users = management.users.batch_get([user1_id, user2_id], with_custom_data=True)
         self.assertTrue(len(users) == 2)
+
+        self.assertTrue(users[0]['customData'][key] == value1)
+        self.assertTrue(users[1]['customData'][key] == value2)

@@ -41,6 +41,7 @@ class TestRoles(unittest.TestCase):
 
     def test_create(self):
         group = create_group()
+        print(json.dumps(group, indent=4))
         self.assertTrue(group)
         self.assertTrue(group['code'])
 

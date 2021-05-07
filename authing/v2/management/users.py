@@ -3,7 +3,8 @@ from functools import singledispatch
 
 from .types import ManagementClientOptions
 from ..common.rest import RestClient
-from ..common.utils import encrypt, url_join_args, convert_udv_list_to_dict, format_authorized_resources
+from ..common.utils import encrypt, url_join_args, convert_udv_list_to_dict, format_authorized_resources, \
+    convert_nested_pagination_custom_data_list_to_dict
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
@@ -24,31 +25,36 @@ class UsersManagementClient(object):
         self.tokenProvider = tokenProvider
         self.restClient = restClient
 
-    def list(self, page=1, limit=10):
+    def list(self, page=1, limit=10, with_custom_data=False):
         """获取用户池用户列表
 
         Args:
             page (int): 页码数，从 1 开始，默认为 1 。
             limit (int): 每页个数，默认为 10 。
+            with_custom_data (bool, optional): 是否获取自定义数据，默认为 false；如果设置为 true，将会在 customData 字段返回用户的所有自定义数据。
 
         Returns:
             [totalCount, _list]: 返回一个 tuple，第一个值为用户总数，第二个为元素为用户信息的列表。
         """
+        query = QUERY["users"] if not with_custom_data else QUERY['usersWithCustomData']
         data = self.graphqlClient.request(
-            query=QUERY["users"],
+            query=query,
             params={"page": page, "limit": limit},
             token=self.tokenProvider.getAccessToken(),
         )
-        return data["users"]
+        data = data['users']
+        if with_custom_data:
+            convert_nested_pagination_custom_data_list_to_dict(data)
+        return data
 
-    def create(self, userInfo, keep_password=False):
+    def create(self, userInfo, keep_password=False, custom_data=None):
         """创建用户
 
         Args:
             userInfo (dict): 用户信息
             keep_password (bool): 该参数一般在迁移旧有用户数据到 Authing 的时候会设置。开启这个开关，password 字段会直接写入 Authing 数据库，
                                     Authing 不会再次加密此字段。如果你的密码不是明文存储，你应该保持开启，并编写密码函数计算。
-
+            custom_data (dict): 用户自定义数据
         Returns:
             [User]: 用户详情
         """
@@ -60,15 +66,31 @@ class UsersManagementClient(object):
             userInfo["password"] = encrypt(
                 userInfo["password"], self.options.enc_public_key
             )
+
+        params = []
+        if custom_data:
+            if not isinstance(custom_data, dict):
+                raise Exception('custom_data must be a dict')
+            for k, v in custom_data.items():
+                params.append({
+                    'key': k,
+                    'value': v
+                })
+
+        query = QUERY['createUser'] if not custom_data else QUERY['createUserWithCustomData']
         data = self.graphqlClient.request(
-            query=QUERY["createUser"],
+            query=query,
             params={
                 "userInfo": userInfo,
-                "keepPassword": keep_password
+                "keepPassword": keep_password,
+                "params": json.dumps(params) if len(params) > 0 else None,
             },
             token=self.tokenProvider.getAccessToken(),
         )
-        return data["createUser"]
+        data = data["createUser"]
+        if custom_data:
+            data['customData'] = convert_udv_list_to_dict(data['customData'])
+        return data
 
     def update(self, userId, updates):
         """修改用户信息
@@ -89,20 +111,26 @@ class UsersManagementClient(object):
         )
         return data["updateUser"]
 
-    def detail(self, userId):
+    def detail(self, user_id, with_custom_data=False):
         """获取用户资料详情
 
         Args:
-            userId (str): 用户 ID
+            user_id (str): 用户 ID
+            with_custom_data (bool, optional): 是否获取自定义数据，默认为 false；如果设置为 true，将会在 customData 字段返回用户的所有自定义数据。
         """
-        data = self.graphqlClient.request(
-            query=QUERY["user"],
-            params={"id": userId},
-            token=self.tokenProvider.getAccessToken(),
-        )
-        return data["user"]
 
-    def find(self, email=None, username=None, phone=None, external_id=None):
+        query = QUERY["user"] if not with_custom_data else QUERY['userWithCustomData']
+        data = self.graphqlClient.request(
+            query=query,
+            params={"id": user_id},
+            token=self.tokenProvider.getAccessToken()
+        )
+        data = data['user']
+        if with_custom_data:
+            data['customData'] = convert_udv_list_to_dict(data['customData'])
+        return data
+
+    def find(self, email=None, username=None, phone=None, external_id=None, with_custom_data=False):
         """查找用户
 
         Args:
@@ -110,9 +138,11 @@ class UsersManagementClient(object):
             username (str): 用户名
             phone (str): 手机号
             external_id (str): 外部员工 ID
+            with_custom_data (bool, optional): 是否获取自定义数据，默认为 false；如果设置为 true，将会在 customData 字段返回用户的所有自定义数据。
         """
+        query = QUERY["findUser"] if not with_custom_data else QUERY["findUserWithCustomData"]
         data = self.graphqlClient.request(
-            query=QUERY["findUser"],
+            query=query,
             params={
                 "email": email,
                 "username": username,
@@ -121,9 +151,21 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken(),
         )
-        return data["findUser"]
+        data = data['findUser']
+        if with_custom_data:
+            data['customData'] = convert_udv_list_to_dict(data['customData'])
+        return data
 
-    def search(self, query, page=1, limit=10, department_opts=None, group_opts=None, role_opts=None):
+    def search(
+        self,
+        query,
+        page=1,
+        limit=10,
+        department_opts=None,
+        group_opts=None,
+        role_opts=None,
+        with_custom_data=False
+    ):
         """搜索用户
 
         Args:
@@ -133,6 +175,7 @@ class UsersManagementClient(object):
             department_opts (list): 限制条件，用户所在的部门
             group_opts (list): 限制条件，用户所在的分组
             role_opts (list): 限制条件，用户所在的角色
+            with_custom_data (bool, optional): 是否获取自定义数据，默认为 false；如果设置为 true，将会在 customData 字段返回用户的所有自定义数据。
         """
 
         if department_opts:
@@ -147,8 +190,9 @@ class UsersManagementClient(object):
             if not isinstance(role_opts, list):
                 raise AuthingWrongArgumentException('group_opts must be a list')
 
+        graphql_query = QUERY["searchUser"] if not with_custom_data else QUERY['searchUserWithCustomData']
         data = self.graphqlClient.request(
-            query=QUERY["searchUser"],
+            query=graphql_query,
             params={
                 "query": query,
                 "page": page,
@@ -159,33 +203,34 @@ class UsersManagementClient(object):
             },
             token=self.tokenProvider.getAccessToken(),
         )
-        return data["searchUser"]
+        data = data["searchUser"]
+        if with_custom_data:
+            convert_nested_pagination_custom_data_list_to_dict(data)
+        return data
 
-    def batch_get(self, identifiers, query_field='id'):
+    def batch_get(self, identifiers, query_field='id', with_custom_data=False):
         """
         通过 id、username、email、phone、email、externalId 批量获取用户详情。一次最多支持查询 80 个用户。
         """
-        url = "%s/api/v2/users/batch" % self.options.host
-        return self.restClient.request(
-            method='POST',
-            url=url,
-            json={
+        query = QUERY['userBatch'] if not with_custom_data else QUERY['userBatchWithCustomData']
+        data = self.graphqlClient.request(
+            query=query,
+            params={
                 'ids': identifiers,
                 'type': query_field
             },
-            token=self.tokenProvider.getAccessToken(),
-            auto_parse_result=True
+            token=self.tokenProvider.getAccessToken()
         )
+        data = data['userBatch']
+        if with_custom_data:
+            for user in data:
+                user['customData'] = convert_udv_list_to_dict(user['customData'])
+        return data
 
     def batch(self, userIds):
         """已废弃，请使用 batch_get 接口
         """
-        data = self.graphqlClient.request(
-            query=QUERY["userBatch"],
-            params={"ids": userIds},
-            token=self.tokenProvider.getAccessToken(),
-        )
-        return data["userBatch"]
+        return self.batch_get(userIds)
 
     def delete(self, userId):
         """删除用户

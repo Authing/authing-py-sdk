@@ -3,7 +3,7 @@ from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
-from ..common.utils import format_authorized_resources
+from ..common.utils import format_authorized_resources, convert_nested_pagination_custom_data_list_to_dict
 from ..exceptions import AuthingWrongArgumentException, AuthingException
 
 
@@ -107,11 +107,18 @@ class GroupsManagementClient(dict):
         )
         return data["deleteGroups"]
 
-    def list_users(self, code, page=1, limit=10):
-        # type:(str,int,int) -> dict
-        """获取用户列表"""
+    def list_users(self, code, page=1, limit=10, with_custom_data=None):
+        """获取用户列表
+
+        Args:
+            code : 角色 code 列表
+            page (int): 页码数，从 1 开始，默认为 1 。
+            limit (int): 每页个数，默认为 10 。
+            with_custom_data (bool, optional): 是否获取自定义数据，默认为 false；如果设置为 true，将会在 customData 字段返回用户的所有自定义数据。
+        """
+        query = QUERY['groupWithUsers'] if not with_custom_data else QUERY['groupWithUsersWithCustomData']
         data = self.graphqlClient.request(
-            query=QUERY["groupWithUsers"],
+            query=query,
             params={
                 "code": code,
                 "page": page,
@@ -119,7 +126,10 @@ class GroupsManagementClient(dict):
             },
             token=self.tokenProvider.getAccessToken(),
         )
-        return data["group"]["users"]
+        data = data["group"]["users"]
+        if with_custom_data:
+            convert_nested_pagination_custom_data_list_to_dict(data)
+        return data
 
     def add_users(self, code, user_ids):
         # type:(str,list) -> dict

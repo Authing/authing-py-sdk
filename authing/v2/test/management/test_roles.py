@@ -21,6 +21,26 @@ def create_role():
     return role
 
 
+def create_user(custom_data=None):
+    if custom_data:
+        for key, value in custom_data.items():
+            management.udf.set(
+                targetType='USER',
+                dataType='STRING',
+                label=get_random_string(10),
+                key=key
+            )
+    user = management.users.create(
+        userInfo={
+            'username': get_random_string(10),
+            'password': get_random_string(10)
+        },
+        custom_data=custom_data
+    )
+
+    return user
+
+
 namespace = 'default'
 
 
@@ -145,6 +165,27 @@ class TestRoles(unittest.TestCase):
         users = data['list']
         self.assertTrue(totalCount == 0)
         self.assertTrue(len(users) == 0)
+
+    def test_list_users_with_custom_data(self):
+        key = get_random_string(10)
+        value = get_random_string(10)
+        user = create_user({
+            key: value
+        })
+        code = get_random_string(5)
+        role = management.roles.create(
+            code=code
+        )
+        management.roles.add_users(
+            code=code,
+            userIds=[user.get('id')]
+        )
+
+        data = management.roles.list_users(role['code'], with_custom_data=True)
+        totalCount = data['totalCount']
+        users = data['list']
+        self.assertTrue(totalCount == 1)
+        self.assertTrue(users[0]['customData'][key] == value)
 
     def test_list_users_with_namespace(self):
         role = management.roles.create(

@@ -5,7 +5,7 @@ from .types import ManagementClientOptions
 from ..common.graphql import GraphqlClient
 from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
-from ..common.utils import format_authorized_resources, convert_udv_list_to_dict
+from ..common.utils import format_authorized_resources, convert_udv_list_to_dict, convert_nested_pagination_custom_data_list_to_dict
 from ..exceptions import AuthingWrongArgumentException, AuthingException
 import datetime
 
@@ -121,18 +121,31 @@ class RolesManagementClient(object):
         )
         return data["deleteRoles"]
 
-    def list_users(self, code, namespace=None):
-        # type:(str,str) -> object
-        """获取用户列表"""
+    def list_users(self, code, page=0, limit=10, namespace=None, with_custom_data=False):
+        """获取用户列表
+
+        Args:
+            code : 角色 code 列表
+            page (int): 页码数，从 1 开始，默认为 1 。
+            limit (int): 每页个数，默认为 10 。
+            namespace (str): 权限分组 code。
+            with_custom_data (bool, optional): 是否获取自定义数据，默认为 false；如果设置为 true，将会在 customData 字段返回用户的所有自定义数据。
+        """
+        query = QUERY['roleWithUsers'] if not with_custom_data else QUERY['roleWithUsersWithCustomData']
         data = self.graphqlClient.request(
-            query=QUERY["roleWithUsers"],
+            query=query,
             params={
                 "code": code,
-                "namespace": namespace
+                "namespace": namespace,
+                "page": page,
+                "limit": limit
             },
             token=self.tokenProvider.getAccessToken(),
         )
-        return data["role"]["users"]
+        data = data["role"]["users"]
+        if with_custom_data:
+            convert_nested_pagination_custom_data_list_to_dict(data)
+        return data
 
     def add_users(self, code, userIds, namespace=None):
         # type:(str,object,str) -> object
