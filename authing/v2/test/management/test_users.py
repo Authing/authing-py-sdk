@@ -539,14 +539,10 @@ class TestUsers(unittest.TestCase):
         self.assertFalse(random_user)
 
     def test_list_authorized_resources(self):
-        user = create_user()
-
         resources_list = management.users.list_authorized_resources(
-            user_id=user["id"],
+            user_id='608283733c315bcfb020e36d',
             namespace="default",
-            resource_type="API"
         )
-
         print(resources_list)
 
     def test_set_udf_value(self):

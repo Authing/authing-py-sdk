@@ -641,7 +641,7 @@ class UsersManagementClient(object):
             'UI',
             'BUTTON'
         ]
-        if not valid_resource_types.index(resource_type):
+        if resource_type and not valid_resource_types.index(resource_type):
             raise AuthingWrongArgumentException('invalid argument: resource_type')
 
         data = self.graphqlClient.request(
@@ -654,7 +654,7 @@ class UsersManagementClient(object):
             token=self.tokenProvider.getAccessToken()
         )
 
-        authorized_resources = data.get('authorizedResources')
+        authorized_resources = data.get('user').get('authorizedResources')
         _list, total_count = authorized_resources.get('list'), authorized_resources.get('totalCount')
         _list = format_authorized_resources(_list)
         return {
