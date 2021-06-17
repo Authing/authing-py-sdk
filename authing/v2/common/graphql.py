@@ -38,7 +38,7 @@ class GraphqlClient(object):
         }
         if token:
             headers["authorization"] = "Bearer %s" % token
-        transport = RequestsHTTPTransport(self.endpoint, headers=headers)
+        transport = RequestsHTTPTransport(self.endpoint, headers=headers, verify=not self.options.use_unverified_ssl)
         client = Client(transport=transport, fetch_schema_from_transport=True)
 
         result = client.execute(gql(query), variable_values=params)

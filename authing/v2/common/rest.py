@@ -29,7 +29,8 @@ class RestClient(object):
                 if json[key] is None:
                     del json[key]
 
-        r = requests.request(method=method, url=url, headers=headers, json=json, **kwargs)
+        verify = not self.options.use_unverified_ssl
+        r = requests.request(method=method, url=url, headers=headers, json=json, verify=verify, **kwargs)
         data = r.json()
         if auto_parse_result:
             code, data, message = data.get("code"), data.get("data"), data.get("message")

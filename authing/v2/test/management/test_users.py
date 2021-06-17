@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from ...management.types import ManagementClientOptions
 from ...management.authing import ManagementClient
@@ -12,9 +11,9 @@ load_dotenv()
 management = ManagementClient(ManagementClientOptions(
     user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
-    host=os.getenv('AUTHING_SERVER')
+    host=os.getenv('AUTHING_SERVER'),
+    use_unverified_ssl=True
 ))
-
 
 def create_user(custom_data=None):
     if custom_data:

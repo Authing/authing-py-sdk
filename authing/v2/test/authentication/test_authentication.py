@@ -29,6 +29,7 @@ def init_authentication_client():
         options=AuthenticationClientOptions(
             app_id=os.getenv("AUTHING_APP_ID"),
             app_host=os.getenv("AUTHING_APP_HOST"),
+            use_unverified_ssl=True
         )
     )
     return authentication_client
@@ -134,9 +135,10 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(user["id"])
         self.assertTrue(user["username"] == username)
 
-    # def test_send_sms_code(self):
-    #     phone = get_random_phone_number()
-    #     authentication.send_sms_code(phone=phone)
+    def test_send_sms_code(self):
+        authentication = init_authentication_client()
+        phone = '17670416754'
+        authentication.send_sms_code(phone=phone)
 
     # def test_register_by_phone_code(self):
     #     phone = get_random_phone_number()

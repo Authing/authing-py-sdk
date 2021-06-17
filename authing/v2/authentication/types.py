@@ -1,5 +1,5 @@
 from ..exceptions import AuthingException
-
+import ssl
 
 def DEFAULT_ONERROR(code, message):
     raise AuthingException(code=code, errmsg=message)
@@ -33,7 +33,8 @@ class AuthenticationClientOptions:
         token_endpoint_auth_method=None,
         introspection_endpoint_auth_method=None,
         revocation_endpoint_auth_method=None,
-        redirect_uri=None
+        redirect_uri=None,
+        use_unverified_ssl=False
     ):
 
         """
@@ -74,3 +75,4 @@ class AuthenticationClientOptions:
         self.introspection_endpoint_auth_method = introspection_endpoint_auth_method
         self.revocation_endpoint_auth_method = revocation_endpoint_auth_method
         self.redirect_uri = redirect_uri
+        self.use_unverified_ssl = use_unverified_ssl
