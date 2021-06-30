@@ -1326,7 +1326,7 @@ class AuthenticationClient(object):
 
     def __build_easy_logout_url(self, redirect_uri=None):
         if redirect_uri:
-            return "%s/login/profile/logout?post_logout_redirect_uri=%s" % (
+            return "%s/login/profile/logout?redirect_uri=%s" % (
                 self.options.app_host,
                 redirect_uri
             )
