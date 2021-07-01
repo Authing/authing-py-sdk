@@ -1211,6 +1211,7 @@ class AuthenticationClient(object):
             res['state'] = state
 
         if scope:
+            res['scope'] = scope
             if 'offline_access' in scope:
                 res['prompt'] = 'consent'
 
