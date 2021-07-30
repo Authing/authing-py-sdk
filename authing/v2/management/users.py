@@ -727,14 +727,16 @@ class UsersManagementClient(object):
             raise AuthingWrongArgumentException('empty user id list')
 
         url = "%s/api/v2/users/kick" % self.options.host
-        return self.restClient.request(
+        data = self.restClient.request(
             method="POST",
             url=url,
             token=self.tokenProvider.getAccessToken(),
             json={
                 "userIds": user_ids
             }
-        )["data"]
+        )
+        code, message = data.get('code'), data.get('message')
+        return code == 200
 
     def list_user_actions(self, page=1, limit=10, client_ip=None, operation_name=None, operato_arn=None):
 

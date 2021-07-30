@@ -882,3 +882,7 @@ class TestUsers(unittest.TestCase):
 
         self.assertTrue(users[0]['customData'][key] == value1)
         self.assertTrue(users[1]['customData'][key] == value2)
+
+    def test_kick_users(self):
+        success = management.users.kick(['userId'])
+        self.assertTrue(success)
