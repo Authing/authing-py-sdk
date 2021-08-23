@@ -157,7 +157,7 @@ class GroupsManagementClient(dict):
         )
         return data["removeUserFromGroup"]
 
-    def list_authorized_resources(self, code, namespace, resource_type=None):
+    def list_authorized_resources(self, code, namespace=None, resource_type=None):
         """
         获取一个分组被授权的所有资源。
 

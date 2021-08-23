@@ -11,6 +11,7 @@ from .roles import RolesManagementClient
 from .acl import AclManagementClient
 from .udf import UdfManagementClient
 from .groups import GroupsManagementClient
+from .orgs import OrgManagementClient
 from ..common.rest import RestClient
 
 
@@ -69,6 +70,12 @@ class ManagementClient(object):
         )
 
         self.groups = GroupsManagementClient(
+            options=self.options,
+            graphqlClient=self.graphqlClient,
+            tokenProvider=self.tokenProvider
+        )
+
+        self.org = OrgManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
             tokenProvider=self.tokenProvider

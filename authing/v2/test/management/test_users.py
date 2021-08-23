@@ -818,11 +818,64 @@ class TestUsers(unittest.TestCase):
         self.assertFalse(random_user)
 
     def test_list_authorized_resources(self):
-        resources_list = management.users.list_authorized_resources(
-            user_id='608283733c315bcfb020e36d',
+        user = create_user()
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:*',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        data = management.users.list_authorized_resources(
+            user_id=user.get('id'),
             namespace="default",
         )
-        print(resources_list)
+        _list, total_count = data.get('list'), data.get('totalCount')
+        self.assertTrue(len(_list) == 1)
+        self.assertTrue(total_count == 1)
+
+    def test_list_authorized_resources_without_namespace(self):
+        user = create_user()
+        namespace_code = get_random_string(10)
+        management.acl.create_namespace(namespace_code, namespace_code)
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:*',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        management.acl.authorize_resource(
+            namespace=namespace_code,
+            resource='orders:*',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'orders:edit'
+                    ]
+                }
+            ]
+        )
+        data = management.users.list_authorized_resources(
+            user_id=user.get('id'),
+        )
+        _list, total_count = data.get('list'), data.get('totalCount')
+        self.assertTrue(len(_list) == 2)
+        self.assertTrue(total_count == 2)
 
     def test_set_udf_value(self):
         user = create_user()

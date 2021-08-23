@@ -669,7 +669,7 @@ class UsersManagementClient(object):
             token=self.tokenProvider.getAccessToken()
         )["user"]
 
-    def list_authorized_resources(self, user_id, namespace, resource_type=None):
+    def list_authorized_resources(self, user_id, namespace=None, resource_type=None):
         """
         获取用户被授权的所有资源
 

@@ -156,3 +156,40 @@ class TestRoles(unittest.TestCase):
         _list, total_count = data.get('list'), data.get('totalCount')
         self.assertTrue(len(_list) == 1)
         self.assertTrue(total_count == 1)
+
+    def test_list_authorized_resources_without_namespace(self):
+        group = create_group()
+        namespace_code = get_random_string(10)
+        management.acl.create_namespace(namespace_code, namespace_code)
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:*',
+            opts=[
+                {
+                    'targetType': 'GROUP',
+                    'targetIdentifier': group.get('code'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        management.acl.authorize_resource(
+            namespace=namespace_code,
+            resource='orders:*',
+            opts=[
+                {
+                    'targetType': 'GROUP',
+                    'targetIdentifier': group.get('code'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        data = management.groups.list_authorized_resources(
+            code=group.get('code')
+        )
+        _list, total_count = data.get('list'), data.get('totalCount')
+        self.assertTrue(len(_list) == 2)
+        self.assertTrue(total_count == 2)
