@@ -456,8 +456,8 @@ mutation createSocialConnectionInstance($input: CreateSocialConnectionInstanceIn
 
 """,
 'createUser': """
-mutation createUser($userInfo: CreateUserInput!, $keepPassword: Boolean) {
-  createUser(userInfo: $userInfo, keepPassword: $keepPassword) {
+mutation createUser($userInfo: CreateUserInput!, $params: String, $identity: CreateUserIdentityInput, $keepPassword: Boolean, $resetPasswordOnFirstLogin: Boolean) {
+  createUser(userInfo: $userInfo, params: $params, identity: $identity, keepPassword: $keepPassword, resetPasswordOnFirstLogin: $resetPasswordOnFirstLogin) {
     id
     arn
     userPoolId
@@ -1104,6 +1104,15 @@ mutation loginByUsername($input: LoginByUsernameInput!) {
 }
 
 """,
+'moveMembers': """
+mutation moveMembers($userIds: [String!]!, $sourceNodeId: String!, $targetNodeId: String!) {
+  moveMembers(userIds: $userIds, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId) {
+    code
+    message
+  }
+}
+
+""",
 'moveNode': """
 mutation moveNode($orgId: String!, $nodeId: String!, $targetParentId: String!) {
   moveNode(orgId: $orgId, nodeId: $nodeId, targetParentId: $targetParentId) {
@@ -1471,6 +1480,24 @@ mutation resetPassword($phone: String, $email: String, $code: String!, $newPassw
 }
 
 """,
+'resetPasswordByFirstLoginToken': """
+mutation resetPasswordByFirstLoginToken($token: String!, $password: String!) {
+  resetPasswordByFirstLoginToken(token: $token, password: $password) {
+    message
+    code
+  }
+}
+
+""",
+'resetPasswordByForceResetToken': """
+mutation resetPasswordByForceResetToken($token: String!, $oldPassword: String!, $newPassword: String!) {
+  resetPasswordByForceResetToken(token: $token, oldPassword: $oldPassword, newPassword: $newPassword) {
+    message
+    code
+  }
+}
+
+""",
 'revokeRole': """
 mutation revokeRole($namespace: String, $roleCode: String, $roleCodes: [String], $userIds: [String!], $groupCodes: [String!], $nodeCodes: [String!]) {
   revokeRole(namespace: $namespace, roleCode: $roleCode, roleCodes: $roleCodes, userIds: $userIds, groupCodes: $groupCodes, nodeCodes: $nodeCodes) {
@@ -1483,6 +1510,15 @@ mutation revokeRole($namespace: String, $roleCode: String, $roleCodes: [String],
 'sendEmail': """
 mutation sendEmail($email: String!, $scene: EmailScene!) {
   sendEmail(email: $email, scene: $scene) {
+    message
+    code
+  }
+}
+
+""",
+'sendFirstLoginVerifyEmail': """
+mutation sendFirstLoginVerifyEmail($userId: String!, $appId: String!) {
+  sendFirstLoginVerifyEmail(userId: $userId, appId: $appId) {
     message
     code
   }
@@ -2007,6 +2043,12 @@ mutation updateUserpool($input: UpdateUserpoolInput!) {
       limit
       enabled
     }
+    loginFailStrategy
+    loginPasswordFailCheck {
+      timeInterval
+      limit
+      enabled
+    }
     changePhoneStrategy {
       verifyOldPhone
     }
@@ -2151,8 +2193,8 @@ query checkPasswordStrength($password: String!) {
 
 """,
 'childrenNodes': """
-query childrenNodes($orgId: String!, $nodeId: String!) {
-  childrenNodes(orgId: $orgId, nodeId: $nodeId) {
+query childrenNodes($nodeId: String!) {
+  childrenNodes(nodeId: $nodeId) {
     id
     orgId
     name
@@ -2189,8 +2231,8 @@ query emailTemplates {
 
 """,
 'findUser': """
-query findUser($email: String, $phone: String, $username: String, $externalId: String) {
-  findUser(email: $email, phone: $phone, username: $username, externalId: $externalId) {
+query findUser($email: String, $phone: String, $username: String, $externalId: String, $identity: FindUserByIdentityInput) {
+  findUser(email: $email, phone: $phone, username: $username, externalId: $externalId, identity: $identity) {
     id
     arn
     userPoolId
@@ -2390,6 +2432,7 @@ query getUserRoles($id: String!, $namespace: String) {
     roles(namespace: $namespace) {
       totalCount
       list {
+        id
         code
         namespace
         arn
@@ -3527,6 +3570,7 @@ query user($id: String) {
       connectionId
       isSocial
       provider
+      type
       userPoolId
     }
     unionid
@@ -3577,6 +3621,16 @@ query user($id: String) {
 'userBatch': """
 query userBatch($ids: [String!]!, $type: String) {
   userBatch(ids: $ids, type: $type) {
+    identities {
+      openid
+      userIdInIdp
+      userId
+      connectionId
+      isSocial
+      provider
+      type
+      userPoolId
+    }
     id
     arn
     userPoolId
@@ -3634,6 +3688,16 @@ query userBatch($ids: [String!]!, $type: String) {
 'userBatchWithCustomData': """
 query userBatchWithCustomData($ids: [String!]!, $type: String) {
   userBatch(ids: $ids, type: $type) {
+    identities {
+      openid
+      userIdInIdp
+      userId
+      connectionId
+      isSocial
+      provider
+      type
+      userPoolId
+    }
     id
     arn
     userPoolId
@@ -3804,6 +3868,12 @@ query userpool {
       limit
       enabled
     }
+    loginPasswordFailCheck {
+      timeInterval
+      limit
+      enabled
+    }
+    loginFailStrategy
     changePhoneStrategy {
       verifyOldPhone
     }
@@ -3883,10 +3953,20 @@ query userpools($page: Int, $limit: Int, $sortBy: SortByEnum) {
 
 """,
 'users': """
-query users($page: Int, $limit: Int, $sortBy: SortByEnum) {
-  users(page: $page, limit: $limit, sortBy: $sortBy) {
+query users($page: Int, $limit: Int, $sortBy: SortByEnum, $excludeUsersInOrg: Boolean) {
+  users(page: $page, limit: $limit, sortBy: $sortBy, excludeUsersInOrg: $excludeUsersInOrg) {
     totalCount
     list {
+      identities {
+        openid
+        userIdInIdp
+        userId
+        connectionId
+        isSocial
+        provider
+        type
+        userPoolId
+      }
       id
       arn
       userPoolId
@@ -3943,11 +4023,21 @@ query users($page: Int, $limit: Int, $sortBy: SortByEnum) {
 
 """,
 'usersWithCustomData': """
-query usersWithCustomData($page: Int, $limit: Int, $sortBy: SortByEnum) {
-  users(page: $page, limit: $limit, sortBy: $sortBy) {
+query usersWithCustomData($page: Int, $limit: Int, $sortBy: SortByEnum, $excludeUsersInOrg: Boolean) {
+  users(page: $page, limit: $limit, sortBy: $sortBy, excludeUsersInOrg: $excludeUsersInOrg) {
     totalCount
     list {
       id
+      identities {
+        openid
+        userIdInIdp
+        userId
+        connectionId
+        isSocial
+        provider
+        type
+        userPoolId
+      }
       arn
       userPoolId
       status

@@ -45,6 +45,13 @@ class TestUsers(unittest.TestCase):
         self.assertTrue(totalCount)
         self.assertTrue(users)
 
+    def test_list_has_identities(self):
+        data = management.users.list()
+        total_count, _list = data.get('totalCount'), data.get('list')
+        for user in _list:
+            self.assertTrue(user.get('identities') is not None)
+            self.assertTrue(isinstance(user.get('identities'), list))
+
     def test_list_with_custom_data(self):
         key = get_random_string(10)
         value = get_random_string(10)

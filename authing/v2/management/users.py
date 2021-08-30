@@ -55,6 +55,7 @@ class UsersManagementClient(object):
             keep_password (bool): 该参数一般在迁移旧有用户数据到 Authing 的时候会设置。开启这个开关，password 字段会直接写入 Authing 数据库，
                                     Authing 不会再次加密此字段。如果你的密码不是明文存储，你应该保持开启，并编写密码函数计算。
             custom_data (dict): 用户自定义数据
+            identity (dict): 用户 identity
         Returns:
             [User]: 用户详情
         """
