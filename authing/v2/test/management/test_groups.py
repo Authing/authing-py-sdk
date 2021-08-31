@@ -120,6 +120,10 @@ class TestRoles(unittest.TestCase):
         self.assertTrue(len(_list) == 2)
         self.assertTrue(total_count == 2)
 
+        for user in _list:
+            self.assertTrue(user.get('status') is not None)
+            self.assertTrue(user.get('lastIP') is not None)
+
     def test_remove_users(self):
         user1 = create_user()
         user2 = create_user()

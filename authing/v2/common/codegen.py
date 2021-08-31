@@ -2473,6 +2473,7 @@ query groupWithUsers($code: String!, $page: Int, $limit: Int) {
       list {
         id
         arn
+        status
         userPoolId
         username
         email
@@ -2534,6 +2535,7 @@ query groupWithUsersWithCustomData($code: String!, $page: Int, $limit: Int) {
       list {
         id
         arn
+        status
         userPoolId
         username
         email
