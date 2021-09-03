@@ -15,6 +15,86 @@ class OrgManagementClient(object):
         self.graphqlClient = graphqlClient
         self.tokenProvider = tokenProvider
 
+    def create_org(self, name, code=None, description=None):
+        data = self.graphqlClient.request(
+            query=QUERY["createOrg"],
+            params={
+                "name": name,
+                "code": code,
+                "description": description
+            },
+            token=self.tokenProvider.getAccessToken(),
+        )
+        return data["createOrg"]
+
+    def add_roles(self, node_id, role_list, namespace=None):
+        """
+        给部门批量授权角色
+
+        Args:
+            node_id: 组织机构部门的 ID；
+            role_list: 角色 code 列表；
+            namespace (str): 角色所在的权限分组
+        """
+
+        if not isinstance(role_list, list):
+            raise AuthingWrongArgumentException('role_list must be a list')
+
+        data = self.graphqlClient.request(
+            query=QUERY["assignRole"],
+            params={
+                "nodeCodes": [node_id],
+                "roleCodes": role_list,
+                "namespace": namespace
+            },
+            token=self.tokenProvider.getAccessToken(),
+        )
+        return data["assignRole"]
+
+    def remove_roles(self, node_id, role_list, namespace=None):
+
+        if not isinstance(role_list, list):
+            raise AuthingWrongArgumentException('role_list must be a list')
+
+        data = self.graphqlClient.request(
+            query=QUERY["revokeRole"],
+            params={
+                "nodeCodes": [node_id],
+                "roleCodes": role_list,
+                "namespace": namespace
+            },
+            token=self.tokenProvider.getAccessToken(),
+        )
+        return data["revokeRole"]
+
+    def list_roles(self, node_id, namespace=None):
+        """
+        获取一个部门被授权的角色列表
+        Args:
+            node_id (str): 组织机构部门的 ID；
+            namespace (str): 权限分组的 code；
+
+        """
+
+        data = self.graphqlClient.request(
+            query=QUERY['getNodeRoles'],
+            params={
+                'id': node_id,
+                'namespace': namespace,
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        data = data.get('nodeById')
+        if not data:
+            raise AuthingException(500, 'department not exists')
+
+        roles = data.get('roles')
+        _list, total_count = roles.get('list'), roles.get('totalCount')
+        return {
+            'totalCount': total_count,
+            'list': _list
+        }
+
     def list_authorized_resources(self, node_id, namespace=None, resource_type=None):
         """
         获取一个部门被授权的所有资源。

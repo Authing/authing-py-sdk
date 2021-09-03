@@ -1,5 +1,3 @@
-import json
-
 from ...common.utils import get_random_string
 import unittest
 import os
@@ -17,8 +15,42 @@ management = ManagementClient(ManagementClientOptions(
 
 
 class TestRoles(unittest.TestCase):
+
+    def test_create_org(self):
+        name = '测试组织机构'
+        org = management.org.create_org(name)
+        self.assertTrue(org['rootNode'])
+        self.assertTrue(org['rootNode']['name'] == name)
+
+    def test_add_roles(self):
+        role_code = get_random_string(10)
+        management.roles.create(role_code)
+        org = management.org.create_org('测试组织机构')
+        node_id = org['rootNode']['id']
+        management.org.add_roles(node_id, [role_code])
+
+        assigned_roles = management.org.list_roles(node_id)
+        total_count, _list = assigned_roles.get('totalCount'), assigned_roles.get('list')
+        self.assertTrue(total_count == 1)
+        self.assertTrue(len(_list) == 1)
+        self.assertTrue(_list[0]['code'] == role_code)
+
+    def test_remove_roles(self):
+        role_code = get_random_string(10)
+        management.roles.create(role_code)
+        org = management.org.create_org('测试组织机构')
+        node_id = org['rootNode']['id']
+        management.org.add_roles(node_id, [role_code])
+        management.org.remove_roles(node_id, [role_code])
+
+        assigned_roles = management.org.list_roles(node_id)
+        total_count, _list = assigned_roles.get('totalCount'), assigned_roles.get('list')
+        self.assertTrue(total_count == 0)
+        self.assertTrue(len(_list) == 0)
+
     def test_list_authorized_resources(self):
-        node_id = '612333f55fca511687cafde5'
+        org = management.org.create_org('测试组织机构')
+        node_id = org['rootNode']['id']
         management.acl.authorize_resource(
             namespace='default',
             resource='books:*',
@@ -42,7 +74,8 @@ class TestRoles(unittest.TestCase):
         self.assertTrue(total_count == 1)
 
     def test_list_authorized_resources_without_namespace(self):
-        node_id = '612333f55fca511687cafde5'
+        org = management.org.create_org('测试组织机构')
+        node_id = org['rootNode']['id']
         namespace_code = get_random_string(10)
         management.acl.create_namespace(namespace_code, namespace_code)
         management.acl.authorize_resource(
