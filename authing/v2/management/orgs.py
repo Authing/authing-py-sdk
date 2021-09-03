@@ -27,6 +27,19 @@ class OrgManagementClient(object):
         )
         return data["createOrg"]
 
+    def create_node(self, name, org_id, parent_node_id, code=None):
+        data = self.graphqlClient.request(
+            query=QUERY["addNodeV2"],
+            params={
+                "orgId": org_id,
+                "name": name,
+                "parentNodeId": parent_node_id,
+                "code": code
+            },
+            token=self.tokenProvider.getAccessToken(),
+        )
+        return data["addNodeV2"]
+
     def add_roles(self, node_id, role_list, namespace=None):
         """
         给部门批量授权角色

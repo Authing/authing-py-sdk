@@ -48,6 +48,43 @@ class TestRoles(unittest.TestCase):
         self.assertTrue(total_count == 0)
         self.assertTrue(len(_list) == 0)
 
+    def test_inherited_from_parent_node(self):
+        role_code = get_random_string(10)
+        management.roles.create(role_code)
+        org = management.org.create_org('测试组织机构')
+        node_id1 = org['rootNode']['id']
+        node_2 = management.org.create_node(
+            name=get_random_string(10),
+            org_id=org['id'],
+            parent_node_id=node_id1
+        )
+        node_2_id = node_2['id']
+
+        management.org.add_roles(node_id1, [role_code])
+        assigned_roles = management.org.list_roles(node_2_id)
+        total_count, _list = assigned_roles.get('totalCount'), assigned_roles.get('list')
+        self.assertTrue(total_count == 1)
+        self.assertTrue(len(_list) == 1)
+
+    def test_inherited_from_parent_node_duplicate(self):
+        role_code = get_random_string(10)
+        management.roles.create(role_code)
+        org = management.org.create_org('测试组织机构')
+        node_id1 = org['rootNode']['id']
+        node_2 = management.org.create_node(
+            name=get_random_string(10),
+            org_id=org['id'],
+            parent_node_id=node_id1
+        )
+        node_2_id = node_2['id']
+
+        management.org.add_roles(node_id1, [role_code])
+        management.org.add_roles(node_2_id, [role_code])
+        assigned_roles = management.org.list_roles(node_2_id)
+        total_count, _list = assigned_roles.get('totalCount'), assigned_roles.get('list')
+        self.assertTrue(total_count == 1)
+        self.assertTrue(len(_list) == 1)
+
     def test_list_authorized_resources(self):
         org = management.org.create_org('测试组织机构')
         node_id = org['rootNode']['id']
