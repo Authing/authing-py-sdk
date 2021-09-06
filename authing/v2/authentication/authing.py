@@ -986,7 +986,7 @@ class AuthenticationClient(object):
             'UI',
             'BUTTON'
         ]
-        if not valid_resource_types.index(resource_type):
+        if resource_type not in valid_resource_types:
             raise AuthingWrongArgumentException('invalid argument: resource_type')
         data = self.graphqlClient.request(
             query=QUERY['listUserAuthorizedResources'],
