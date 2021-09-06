@@ -36,7 +36,7 @@ class OrgManagementClient(object):
                 'UI',
                 'BUTTON'
             ]
-            if resource_type not in valid_resource_types:
+            if resource_type and resource_type not in valid_resource_types:
                 raise AuthingWrongArgumentException('invalid argument: resource_type')
 
         data = self.graphqlClient.request(
