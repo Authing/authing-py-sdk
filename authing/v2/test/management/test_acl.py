@@ -342,6 +342,65 @@ class TestAcl(unittest.TestCase):
         )
         self.assertTrue(data.get('totalCount') == 1)
 
+    def test_revoke_resource(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        user2 = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        resource = get_random_string()
+        management.acl.authorize_resource(
+            namespace=default_namespace,
+            resource=resource,
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        get_random_string(),
+                        get_random_string()
+                    ]
+                },
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user2.get('id'),
+                    'actions': [
+                        get_random_string(),
+                        get_random_string()
+                    ]
+                }
+            ]
+        )
+        management.acl.revoke_resource(
+            namespace=default_namespace,
+            resource=resource,
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                }
+            ]
+        )
+        data1 = management.acl.list_authorized_resources(
+            namespace=default_namespace,
+            target_type='USER',
+            target_identifier=user.get('id')
+        )
+        self.assertTrue(data1.get('totalCount') == 0)
+
+        data2 = management.acl.list_authorized_resources(
+            namespace=default_namespace,
+            target_type='USER',
+            target_identifier=user2.get('id')
+        )
+        self.assertTrue(data2.get('totalCount') == 1)
 
     def test_list_authorized_resources(self):
         user = management.users.create(
