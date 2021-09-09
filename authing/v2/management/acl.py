@@ -370,6 +370,53 @@ class AclManagementClient(object):
             'totalCount': total_count
         }
 
+
+    def __check_opts(self, opts):
+        if not isinstance(opts, list):
+            raise AuthingWrongArgumentException('opts must be a list')
+
+        for item in opts:
+            if not isinstance(item, dict):
+                raise AuthingWrongArgumentException('item of opts must be a dict')
+            keys = item.keys()
+            if 'targetType' not in keys or 'targetIdentifier' not in keys:
+                raise AuthingWrongArgumentException('item of opts must be a dict with targetType and targetIdentifier key')
+
+
+    def revoke_resource(self, namespace, resource, opts):
+        """
+        批量撤销资源的授权。
+
+        Args:
+            namespace (str): 权限分组的 code
+            resource (str): 资源的 code
+            opts (list): 示例数据：
+                        [
+                            {
+                                'targetType': 'USER',
+                                'targetIdentifier': '123',
+                                'actions': ['books:edit']
+                            }
+                        ]
+        """
+        self.__check_opts(opts)
+        url = "%s/api/v2/acl/revoke-resource" % (
+            self.options.host
+        )
+        self.restClient.request(
+            method='POST',
+            url=url,
+            token=self.tokenProvider.getAccessToken(),
+            auto_parse_result=True,
+            json={
+                "namespace": namespace,
+                "resource": resource,
+                "opts": opts
+            }
+        )
+        return True
+
+
     def authorize_resource(self, namespace, resource, opts):
         """
         批量授权资源权限。
@@ -387,15 +434,7 @@ class AclManagementClient(object):
                         ]
         """
 
-        if not isinstance(opts, list):
-            raise AuthingWrongArgumentException('opts must be a list')
-
-        for item in opts:
-            if not isinstance(item, dict):
-                raise AuthingWrongArgumentException('item of opts must be a dict')
-            keys = item.keys()
-            if 'targetType' not in keys or 'targetIdentifier' not in keys:
-                raise AuthingWrongArgumentException('item of opts must be a dict with targetType and targetIdentifier key')
+        self.__check_opts(opts)
 
         self.graphqlClient.request(
             query=QUERY['authorizeResource'],

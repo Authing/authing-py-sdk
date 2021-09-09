@@ -600,7 +600,30 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(total_count > 0)
 
     def test_list_authorized_resources(self):
-        pass
+        # 注册一个账号
+        _, _, user, authentication_client = register_random_user()
+
+        # 管理侧授权资源
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:*',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user['id'],
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+
+        data = authentication_client.list_authorized_resources(
+            namespace='default'
+        )
+        total_count, _list = data.get('totalCount'), data.get('list')
+        self.assertTrue(total_count == 1)
+        self.assertTrue(len(_list) == 1)
 
     @unittest.skip('test_get_access_token_by_code_with_client_secret_post')
     def test_oidc_get_access_token_by_code_with_client_secret_post(self):
