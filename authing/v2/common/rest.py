@@ -1,7 +1,7 @@
 from .. import __version__
 import requests
 
-from ..exceptions import AuthingWrongArgumentException
+from authing.v2.exceptions import AuthingWrongArgumentException
 
 
 class RestClient(object):

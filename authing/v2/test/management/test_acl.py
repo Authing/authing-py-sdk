@@ -1,9 +1,10 @@
-from ...common.utils import get_random_string
+# coding: utf-8
+from authing.v2.common.utils import get_random_string
 import unittest
 import os
-from ...management.types import ManagementClientOptions
-from ...management.authing import ManagementClient
-from ...exceptions import AuthingException
+from authing.v2.management.types import ManagementClientOptions
+from authing.v2.management.authing import ManagementClient
+from authing.v2.exceptions import AuthingException
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,7 +12,13 @@ load_dotenv()
 management = ManagementClient(ManagementClientOptions(
     user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
-    host=os.getenv('AUTHING_SERVER')
+    host=os.getenv('AUTHING_SERVER'),
+    enc_public_key="""-----BEGIN PUBLIC KEY-----
+    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
+    4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
+    DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
+    o/E0RlTdNza6FcAHeQIDAQAB
+    -----END PUBLIC KEY-----"""
 ))
 
 default_namespace = 'default'
@@ -277,12 +284,12 @@ class TestAcl(unittest.TestCase):
             ],
             namespace=namespace.get('code')
         )
-        resources = management.acl.list_resources(namespace=namespace.get('code'))
+        resources = management.acl.list_resources(namespace=namespace.get('code').encode("utf-8"))
         self.assertTrue(resources.get('totalCount') == 1)
         self.assertTrue(len(resources.get('list')) == 1)
 
         resources = management.acl.list_resources(
-            namespace=namespace.get('code'),
+            namespace=namespace.get('code').encode("utf-8"),
             resource_type='MENU'
         )
         self.assertTrue(resources.get('totalCount') == 0)
@@ -306,7 +313,7 @@ class TestAcl(unittest.TestCase):
             namespace=namespace.get('code')
         )
         success = management.acl.delete_resource(
-            namespace=namespace.get('code'),
+            namespace=namespace.get('code').encode("utf-8"),
             code=resource_code
         )
         self.assertTrue(success)
@@ -365,3 +372,6 @@ class TestAcl(unittest.TestCase):
 
         self.assertTrue(data.get('totalCount') == 1)
 
+    def test_get_authorized_targets(self):
+        data = management.acl.get_authorized_targets(namespace="mvcbbdutsn", resource_type="DATA", resource="test",target_type="GROUP")
+        print (data)

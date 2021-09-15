@@ -17,7 +17,7 @@ class GroupsManagementClient(dict):
         self.tokenProvider = tokenProvider
 
     def list(self, page=1, limit=10):
-        """获取用户池分组列表
+        """获取分组列表
 
         Args:
             page (int): 页码数，从 1 开始，默认为 1 。
@@ -93,7 +93,7 @@ class GroupsManagementClient(dict):
         return data["deleteGroups"]
 
     def delete_many(self, code_list):
-        """删除分组
+        """批量删除分组
 
         Args:
             code_list : 分组 code 列表
@@ -108,7 +108,7 @@ class GroupsManagementClient(dict):
         return data["deleteGroups"]
 
     def list_users(self, code, page=1, limit=10, with_custom_data=None):
-        """获取用户列表
+        """获取分组用户列表
 
         Args:
             code : 角色 code 列表
@@ -158,8 +158,7 @@ class GroupsManagementClient(dict):
         return data["removeUserFromGroup"]
 
     def list_authorized_resources(self, code, namespace=None, resource_type=None):
-        """
-        获取一个分组被授权的所有资源。
+        """获取分组被授权的所有资源
 
         Args:
             code (str): 分组的 code；

@@ -2,7 +2,7 @@
 import re
 
 from ..common.rest import RestClient
-from .types import AuthenticationClientOptions
+from ..authentication.types import AuthenticationClientOptions
 from ..common.graphql import GraphqlClient
 from ..common.utils import encrypt, convert_udv_data_type, convert_udv_list_to_dict, get_hostname_from_url, \
     format_authorized_resources, get_random_string, url_join_args
@@ -32,27 +32,39 @@ class AuthenticationClient(object):
         self._token = self.options.token or None
 
     def _set_current_user(self, user):
+        """@deprecated 设置当前用户"""
         self._user = user
         self._token = user.get("token")
 
     def _clear_current_user(self):
+        """@deprecated 清除当前用户"""
         self._user = None
         self._token = None
+    def clear_current_user(self):
+        """清除当前用户"""
+        self._clear_current_user()
 
     def _check_logged_in(self):
+        """@deprecated 检测当前登录状态"""
         user = self.get_current_user()
         if not user:
             raise Exception("Please Login First")
         return user
 
     def _get_token(self):
+        """@deprecated 获取 Token"""
         return self._token
 
+    def get_token(self):
+        """获取 Token"""
+        return self._get_token()
+
     def _set_token(self, token):
+        """@deprecated 设置 Token"""
         self._token = token
 
     def get_current_user(self, token=None):
-        """获取当前用户的资料
+        """获取当前登录的用户信息
 
         Args:
             token (str): 用户登录凭证
@@ -80,7 +92,7 @@ class AuthenticationClient(object):
             custom_data=None,
             context=None
     ):
-        """通过邮箱注册
+        """使用邮箱注册
 
         Args:
             email (str): 邮箱
@@ -134,7 +146,7 @@ class AuthenticationClient(object):
             custom_data=None,
             context=None
     ):
-        """通过用户名注册
+        """使用用户名注册
 
         Args:
             username (str): 用户名
@@ -188,7 +200,7 @@ class AuthenticationClient(object):
             custom_data=None,
             context=None
     ):
-        """通过手机号验证码注册
+        """使用手机号及验证码注册
 
         Args:
             phone (str): 手机号
@@ -234,7 +246,7 @@ class AuthenticationClient(object):
         return user
 
     def send_sms_code(self, phone):
-        """发送手机号验证码
+        """发送短信验证码
 
         Args:
             phone (str): 手机号
@@ -305,7 +317,7 @@ class AuthenticationClient(object):
             custom_data=None,
             context=None
     ):
-        """使用邮箱登录
+        """使用用户名登录
 
         Args:
             username (str): 用户名
@@ -353,7 +365,7 @@ class AuthenticationClient(object):
             custom_data=None,
             context=None
         ):
-        """使用邮箱登录
+        """使用手机号验证码登录
 
         Args:
             phone (str): 手机号
@@ -398,7 +410,7 @@ class AuthenticationClient(object):
             custom_data=None,
             context=None
     ):
-        """使用邮箱登录
+        """使用手机号密码登录
 
         Args:
             phone (str): 手机号
@@ -439,7 +451,7 @@ class AuthenticationClient(object):
         return user
 
     def login_by_ldap(self, username, password):
-        """使用 LDAP 身份源账号登录
+        """使用 LDAP 用户名登录
 
         Args:
             username: (str): LDAP 用户名
@@ -462,8 +474,7 @@ class AuthenticationClient(object):
             self.options.on_error(code, message)
 
     def login_by_ad(self, username, password):
-        """
-        使用 AD 身份源账号登录
+        """使用 AD 用户名登录
 
         Args:
             username: (str): AD 用户名
@@ -498,7 +509,7 @@ class AuthenticationClient(object):
         return data['checkPasswordStrength']
 
     def check_login_status(self, token=None):
-        """检查 token 的登录状态
+        """检测 Token 登录状态
 
         Args:
             token (str): token
@@ -517,7 +528,7 @@ class AuthenticationClient(object):
         return data["sendEmail"]
 
     def reset_password_by_phone_code(self, phone, code, new_password):
-        """通过手机号验证码重置密码
+        """通过短信验证码重置密码
 
         Args:
             phone (str): 手机号
@@ -532,7 +543,7 @@ class AuthenticationClient(object):
         return data["resetPassword"]
 
     def reset_password_by_email_code(self, email, code, new_password):
-        """通过邮件验证码修改密码
+        """通过邮件验证码重置密码
 
         Args:
             email (str): 邮箱
@@ -559,7 +570,7 @@ class AuthenticationClient(object):
         return user
 
     def update_password(self, new_password, old_password):
-        """修改密码
+        """更新用户密码
 
         Args:
             new_password (str): 新密码
@@ -576,8 +587,7 @@ class AuthenticationClient(object):
         return user
 
     def update_phone(self, phone, phone_code, old_phone=None, old_phone_code=None):
-        """
-        更新用户手机号。和修改邮箱一样，默认情况下，如果用户当前已经绑定了手机号，需要同时验证原有手机号（目前账号绑定的手机号）和当前邮箱（将要绑定的手机号）。'
+        """更新用户手机号。和修改邮箱一样，默认情况下，如果用户当前已经绑定了手机号，需要同时验证原有手机号（目前账号绑定的手机号）和当前邮箱（将要绑定的手机号）。'
         也就是说，用户 A 当前绑定的手机号为 15888888888，想修改为 15899999999，那么就需要同时验证这两个手机号。
         开发者也可以选择不开启 “验证原有手机号“ ，可以在 Authing 控制台的设置目录下的安全信息模块进行关闭。
         用户首次绑定手机号请使用 bind_phone 接口。
@@ -603,8 +613,7 @@ class AuthenticationClient(object):
         return user
 
     def update_email(self, email, email_code, old_email=None, old_email_code=None):
-        """
-        如果用户已经绑定了邮箱，默认情况下，需要同时验证原有邮箱（目前账号绑定的邮箱）和当前邮箱（将要绑定的邮箱）。
+        """更新用户邮箱。如果用户已经绑定了邮箱，默认情况下，需要同时验证原有邮箱（目前账号绑定的邮箱）和当前邮箱（将要绑定的邮箱）。
         也就是说，用户 A 当前绑定的邮箱为 123456@qq.com，想修改为 1234567@qq.com，那么就需要同时验证这两个邮箱。
         开发者也可以选择不开启 “验证原有邮箱“ ，可以在 Authing 控制台的设置目录下的安全信息模块进行关闭。
 
@@ -631,7 +640,7 @@ class AuthenticationClient(object):
         return user
 
     def link_account(self, primary_user_token, secondary_user_token):
-        """绑定账号。将一个社交账号（如微信账号、GitHub 账号）绑定到一个主账号（手机号、邮箱账号）。
+        """关联账号。将一个社交账号（如微信账号、GitHub 账号）绑定到一个主账号（手机号、邮箱账号）。
 
         Args:
             primary_user_token (str): 主账号的 Token
@@ -663,7 +672,7 @@ class AuthenticationClient(object):
         return True
 
     def refresh_token(self, token=None):
-        """刷新 token
+        """刷新当前用户的 token
 
         Returns:
             [type]: [description]
@@ -676,8 +685,7 @@ class AuthenticationClient(object):
         return data["refreshToken"]
 
     def bind_phone(self, phone, phone_code):
-        """
-        用户初次绑定手机号，如果需要修改手机号请使用 updatePhone 方法。
+        """绑定手机号。首次绑定，如果需要修改手机号请使用 updatePhone 方法。
         如果该手机号已被绑定，将会绑定失败。
         发送验证码请使用 send_sms_code 方法。
 
@@ -695,7 +703,7 @@ class AuthenticationClient(object):
         return user
 
     def unbind_phone(self):
-        """用户解绑手机号，如果用户没有绑定其他登录方式（邮箱、社会化登录账号），将无法解绑手机号，会提示错误。"""
+        """解绑手机号。如果用户没有绑定其他登录方式（邮箱、社会化登录账号），将无法解绑手机号，会提示错误。"""
         data = self.graphqlClient.request(
             query=QUERY["unbindPhone"], params={}, token=self._get_token()
         )
@@ -704,8 +712,7 @@ class AuthenticationClient(object):
         return user
 
     def bind_email(self, email, email_code):
-        """
-        用于用户初次绑定邮箱，需检验邮箱验证码。
+        """绑定邮箱号。用于用户初次绑定邮箱，需检验邮箱验证码。
         如果需要修改邮箱请使用 update_email 方法。
         如果该邮箱已被绑定，将会绑定失败。发送邮件验证码请使用 send_email 方法。
 
@@ -724,7 +731,7 @@ class AuthenticationClient(object):
         return user
 
     def unbind_email(self):
-        """用户解绑邮箱，如果用户没有绑定其他登录方式（手机号、社会化登录账号），将无法解绑邮箱，会提示错误。"""
+        """解绑邮箱号。如果用户没有绑定其他登录方式（手机号、社会化登录账号），将无法解绑邮箱，会提示错误。"""
         data = self.graphqlClient.request(
             query=QUERY["unbindEmail"], params={
             }, token=self._get_token()
@@ -734,7 +741,7 @@ class AuthenticationClient(object):
         return user
 
     def get_udf_value(self):
-        """获取当前用户的自定义用户数据"""
+        """获取当前用户的所有自定义数据"""
         user = self._check_logged_in()
         data = self.graphqlClient.request(
             query=QUERY["udv"],
@@ -745,8 +752,7 @@ class AuthenticationClient(object):
         return convert_udv_list_to_dict(data)
 
     def set_udf_value(self, data):
-        """
-        设置用户的自定义字段。
+        """设置自定义字段值。
         你需要先在用户池定义用户自定义数据元信息，且传入值的类型必须和定义的类型匹配。
         如果设置失败，会抛出异常，你需要对异常进行捕捉。
 
@@ -783,8 +789,7 @@ class AuthenticationClient(object):
         return True
 
     def remove_udf_value(self, key):
-        """
-        删除自定义数据。
+        """删除用户自定义数据
 
         Args:
             key (str): 自定义字段 key
@@ -802,7 +807,7 @@ class AuthenticationClient(object):
         return True
 
     def list_udv(self):
-        """【已废弃，请使用 get_udf_vale】获取当前用户的自定义用户数据"""
+        """获取当前用户的自定义数据列表【已废弃，请使用 get_udf_vale】获取当前用户的自定义用户数据"""
         user = self._check_logged_in()
         data = self.graphqlClient.request(
             query=QUERY["udv"],
@@ -813,7 +818,7 @@ class AuthenticationClient(object):
         return convert_udv_data_type(data)
 
     def set_udv(self, key, value):
-        """设置自定义用户数据
+        """添加自定义数据
 
         Args:
             key (type): key
@@ -844,7 +849,7 @@ class AuthenticationClient(object):
         return convert_udv_data_type(data)
 
     def remove_udv(self, key):
-        """删除用户自定义字段数据
+        """删除自定义数据
 
         Args:
             key (str): 自定义字段 key
@@ -863,7 +868,7 @@ class AuthenticationClient(object):
         return convert_udv_data_type(data)
 
     def logout(self):
-        """ 用户退出登录。
+        """退出登录
         1. 清空该用户在当前应用下的 session 会话信息；
         2. 将用户当前的 id_token 标记为已失效，使用此 id_token将调用 Authing 接口无法获取到相关数据。
         """
@@ -876,9 +881,7 @@ class AuthenticationClient(object):
         return True
 
     def list_orgs(self):
-        """
-        获取用户所在组织机构列表
-        """
+        """获取用户所在组织机构"""
         url = "%s/api/v2/users/me/orgs" % self.options.host
         data = self.restClient.request(
             method="GET",
@@ -893,8 +896,7 @@ class AuthenticationClient(object):
             self.options.on_error(code, message)
 
     def get_security_level(self):
-        """
-        获取用户账号安全等级。
+        """用户安全等级
         """
         url = "%s/api/v2/users/me/security-level" % self.options.host
         data = self.restClient.request(
@@ -910,8 +912,7 @@ class AuthenticationClient(object):
             self.options.on_error(code, message)
 
     def list_roles(self, namespace=None):
-        """
-        获取用户拥有的角色列表
+        """获取用户拥有的角色列表
 
         Args:
             namespace (str): 权限分组的 code，默认为
@@ -930,7 +931,7 @@ class AuthenticationClient(object):
         return res
 
     def has_role(self, code, namespace=None):
-        """判断用户是否具有某在角色
+        """判断当前用户是否有某个角色
 
         Args:
             code (str): 角色的唯一标志符 code
@@ -949,8 +950,7 @@ class AuthenticationClient(object):
         return has_role
 
     def list_applications(self, page=1, limit=10):
-        """
-        获取用户能够访问的应用列表
+        """获取应用列表
 
         Args:
             page (int) 页数，从 1 开始，默认为 1
@@ -970,8 +970,7 @@ class AuthenticationClient(object):
             self.options.on_error(code, message)
 
     def list_authorized_resources(self, namespace, resource_type=None):
-        """
-        获取一个用户被授权的所有资源，用户被授权的所有资源里面包括从角色、分组、组织机构继承的资源。
+        """获取用户被授权的所有资源，用户被授权的所有资源里面包括从角色、分组、组织机构继承的资源。
 
         Args:
             namespace (str) 权限分组的 code
@@ -1010,8 +1009,7 @@ class AuthenticationClient(object):
         }
 
     def compute_password_security_level(self, password):
-        """
-        计算密码安全等级。
+        """计算密码安全等级
 
         Args:
             password (str) 明文密码
@@ -1068,7 +1066,7 @@ class AuthenticationClient(object):
         return data
 
     def get_access_token_by_code(self, code, code_verifier=None):
-        """
+        """code 换取 accessToken
         使用授权码 Code 获取用户的 Token 信息。
 
         Args:
@@ -1098,7 +1096,7 @@ class AuthenticationClient(object):
             'unsupported argument token_endpoint_auth_method, must be client_secret_post, client_secret_basic or none')
 
     def get_access_token_by_client_credentials(self, scope, access_key, access_secret):
-        """
+        """Client Credentials 模式获取 Access Token
         使用编程访问账号获取具备权限的 Access Token。
 
         Args:
@@ -1126,7 +1124,7 @@ class AuthenticationClient(object):
         return data
 
     def get_user_info_by_access_token(self, access_token):
-        """
+        """accessToken 换取用户信息
         使用 Access token 获取用户信息。
 
         Args:
@@ -1239,9 +1237,7 @@ class AuthenticationClient(object):
             code_challenge=None,
             service=None
     ):
-        """
-        生成用于用户登录的地址链接。
-        """
+        """拼接 OIDC、OAuth 2.0、SAML、CAS 协议授权链接"""
         if not self.options.app_host:
             raise AuthingWrongArgumentException('must provider app_host when you init AuthenticationClient')
 
@@ -1273,8 +1269,7 @@ class AuthenticationClient(object):
             raise AuthingWrongArgumentException('protocol must be oidc oauth saml or cas')
 
     def generate_code_challenge(self, length=43):
-        """
-        生成一个 PKCE 校验码，长度必须大于等于 43。
+        """生成一个 PKCE 校验码，长度必须大于等于 43。
 
         Args:
             length (int): 校验码长度，默认为 43。
@@ -1288,8 +1283,7 @@ class AuthenticationClient(object):
         return get_random_string(length)
 
     def generate_code_challenge_digest(self, code_challenge, method=None):
-        """
-        生成一个 PKCE 校验码摘要值。
+        """生成一个 PKCE 校验码摘要值
 
         Args:
             code_challenge (str): 待生成摘要值的 code_challenge 原始值，一个长度大于等于 43 的随机字符串。
@@ -1349,7 +1343,7 @@ class AuthenticationClient(object):
             )
 
     def build_logout_url(self, expert=None, redirect_uri=None, id_token=None):
-        """拼接登出 URL。"""
+        """拼接登出 URL"""
         if not self.options.app_host:
             raise AuthingWrongArgumentException('must provider app_host when you init AuthenticationClient')
 
@@ -1405,8 +1399,7 @@ class AuthenticationClient(object):
         return data
 
     def get_new_access_token_by_refresh_token(self, refresh_token):
-        """
-        使用 Refresh token 获取新的 Access token。
+        """使用 Refresh token 获取新的 Access token。
 
         Args:
             refresh_token (str): Refresh token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 refresh_token 获得。
@@ -1463,8 +1456,7 @@ class AuthenticationClient(object):
         )
 
     def revoke_token(self, token):
-        """
-        撤回 Access token 或 Refresh token。Access token 或 Refresh token 的持有者可以通知 Authing 已经不再需要令牌，希望 Authing 将其吊销。
+        """撤回 Access token 或 Refresh token。Access token 或 Refresh token 的持有者可以通知 Authing 已经不再需要令牌，希望 Authing 将其吊销。
 
         Args:
             token (str): Access token 或 Refresh token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 access_token、refresh_token 获得。
@@ -1523,8 +1515,7 @@ class AuthenticationClient(object):
         )
 
     def introspect_token(self, token):
-        """
-        检查 Access token 或 Refresh token 的状态。
+        """检查 Access token 或 Refresh token 的状态。
 
         Args:
             token (str): Access token 或 Refresh token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 access_token、refresh_token 获得。
@@ -1563,7 +1554,7 @@ class AuthenticationClient(object):
         )
 
     def validate_token(self, id_token=None, access_token=None):
-        """
+        """ 效验Token合法性
         通过 Authing 提供的在线接口验证 Id token 或 Access token。会产生网络请求。
 
         Args:
@@ -1580,8 +1571,7 @@ class AuthenticationClient(object):
             return self.__validate_access_token(access_token)
 
     def validate_ticket_v1(self, ticket, service):
-        """
-        检验 CAS 1.0 Ticket 合法性。
+        """检验 CAS 1.0 Ticket 合法性
 
         Args:
             ticket (str): CAS 认证成功后，Authing 颁发的 ticket。
@@ -1601,3 +1591,16 @@ class AuthenticationClient(object):
             res['username'] = username
         if not valid:
             res['message'] = 'ticket is not valid'
+
+    def set_current_user(self,user=None):
+        """设置当前用户"""
+        self._set_current_user(user)
+
+    def set_token(self,token=None):
+        """设置 Token"""
+        self._set_token(token)
+
+    def check_logged_in(self):
+        """检测当前登录状态"""
+        return self._check_logged_in()
+

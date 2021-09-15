@@ -18,7 +18,7 @@ management = ManagementClient(ManagementClientOptions(
 
 class TestRoles(unittest.TestCase):
     def test_list_authorized_resources(self):
-        node_id = '612333f55fca511687cafde5'
+        node_id = '6139a937437e50e4d31770a2'
         management.acl.authorize_resource(
             namespace='default',
             resource='books:*',

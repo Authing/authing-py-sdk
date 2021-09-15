@@ -20,7 +20,7 @@ class AclManagementClient(object):
         self.tokenProvider = tokenProvider
 
     def allow(self, resource, action, namespace, role=None, user_id=None):
-        """允许某个用户操作某个资源
+        """允许某个用户对某个资源进行某个操作
 
         Args:
             resource (str): 资源的 code
@@ -47,8 +47,7 @@ class AclManagementClient(object):
         return data["allow"]
 
     def is_allowed(self, user_id, action, resource, namespace):
-        """
-        判断某个用户是否能够具备某个资源资源某个操作的权限。
+        """判断某个用户是否对某个资源有某个操作权限
 
         Args:
             resource (str) 资源的 code
@@ -69,8 +68,7 @@ class AclManagementClient(object):
         return data["isActionAllowed"]
 
     def create_namespace(self, code, name, description=None):
-        """
-        创建权限分组。权限分组可以理解为权限的命名空间，不同权限分组中的角色和资源相互独立，即使同名也不会冲突。
+        """创建权限分组。权限分组可以理解为权限的命名空间，不同权限分组中的角色和资源相互独立，即使同名也不会冲突。
 
         Args:
             code (str): 权限分组唯一标识符；
@@ -97,8 +95,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def update_namespace(self, id, name=None, code=None, description=None):
-        """
-        更新权限分组。
+        """更新权限分组。
 
         Args:
             id (number): 权限分组的 ID；
@@ -125,9 +122,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def list_namespaces(self, page=1, limit=10):
-        """
-        获取权限分组列表。
-        """
+        """获取权限分组列表"""
 
         url = "%s/api/v2/resource-namespace/%s?page=%s&limit=%s" % (
             self.options.host, self.options.user_pool_id, page, limit)
@@ -144,8 +139,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def delete_namespace(self, id):
-        """
-        删除权限分组。
+        """删除权限分组。
 
         Args:
             id (str): 权限分组 ID;
@@ -181,8 +175,7 @@ class AclManagementClient(object):
             raise AuthingWrongArgumentException('unsupported resource_type: %s' % resource_type)
 
     def create_resource(self, namespace, code, resource_type, actions, description=None):
-        """
-        创建资源。
+        """创建资源
 
         Args:
             namespace: (str): 权限分组信息
@@ -216,8 +209,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def update_resource(self, namespace, code, resource_type=None, actions=None, description=None):
-        """
-        更新资源。
+        """更新资源
 
         Args:
             namespace (str): 权限分组 code；
@@ -257,8 +249,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def list_resources(self, namespace, resource_type=None, page=1, limit=10):
-        """
-        根据筛选条件，查询用户池下的资源列表。
+        """获取资源列表
 
         Args:
             namespace (str): 权限分组 code；
@@ -305,8 +296,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def delete_resource(self, namespace, code):
-        """
-        删除资源。
+        """删除资源
 
         Args:
             namespace (str): 权限分组 code；
@@ -336,8 +326,7 @@ class AclManagementClient(object):
             raise AuthingWrongArgumentException('unsupported target_type: %s' % target_type)
 
     def list_authorized_resources(self, namespace, target_type, target_identifier, resource_type=None):
-        """
-        获取某个主体（用户、角色、分组、组织机构节点）被授权的所有资源。
+        """获取某个主体（用户、角色、分组、组织机构节点）被授权的所有资源。
 
         Args:
             target_type (str): 主体类型，可选值包含 USER, ROLE, GROUP, ORG
@@ -371,8 +360,7 @@ class AclManagementClient(object):
         }
 
     def authorize_resource(self, namespace, resource, opts):
-        """
-        批量授权资源权限。
+        """将一个（类）资源授权给用户、角色、分组、组织机构，且可以分别指定不同的操作权限。
 
         Args:
             namespace (str): 权限分组的 code
@@ -410,8 +398,7 @@ class AclManagementClient(object):
         return True
 
     def get_authorized_targets(self, namespace, resource_type, resource, actions=None, target_type=None):
-        """
-        获取具备某个（类）资源操作权限的用户、分组、角色、组织机构。
+        """获取具备某些资源操作权限的主体
 
         Args:
             namespace (str): 权限分组的 code

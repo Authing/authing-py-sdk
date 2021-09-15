@@ -3,8 +3,8 @@
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 from gql.client import Client
-from .. import __version__
-from ..exceptions import AuthingException
+from authing.v2 import __version__
+from authing.v2.exceptions import AuthingException
 
 
 def execute(self, document, *args, **kwargs):

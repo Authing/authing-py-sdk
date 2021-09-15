@@ -69,4 +69,10 @@ class TestApp(unittest.TestCase):
 
     def test_list_resources(self):
 
-        management.applications.list_resources(app_id="123", resource_type="123");
+       rs = management.applications.list_resources(app_id="61384d3ee1b81dd1342e5635", resource_type="MENU")
+       print (rs)
+       self.assertTrue(rs)
+
+    def test_get_access_policies(self):
+        res = management.applications.get_access_policies("61384d3ee1b81dd1342e5635")
+        print (res)

@@ -1,6 +1,4 @@
 # coding: utf-8
-from functools import singledispatch
-
 from .types import ManagementClientOptions
 from ..common.rest import RestClient
 from ..common.utils import encrypt, url_join_args, convert_udv_list_to_dict, format_authorized_resources, \
@@ -26,7 +24,7 @@ class UsersManagementClient(object):
         self.restClient = restClient
 
     def list(self, page=1, limit=10, with_custom_data=False):
-        """获取用户池用户列表
+        """获取用户列表
 
         Args:
             page (int): 页码数，从 1 开始，默认为 1 。
@@ -94,7 +92,7 @@ class UsersManagementClient(object):
         return data
 
     def update(self, userId, updates):
-        """修改用户信息
+        """修改用户资料
 
         Args:
             userId (str): 用户 ID
@@ -113,7 +111,7 @@ class UsersManagementClient(object):
         return data["updateUser"]
 
     def detail(self, user_id, with_custom_data=False):
-        """获取用户资料详情
+        """获取用户详情
 
         Args:
             user_id (str): 用户 ID
@@ -157,16 +155,8 @@ class UsersManagementClient(object):
             data['customData'] = convert_udv_list_to_dict(data['customData'])
         return data
 
-    def search(
-        self,
-        query,
-        page=1,
-        limit=10,
-        department_opts=None,
-        group_opts=None,
-        role_opts=None,
-        with_custom_data=False
-    ):
+    def search(self, query, page=1, limit=10,
+               department_opts=None, group_opts=None, role_opts=None, with_custom_data=False):
         """搜索用户
 
         Args:
@@ -210,9 +200,7 @@ class UsersManagementClient(object):
         return data
 
     def batch_get(self, identifiers, query_field='id', with_custom_data=False):
-        """
-        通过 id、username、email、phone、email、externalId 批量获取用户详情。一次最多支持查询 80 个用户。
-        """
+        """通过 id、username、email、phone、email、externalId 批量获取用户详情。一次最多支持查询 80 个用户。 """
         query = QUERY['userBatch'] if not with_custom_data else QUERY['userBatchWithCustomData']
         data = self.graphqlClient.request(
             query=query,
@@ -230,6 +218,7 @@ class UsersManagementClient(object):
 
     def batch(self, userIds):
         """已废弃，请使用 batch_get 接口
+            通过 ID、username、email、phone、email、externalId 批量获取用户详情
         """
         return self.batch_get(userIds)
 
@@ -263,7 +252,7 @@ class UsersManagementClient(object):
         return data["deleteUsers"]
 
     def list_roles(self, userId, namespace=None):
-        """获取用户的角色列表
+        """获取用户角色列表
 
         Args:
             userId (str): 用户 ID
@@ -280,7 +269,7 @@ class UsersManagementClient(object):
         return data["user"]["roles"]
 
     def add_roles(self, userId, roles, namespace=None):
-        """批量授权用户角色
+        """将用户加入角色
 
         Args:
             userId (str): 用户 ID
@@ -299,7 +288,7 @@ class UsersManagementClient(object):
         return data["assignRole"]
 
     def remove_roles(self, userId, roles, namespace=None):
-        """批量撤销用户角色
+        """将用户从角色中移除
 
         Args:
             userId (str): 用户 ID
@@ -318,7 +307,7 @@ class UsersManagementClient(object):
         return data["revokeRole"]
 
     def refresh_token(self, userId):
-        """刷新某个用户的 token
+        """刷新用户 token
 
         Args:
             userId (str): 用户 ID
@@ -337,7 +326,7 @@ class UsersManagementClient(object):
         return data
 
     def list_groups(self, userId):
-        """获取用户的分组列表
+        """获取用户分组列表
 
         Args:
             userId (str): 用户 ID
@@ -352,7 +341,7 @@ class UsersManagementClient(object):
         return data["user"]["groups"]
 
     def add_group(self, userId, group):
-        """获取用户的分组列表
+        """将用户加入分组
 
         Args:
             userId (str): 用户 ID
@@ -366,7 +355,7 @@ class UsersManagementClient(object):
         return data["addUserToGroup"]
 
     def remove_group(self, userId, group):
-        """获取用户的分组列表
+        """将用户退出分组
 
         Args:
             userId (str): 用户 ID
@@ -394,7 +383,7 @@ class UsersManagementClient(object):
         return data["policyAssignments"]
 
     def add_policies(self, userId, policies):
-        """添加策略"""
+        """批量添加策略"""
         data = self.graphqlClient.request(
             query=QUERY["addPolicyAssignments"],
             params={
@@ -407,7 +396,7 @@ class UsersManagementClient(object):
         return data["addPolicyAssignments"]
 
     def remove_policies(self, userId, policies):
-        """移除策略"""
+        """批量移除策略"""
         data = self.graphqlClient.request(
             query=QUERY["removePolicyAssignments"],
             params={
@@ -420,7 +409,7 @@ class UsersManagementClient(object):
         return data["removePolicyAssignments"]
 
     def list_udv(self, userId):
-        """获取该用户的自定义数据列表"""
+        """获取当前用户的自定义数据列表"""
         data = self.graphqlClient.request(
             query=QUERY["udv"],
             params={"targetType": "USER", "targetId": userId},
@@ -440,6 +429,7 @@ class UsersManagementClient(object):
         return data
 
     def get_udf_value(self, user_id):
+        """获取某个用户的所有自定义数据"""
         data = self.graphqlClient.request(
             query=QUERY["udv"],
             params={"targetType": "USER", "targetId": user_id},
@@ -449,6 +439,7 @@ class UsersManagementClient(object):
         return convert_udv_list_to_dict(data)
 
     def get_udf_value_batch(self, user_ids):
+        """批量获取多个用户的自定义数据"""
         if type(user_ids).__name__ != "list":
             raise AuthingWrongArgumentException('empty user id list')
 
@@ -459,7 +450,7 @@ class UsersManagementClient(object):
         )["udfValueBatch"]
 
     def set_udv(self, userId, key, value):
-        """设置自定义用户数据
+        """添加自定义数据
 
         Args:
             userId (str): 用户 ID
@@ -489,8 +480,7 @@ class UsersManagementClient(object):
         return data["setUdv"]
 
     def set_udf_value(self, user_id, data):
-        """
-        设置用户的自定义数据。
+        """设置某个用户的自定义数据
 
         Args:
             user_id (str): 用户 ID；
@@ -531,8 +521,7 @@ class UsersManagementClient(object):
         return True
 
     def set_udf_value_batch(self, data):
-        """
-        批量设置多个用户的自定义数据。
+        """ 批量设置自定义数据
 
         Args:
             data (dict): 输入数据，格式为一个字典，key 为角色 ID，value 为自定义数据；value 格式要求为一个字典，key 为自定义字段的 key，value 为需要设置的值。
@@ -573,7 +562,7 @@ class UsersManagementClient(object):
         return True
 
     def remove_udv(self, userId, key):
-        """删除用户自定义字段数据
+        """移除自定义数据
 
         Args:
             userId (str): 用户 ID
@@ -591,6 +580,7 @@ class UsersManagementClient(object):
         return data["removeUdv"]
 
     def remove_udf_value(self, user_id, key):
+        """清除用户的自定义数据"""
         self.remove_udv(user_id, key)
 
     def list_archived_users(self, page=1, limit=10):
@@ -612,8 +602,7 @@ class UsersManagementClient(object):
         return data["archivedUsers"]
 
     def exists(self, username=None, email=None, phone=None, external_id=None):
-        """
-        检查用户是否存在
+        """ 检查用户是否存在
 
         Args:
             username (str) 用户名，区分大小写
@@ -635,8 +624,7 @@ class UsersManagementClient(object):
         return data["isUserExists"]
 
     def list_org(self, user_id):
-        """
-        获取用户所在组织机构
+        """获取用户所在组织机构
 
         Args:
             user_id (str) 用户 ID
@@ -655,8 +643,7 @@ class UsersManagementClient(object):
             self.options.on_error(res.get("code"), res.get("message"))
 
     def list_department(self, user_id):
-        """
-        获取用户所在部门
+        """ 获取用户所在部门
 
         Args:
             user_id (str) 用户 ID
@@ -671,8 +658,7 @@ class UsersManagementClient(object):
         )["user"]
 
     def list_authorized_resources(self, user_id, namespace=None, resource_type=None):
-        """
-        获取用户被授权的所有资源
+        """ 获取用户被授权的所有资源
 
         Args:
             user_id (str) 用户 ID
@@ -709,6 +695,7 @@ class UsersManagementClient(object):
         }
 
     def has_role(self, user_id, role_code, namespace=None):
+        """判断用户是否有某个角色"""
         role_list = self.list_roles(user_id, namespace)
 
         if role_list["totalCount"] < 1:
@@ -723,7 +710,7 @@ class UsersManagementClient(object):
         return has_role
 
     def kick(self, user_ids):
-
+        """强制一批用户下线"""
         if type(user_ids).__name__ != "list":
             raise AuthingWrongArgumentException('empty user id list')
 
@@ -740,7 +727,7 @@ class UsersManagementClient(object):
         return code == 200
 
     def list_user_actions(self, page=1, limit=10, client_ip=None, operation_name=None, operato_arn=None):
-
+        """查看用户操作日志"""
         url = "%s/api/v2/analysis/user-action" % self.options.host
 
         query = url_join_args(url, {

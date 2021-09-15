@@ -101,6 +101,7 @@ class ManagementClient(object):
         return self._userpool_detail
 
     def check_login_status(self, token):
+        """检测登录状态"""
         # type:(str,bool) -> any
         data = self.graphqlClient.request(
             query=QUERY["checkLoginStatus"], params={"token": token}

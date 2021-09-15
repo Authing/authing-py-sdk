@@ -1,19 +1,21 @@
 # coding: utf-8
-import json
 
-from ...exceptions import AuthingException
-from ..utils import get_random_string
-from ...authentication import AuthenticationClientOptions
-from ...authentication.authing import AuthenticationClient
-from ...management.types import ManagementClientOptions
-from ...management.authing import ManagementClient
+from authing.v2.exceptions import AuthingException
+from authing.v2.test.utils import get_random_string
+from authing.v2.authentication import AuthenticationClientOptions
+from authing.v2.authentication.authing import AuthenticationClient
+from authing.v2.management.types import ManagementClientOptions
+from authing.v2.management.authing import ManagementClient
+
+import json
 import unittest
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-from urllib.parse import urlparse, parse_qs
 
-load_dotenv()
+from urlparse import urlparse,parse_qs
+
+# from urllib.parse import urlparse, parse_qs
 
 management = ManagementClient(
     ManagementClientOptions(
@@ -45,6 +47,9 @@ def register_random_user():
 
 class TestAuthentication(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        load_dotenv()
 
     def test_init_with_no_userpoolid_and_appid(self):
         error = False
@@ -70,59 +75,6 @@ class TestAuthentication(unittest.TestCase):
             self.assertTrue(e.code)
             self.assertTrue(e.message)
 
-    def test_register_by_email(self):
-        authentication = init_authentication_client()
-        email = "%s@authing.cn" % get_random_string(10)
-        user = authentication.register_by_email(
-            email=email,
-            password=get_random_string(10),
-        )
-        self.assertTrue(user)
-        self.assertTrue(user["id"])
-        self.assertTrue(user["email"] == email)
-
-    def test_register_by_email_with_profile(self):
-        authentication = init_authentication_client()
-        email = "%s@authing.cn" % get_random_string(10)
-        user = authentication.register_by_email(
-            email=email,
-            password=get_random_string(10),
-            profile={"nickname": "Nick"},
-            generate_token=True,
-        )
-        self.assertTrue(user)
-        self.assertTrue(user["id"])
-        self.assertTrue(user["email"] == email)
-        self.assertTrue(user["token"] is not None)
-
-    def test_register_by_email_with_custom_data(self):
-        authentication = init_authentication_client()
-        email = "%s@authing.cn" % get_random_string(10)
-        user = authentication.register_by_email(
-            email=email,
-            password=get_random_string(10),
-            custom_data={
-                'school': '华中科技大学',
-                'age': 22
-            },
-            force_login=True
-        )
-        self.assertTrue(user['id'])
-        udvs = authentication.get_udf_value()
-        self.assertTrue(udvs['school'], '华中科技大学')
-        self.assertTrue(udvs['age'], 22)
-
-    def test_register_by_email_with_context(self):
-        authentication = init_authentication_client()
-        email = "%s@authing.cn" % get_random_string(10)
-        user = authentication.register_by_email(
-            email=email,
-            password=get_random_string(10),
-            context={
-                'source': 'google'
-            }
-        )
-        self.assertTrue(user['id'])
 
     def test_register_by_username(self):
         authentication = init_authentication_client()
@@ -152,59 +104,6 @@ class TestAuthentication(unittest.TestCase):
     #     self.assertTrue(user['id'])
     #     self.assertTrue(user.get('phone') == phone)
 
-    def test_login_by_email(self):
-        authentication = init_authentication_client()
-        email = "%s@authing.cn" % get_random_string(10)
-        password = get_random_string(10)
-        user = authentication.register_by_email(
-            email=email,
-            password=password,
-        )
-        user = authentication.login_by_email(
-            email=email,
-            password=password,
-        )
-        self.assertTrue(user)
-        self.assertTrue(user.get("token"))
-        self.assertTrue(user.get("email") == email)
-
-    def test_login_by_email_with_custom_data(self):
-        authentication = init_authentication_client()
-        email = "%s@authing.cn" % get_random_string(10)
-        password = get_random_string(10)
-        user = authentication.register_by_email(
-            email=email,
-            password=password,
-        )
-        user = authentication.login_by_email(
-            email=email,
-            password=password,
-            custom_data={
-                'school': '华中科技大学',
-                'age': 22
-            }
-        )
-        self.assertTrue(user['id'])
-        udvs = authentication.get_udf_value()
-        self.assertTrue(udvs['school'], '华中科技大学')
-        self.assertTrue(udvs['age'], 22)
-
-    def test_login_by_email_with_context(self):
-        authentication = init_authentication_client()
-        email = "%s@authing.cn" % get_random_string(10)
-        password = get_random_string(10)
-        user = authentication.register_by_email(
-            email=email,
-            password=password,
-        )
-        user = authentication.login_by_email(
-            email=email,
-            password=password,
-            context={
-                'source': 'google'
-            }
-        )
-        self.assertTrue(user['id'])
 
     def test_login_by_username(self):
         authentication = init_authentication_client()
@@ -289,12 +188,6 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(valid is False)
         self.assertTrue(message)
 
-    def test_send_email(self):
-        authentication = init_authentication_client()
-        email = 'cj@authing.cn'
-        res = authentication.send_email(email, 'RESET_PASSWORD')
-        code, message = res['code'], res['message']
-        self.assertTrue(code == 200)
 
     @unittest.skip('need to send sms code')
     def test_rest_password_by_phone_code(self):
@@ -310,18 +203,7 @@ class TestAuthentication(unittest.TestCase):
         user = authentication.login_by_phone_password(phone, new_password)
         self.assertTrue(user['id'])
 
-    def test_reset_password_by_email_code(self):
-        authentication = init_authentication_client()
-        email = 'cj@authing.cn'
-        # user = management.users.create({
-        #     'email': email
-        # })
 
-        new_password = 'passw0rd'
-        # authentication.send_email(email, 'RESET_PASSWORD')
-        authentication.reset_password_by_email_code(email, '1670', new_password)
-        user = authentication.login_by_email(email, new_password)
-        self.assertTrue(user['id'])
 
     def test_update_profile(self):
         authentication = init_authentication_client()
@@ -492,6 +374,7 @@ class TestAuthentication(unittest.TestCase):
     @unittest.skip('logout')
     def test_logout(self):
         authentication_client = init_authentication_client()
+        authentication_client.set
         authentication_client.login_by_email('abc@authing.cn', 'abc@authing.cn')
         success = authentication_client.logout()
         self.assertTrue(success)
@@ -524,7 +407,7 @@ class TestAuthentication(unittest.TestCase):
     @unittest.skip('list_orgs')
     def test_list_orgs(self):
         authentication_client = init_authentication_client()
-        user = authentication_client.login_by_email('cj@authing.cn', 'cj@authing.cn')
+        user = authentication_client.login_by_username('18515006338', 'password')
         data = authentication_client.list_orgs()
         self.assertTrue(data)
 
@@ -867,3 +750,7 @@ class TestAuthentication(unittest.TestCase):
         queries = parse_qs(parsed_url.query)
         self.assertTrue(queries.get('response_type')[0] == 'code')
         self.assertTrue(queries.get('scope')[0] == 'user')
+
+    def test_check_login_in(self):
+        user=init_authentication_client()._check_logged_in()
+        print user

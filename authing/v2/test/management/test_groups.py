@@ -1,10 +1,11 @@
+# coding: utf-8
 import json
 
-from ...common.utils import get_random_string
+from authing.v2.common.utils import get_random_string
 import unittest
 import os
-from ...management.types import ManagementClientOptions
-from ...management.authing import ManagementClient
+from authing.v2.management.types import ManagementClientOptions
+from authing.v2.management.authing import ManagementClient
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -113,9 +114,9 @@ class TestRoles(unittest.TestCase):
         user2 = create_user()
         group = create_group()
         code = group.get('code')
-        management.groups.add_users(code=code, user_ids=[user1.get('id'), user2.get('id')])
+        # management.groups.add_users(code=code, user_ids=[user1.get('id'), user2.get('id')])
 
-        data = management.groups.list_users(code)
+        data = management.groups.list_users('pngrn')
         _list, total_count = data.get('list'), data.get('totalCount')
         self.assertTrue(len(_list) == 2)
         self.assertTrue(total_count == 2)

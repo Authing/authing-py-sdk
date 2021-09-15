@@ -28,6 +28,7 @@ class ManagementTokenProvider:
         return accessToken, iat, exp
 
     def getAccessToken(self):
+        """获取访问Token"""
         if self._accessToken and self._accessTokenExpriredAt >= time.time() + 3600:
             return self._accessToken
         accessToken, iat, exp = self._getClientWhenSdkInit()

@@ -16,8 +16,7 @@ class OrgManagementClient(object):
         self.tokenProvider = tokenProvider
 
     def list_authorized_resources(self, node_id, namespace=None, resource_type=None):
-        """
-        获取一个部门被授权的所有资源。
+        """获取组织机构节点被授权的所有资源
 
         Args:
             node_id (str): 组织机构部门的 ID；

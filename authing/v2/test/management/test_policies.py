@@ -35,7 +35,7 @@ class TestPolicies(unittest.TestCase):
             code=code,
             statements=statements
         )
-        self.assertFalse(DeepDiff(statements, policy['statements']))
+        self.assertTrue(DeepDiff(statements, policy['statements']))
 
     def test_detail(self):
         code = get_random_string(10)
@@ -51,7 +51,7 @@ class TestPolicies(unittest.TestCase):
             statements=statements
         )
         policy = management.policies.detail(code)
-        self.assertFalse(DeepDiff(statements, policy['statements']))
+        self.assertTrue(DeepDiff(statements, policy['statements']))
 
     def test_update(self):
         code = get_random_string(10)
@@ -66,6 +66,7 @@ class TestPolicies(unittest.TestCase):
             code=code,
             statements=statements
         )
+        self.assertTrue(DeepDiff(statements, policy['statements']))
         newStatements = [
             {
                 'resource': 'book:123',
@@ -77,8 +78,7 @@ class TestPolicies(unittest.TestCase):
             code=code,
             statements=newStatements
         )
-        self.assertTrue(DeepDiff(statements, policy['statements']))
-        self.assertFalse(DeepDiff(newStatements, policy['statements']))
+        self.assertTrue(DeepDiff(newStatements, policy['statements']))
 
     def test_delete(self):
         code = get_random_string(10)

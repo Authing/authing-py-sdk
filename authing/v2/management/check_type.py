@@ -1,4 +1,4 @@
-from authing.v2.exceptions import AuthingWrongArgumentException
+from ..exceptions import AuthingWrongArgumentException
 
 
 class CheckType(object):

@@ -31,7 +31,7 @@ class PolicyManagementClient(object):
         return data["policies"]
 
     def create(self, code, statements, description=None):
-        """创建策略"""
+        """添加策略"""
         data = self.graphqlClient.request(
             query=QUERY["createPolicy"],
             params={"code": code, "description": description, "statements": statements},
@@ -51,12 +51,7 @@ class PolicyManagementClient(object):
         )
         return data["policy"]
 
-    def update(
-        self,
-        code,
-        statements,
-        description=None,
-    ):
+    def update(self, code, statements, description=None):
         # type:(str,any,str) -> any
         """修改策略"""
         data = self.graphqlClient.request(
@@ -90,7 +85,7 @@ class PolicyManagementClient(object):
         return data["deletePolicies"]
 
     def list_assignments(self, code, page=1, limit=10):
-        """获取授权记录"""
+        """获取策略授权记录"""
         data = self.graphqlClient.request(
             query=QUERY["policyAssignments"],
             params={"code": code, "page": page, "limit": limit},
@@ -99,7 +94,7 @@ class PolicyManagementClient(object):
         return data["policyAssignments"]
 
     def add_assignments(self, policies, targetType, targetIdentifiers):
-        """添加授权"""
+        """添加策略授权"""
         data = self.graphqlClient.request(
             query=QUERY["addPolicyAssignments"],
             params={
@@ -112,7 +107,7 @@ class PolicyManagementClient(object):
         return data["addPolicyAssignments"]
 
     def remove_assignments(self, policies, targetType, targetIdentifiers):
-        """删除授权"""
+        """撤销策略授权"""
         data = self.graphqlClient.request(
             query=QUERY["removePolicyAssignments"],
             params={

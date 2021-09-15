@@ -16,8 +16,7 @@ class UdfManagementClient(object):
         self.tokenProvider = tokenProvider
 
     def list(self, targetType):
-        """
-        获取自定义字段定义
+        """获取自定义字段定义
 
         Args:
             targetType (str) 自定义字段目标类型， USER 表示用户、ROLE 表示角色。
@@ -32,8 +31,7 @@ class UdfManagementClient(object):
         return data["udf"]
 
     def set(self, targetType, key, dataType, label):
-        """
-        添加自定义字段定义
+        """设置自定义字段元数据
 
         Args:
             targetType (str) 自定义字段目标类型， USER 表示用户、ROLE 表示角色。
@@ -54,8 +52,7 @@ class UdfManagementClient(object):
         return data["setUdf"]
 
     def remove(self, targetType, key):
-        """
-        删除自定义字段定义
+        """删除自定义字段
 
         Args:
             targetType (str) 自定义字段目标类型， USER 表示用户、ROLE 表示角色。
@@ -72,8 +69,7 @@ class UdfManagementClient(object):
         return data["removeUdf"]
 
     def list_udf_value(self, target_type, target_id):
-        """
-        获取某一实体的自定义字段数据列表
+        """获取某一实体的自定义字段数据列表
 
         Args:
             target_type (str) 自定义字段目标类型， USER 表示用户、ROLE 表示角色。
@@ -89,8 +85,7 @@ class UdfManagementClient(object):
         )["udv"]
 
     def set_udf_value_batch(self, target_type, target_id, udf_value_list):
-        """
-        批量添加自定义数据
+        """批量添加自定义数据
 
         Args:
             target_type (str) 自定义字段目标类型， USER 表示用户、ROLE 表示角色。
