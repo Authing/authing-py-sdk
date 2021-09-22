@@ -6,7 +6,6 @@ from authing.v2.authentication import AuthenticationClientOptions
 from authing.v2.authentication.authing import AuthenticationClient
 from authing.v2.management.types import ManagementClientOptions
 from authing.v2.management.authing import ManagementClient
-
 import json
 import unittest
 import os
@@ -22,7 +21,13 @@ management = ManagementClient(
         user_pool_id=os.getenv("AUTHING_USERPOOL_ID"),
         secret=os.getenv("AUTHING_USERPOOL_SECRET"),
         host=os.getenv("AUTHING_SERVER"),
-    )
+        enc_public_key="""-----BEGIN PUBLIC KEY-----
+    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
+    4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
+    DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
+    o/E0RlTdNza6FcAHeQIDAQAB
+    -----END PUBLIC KEY-----"""
+        )
 )
 
 
@@ -32,6 +37,13 @@ def init_authentication_client():
             app_id=os.getenv("AUTHING_APP_ID"),
             app_host=os.getenv("AUTHING_APP_HOST"),
             use_unverified_ssl=True
+    #         ,
+    #         enc_public_key="""-----BEGIN PUBLIC KEY-----
+    # MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
+    # 4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
+    # DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
+    # o/E0RlTdNza6FcAHeQIDAQAB
+    # -----END PUBLIC KEY-----"""
         )
     )
     return authentication_client
@@ -754,3 +766,71 @@ class TestAuthentication(unittest.TestCase):
     def test_check_login_in(self):
         user=init_authentication_client()._check_logged_in()
         print user
+
+    def test_login_by_sub_account(self):
+        user = init_authentication_client().login_by_sub_account("123456789","8558781")
+        print user
+
+    def test_reset_password_by_first_token(self):
+        authentication = init_authentication_client()
+        username = get_random_string(10)
+        password = get_random_string(10)
+        user = authentication.register_by_username(
+            username=username,
+            password=password,
+        )
+        user = authentication.login_by_username(
+            username=username,
+            password=password,
+        )
+        password='12345678'
+        res = authentication.reset_password_by_first_token(user['token'],password)
+        print res
+        user = authentication.login_by_username(
+            username=username,
+            password=password,
+        )
+        print user
+
+
+    def test_reset_password_by_force_token(self):
+        authentication = init_authentication_client()
+        username = get_random_string(10)
+        password = get_random_string(10)
+        user = authentication.register_by_username(
+            username=username,
+            password=password,
+        )
+        user = authentication.login_by_username(
+            username=username,
+            password=password,
+        )
+        new_password='12345678'
+        res = authentication.reset_password_with_force_reset(user['token'],password,new_password)
+        print res
+        user = authentication.login_by_username(
+            username=username,
+            password=new_password,
+        )
+        print user
+
+    def test_list_user_dept(self):
+        authentication = init_authentication_client()
+        authentication.login_by_email(
+            email='fptvmzqyxn@authing.cn',
+            password='12345678',
+        )
+        res = authentication.list_departments()
+        self.assertTrue(isinstance(res['list'], list))
+
+    def test_exists_user(self):
+       res = init_authentication_client().is_user_exists(email="fptvmzqyxn@authing.cn")
+       self.assertTrue(res)
+
+    @unittest.skip
+    def test_validate_ticket_v2(self):
+        res = init_authentication_client().validate_ticket_v2("zxzc","http://localhost:3000")
+
+    def test_track_session(self):
+        res = init_authentication_client().track_session();
+        self.assertIsNone(res)

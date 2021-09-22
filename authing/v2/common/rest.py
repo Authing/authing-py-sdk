@@ -40,3 +40,4 @@ class RestClient(object):
                 self.options.on_error(code, message)
         else:
             return data
+

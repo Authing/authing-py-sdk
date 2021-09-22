@@ -970,3 +970,15 @@ class TestUsers(unittest.TestCase):
     def test_has_role(self):
        has = management.users.has_role(user_id='613ad439397280659fc1a056',role_code='vureo')
        self.assertTrue(has)
+
+    def test_send_first_login_email(self):
+        res = management.users.send_first_login_verify_email(app_id="6139c4d24e78a4d706b7545b",user_id="613872b19c90be7d4da44466")
+        self.assertEquals(res['message'],'发送成功')
+
+    def test_logout(self):
+        res = management.users.logout("613872b19c90be7d4da44466")
+        self.assertEquals(res['code'], 200)
+
+    def test_check_login_status(self):
+        res = management.users.check_login_status("613872b19c90be7d4da44466")
+        self.assertEquals(res['message'],'用户不存在')

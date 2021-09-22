@@ -1604,3 +1604,258 @@ class AuthenticationClient(object):
         """检测当前登录状态"""
         return self._check_logged_in()
 
+    def login_by_sub_account(self, account, password, captcha_code=None, client_ip=None):
+        """登录子账号"""
+        password = encrypt(password, self.options.enc_public_key)
+        data = self.graphqlClient.request(
+            query=QUERY["loginBySubAccount"],
+            params={
+                'account': account,
+                'password': password,
+                'captchaCode': captcha_code,
+                'clientIp': client_ip
+              }
+        )
+        user = data["loginBySubAccount"]
+        self._set_current_user(user)
+        return user
+
+    def reset_password_by_first_token(self, token, password):
+        """通过首次登录的 Token 重置密码 TODO 500"""
+        password = encrypt(password, self.options.enc_public_key)
+        data = self.graphqlClient.request(
+            query=QUERY["resetPasswordByFirstLoginToken"],
+            params={
+                'token': token,
+                'password': password
+            }
+        )
+        return data["resetPasswordByFirstLoginToken"]
+
+    def reset_password_with_force_reset(self, token, old_password, new_password):
+        """通过密码强制更新临时 Token 修改密码"""
+        old_password = encrypt(old_password, self.options.enc_public_key)
+        new_password = encrypt(new_password, self.options.enc_public_key)
+        data = self.graphqlClient.request(
+            query=QUERY["resetPasswordByForceResetToken"],
+            params={
+                'token': token,
+                'oldPassword': old_password,
+                'newPassword': new_password
+            }
+        )
+        return data["resetPasswordByForceResetToken"]
+
+    def list_departments(self):
+        """获取用户所有部门"""
+        user = self._check_logged_in()
+        data = self.graphqlClient.request(
+            query=QUERY["getUserDepartments"],
+            params={
+                'id': user['id']
+            },
+            token=self.get_token()
+        )
+        return data["user"]
+
+    def is_user_exists(self, user_name=None, email=None, phone=None, external_id=None):
+        """判断用户是否存在
+
+        Args:
+            user_name(str):用户名
+            email(str): 邮箱
+            phone(str): 电话
+            external_id(str): 数据源ID
+        """
+        data = self.graphqlClient.request(
+            query=QUERY["isUserExists"],
+            params={
+                 'username': user_name,
+                 'email': email,
+                 'phone': phone,
+                 'externalId': external_id
+            },
+            token=self.get_token()
+        )
+        return data["isUserExists"]
+
+    def validate_ticket_v2(self, ticket, service, format='XML'):
+        """通过远端服务验证票据合法性
+
+        Args:
+            ticket(str):票据
+            service(str):验证服务地址
+            format(str):格式 仅限 XML JSON
+        """
+        if format not in ["XML", "JSON"]:
+            raise AuthingWrongArgumentException(" format value is only ['XML','JSON']")
+        url = '%s/cas-idp/%s/serviceValidate' % (self.options.app_host, self.options.app_id)
+        return self.restClient.request( method='GET', url=url, params={
+            'service': service, 'ticket': ticket, 'format': format})
+
+    def track_session(self):
+        """sso 检测登录态"""
+        url = '%s/cas/session' % self.options.app_host
+        return self.restClient.request(method='GET', url=url)
+
+    def wechat_login(self, code, country=None, lang=None, state=None):
+        """通过微信登陆
+
+        Args:
+            code(str):编码
+            country(str):国家
+            lang(str):语言
+            state(str):状态
+        """
+        url = "%s/connection/social/wechat:mobile/%s/callback?code=%s" % (self.options.host, self.options.user_pool_id, code)
+        if country:
+            url = url + "&country="+country
+        if lang:
+            url = url + "&lang="+lang
+        if state:
+            url = url + "&state="+state
+        return self.restClient.request(method='GET', url=url)
+
+    def get_mfa_authenticators(self, mfa_token=None, type='totp', source='SELF'):
+        """获取 MFA 认证器
+
+        Args:
+            mfa_token(str): 多因子token
+            type(str)：类型
+            source(str):源
+        """
+        url = "%s/api/v2/mfa/authenticator" % self.options.host
+        params = {
+            'type': type,
+            'source': source
+        }
+        return self.restClient.request(method='GET', url=url, token=mfa_token if mfa_token else self.get_token(), params=params)
+
+    def assosicate_mfa_authenticator(self, mfa_token=None, authenticator_type='totp', source='SELF'):
+        """请求 MFA 二维码和密钥信息
+
+        Args:
+            mfa_token(str):token信息
+            authenticator_type(str):类型
+            source(str):来源
+        """
+        url = "%s/api/v2/mfa/totp/associate" % self.options.host
+        params = {
+            'authenticatorType': authenticator_type,
+            'source': source
+        }
+        return self.restClient.request(method='POST', url=url, token=mfa_token if mfa_token else self.get_token(),
+                                       json=params)
+
+    def delete_mfa_authenticator(self):
+        """解绑 MFA"""
+        url = "%s/api/v2/mfa/totp/associate" % self.options.host
+        return self.restClient.request(method='DELETE', url=url, token=self.get_token())
+
+    def confirm_assosicate_mfa_authenticator(self,  totp, authenticator_type='totp', source='SELF',mfa_token=None):
+        """确认绑定 MFA
+
+        Args:
+            totp(str):验证码
+            authenticator_type(str):类型
+            source(str):来源
+            mfa_token(str):token信息
+        """
+        url = "%s/api/v2/mfa/totp/associate/confirm" % self.options.host
+        data = {
+                'authenticatorType': authenticator_type,
+                'source': source,
+                'totp': totp
+                }
+        return self.restClient.request(method='POST', url=url, token=mfa_token if mfa_token else self.get_token(), json=data)
+
+    def verify_totp_mfa(self, totp, mfa_token):
+        """检验二次验证 MFA 口令
+
+        Args:
+            totp(str):验证码
+            mfa_token(str):token信息
+        """
+        url = "%s/api/v2/mfa/totp/verify" % self.options.host
+        return self.restClient.request(method='POST', url=url, token=mfa_token, json={
+            'totp': totp
+        })
+
+    def verify_app_sms_mfa(self, phone, code, mfa_token):
+        """检验二次验证 MFA 短信验证码
+
+        Args:
+            phone(str):手机号
+            code(str):验证码
+            mfa_token(str):token信息
+        """
+        url = "%s/api/v2/applications/mfa/sms/verify" % self.options.host
+        return self.restClient.request(method='POST', url=url, token=mfa_token, json={
+            'code': code,
+            'phone': phone
+        })
+
+    def verify_app_email_mfa(self, email, code, mfa_token):
+        """检验二次验证 MFA 邮箱验证码
+
+        Args:
+            email(str):邮箱
+            code(str): 验证码
+            mfa_token(str):token信息
+        """
+        url = "%s/api/v2/applications/mfa/email/verify" % self.options.host
+        return self.restClient.request(method='POST', url=url, token=mfa_token, json={
+            'code': code,
+            'email': email
+        })
+
+    def phone_or_email_bindable(self, mfa_token, phone=None, email=None):
+        """检测手机号或邮箱是否已被绑定
+
+        Args:
+            mfa_token(str):token信息
+            phone(str): 手机号
+            email(str): 邮箱
+        """
+        url = "%s/api/v2/applications/mfa/check" % self.options.host
+        return self.restClient.request(method='POST', url=url, token=mfa_token, json={
+            'phone': phone,
+            'email': email
+        })
+
+    def verify_totp_recovery_code(self, recovery_code, mfa_token):
+        """检验二次验证 MFA 恢复代码
+
+        Args:
+            recovery_code(str):回复验证码
+            mfa_token(str): token
+        """
+        url = "%s/api/v2/mfa/totp/recovery" % self.options.host
+        return self.restClient.request(method='POST', url=url, token=mfa_token, json={
+            'recoveryCode': recovery_code
+        })
+
+    def associate_face_by_url(self, base_face, compare_face, mfa_token=None):
+        """通过图片 URL 绑定人脸
+
+        Args:
+            base_face(str):基础照片
+            compare_face(str):对比照片
+            mfa_token(str): token信息
+        """
+        url = "%s/api/v2/mfa/face/associate" % self.options.host
+        return self.restClient.request(method='POST', url=url, token=mfa_token if mfa_token else self.get_token(), json={
+                'photoA': base_face,
+                'photoB': compare_face,
+                'isExternal': True
+        })
+
+    def verify_face_mfa(self, photo, mfa_token):
+        """人脸二次认证
+
+        Args:
+            photo(str):照片
+            mfa_token(str):token信息
+        """
+        url = "%s/api/v2/mfa/face/associate" % self.options.host
+        return self.restClient.request(method='POST', url=url, token=mfa_token, json={'photo': photo})

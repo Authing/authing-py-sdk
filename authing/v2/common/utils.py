@@ -93,3 +93,7 @@ def get_random_string(length=10):
     letters = string.ascii_lowercase
     result_str = "".join(random.choice(letters) for i in range(length))
     return result_str
+
+
+def get_random_string_secret(length=32):
+    return "".join(random.choice('abcdefhijkmnprstwxyz2345678') for i in range(length))

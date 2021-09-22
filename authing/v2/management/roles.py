@@ -401,3 +401,7 @@ class RolesManagementClient(object):
             token=self.tokenProvider.getAccessToken()
         )
         return True
+
+    def find_by_code(self, code, namespace=None):
+        """获取角色详情"""
+        return self.detail(code,namespace)

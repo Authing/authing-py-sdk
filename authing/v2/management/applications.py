@@ -131,7 +131,7 @@ class ApplicationsManagementClient(object):
         )
 
     def get_access_policies(self, app_id, page=1, limit=10):
-        """获取应用授权记录"""
+        """获取应用访问控制策略列表"""
         self.__super__.check.page_options(page, limit)
 
         url = "%s/api/v2/applications/%s/authorization/records" % (self.options.host, app_id)
@@ -140,7 +140,63 @@ class ApplicationsManagementClient(object):
             method="GET",
             url=url,
             token=self.tokenProvider.getAccessToken(),
-            auto_parse_result=True
+            auto_parse_result=True,
+            params={
+                'page': page,
+                'limit': limit
+            }
         )
 
-    # def enable_access_policy(self, app_id, target_type, target_identifiers, inherit_by_children=None):
+    def create_agreement(self, app_id, title, required=True, lang="zh-CN"):
+        """创建应用协议"""
+        url = "%s/api/v2/applications/%s/agreements" % (self.options.host,app_id)
+        data = self.restClient.request(method="POST", url=url, token=self.tokenProvider.getAccessToken(),
+                                       json={
+                                           'title': title,
+                                           'required': required,
+                                           'lang': lang
+                                       })
+        return data
+
+    def list_agreement(self, app_id):
+        """应用协议列表"""
+        url = "%s/api/v2/applications/%s/agreements" % (self.options.host,app_id)
+        data = self.restClient.request(method="GET", url=url, token=self.tokenProvider.getAccessToken())
+        return data
+
+    def modify_agreement(self, app_id, agreement_id, title, required=True, lang="zh-CN"):
+        """修改应用协议"""
+        url = "%s/api/v2/applications/%s/agreements/%s" % (self.options.host, app_id, agreement_id)
+        data = self.restClient.request(method="PUT", url=url, token=self.tokenProvider.getAccessToken(),
+                                       json={
+                                           'title': title,
+                                           'required': required,
+                                           'lang': lang
+                                       })
+        return data
+
+    def delete_agreement(self, app_id, agreement_id):
+        """删除应用协议"""
+        url = "%s/api/v2/applications/%s/agreements/%s" % (self.options.host, app_id, agreement_id)
+        data = self.restClient.request(method="DELETE", url=url, token=self.tokenProvider.getAccessToken())
+        return data
+
+    def sort_agreement(self, app_id, order):
+        """应用协议排序"""
+        url = "%s/api/v2/applications/%s/agreements/sort" % (self.options.host, app_id)
+        data = self.restClient.request(method="POST", url=url, token=self.tokenProvider.getAccessToken(), json={
+            "ids": order
+        })
+        return data
+
+    def refresh_application_secret(self, app_id):
+        """刷新应用密钥"""
+        url = "%s/api/v2/application/%s/refresh-secret" % (self.options.host, app_id)
+        data = self.restClient.request(method="PATCH", url=url, token=self.tokenProvider.getAccessToken())
+        return data
+
+    def active_users(self, app_id, page=1, limit=10):
+        """查看应用下已登录用户"""
+        url = "%s/api/v2/applications/%s/active-users?page=%s&%s" % (self.options.host, app_id, page, limit)
+        data = self.restClient.request(method="GET", url=url, token=self.tokenProvider.getAccessToken())
+        return data

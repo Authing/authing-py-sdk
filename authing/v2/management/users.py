@@ -743,3 +743,27 @@ class UsersManagementClient(object):
             url=query,
             token=self.tokenProvider.getAccessToken()
         )["data"]
+
+    def send_first_login_verify_email(self, app_id, user_id):
+        """发送首次登录验证邮件"""
+        data = self.graphqlClient.request(
+            query=QUERY["sendFirstLoginVerifyEmail"],
+            params={
+                "appId": app_id,
+                "userId": user_id
+            },
+            token=self.tokenProvider.getAccessToken()
+        )
+        return data["sendFirstLoginVerifyEmail"]
+
+    def logout(self, user_id, app_id=None):
+        """用户退出登录"""
+        url = "%s/logout" % self.options.host
+        return self.restClient.request(method="GET", url=url, token=self.tokenProvider.getAccessToken(),
+                                       params={"appId":app_id, "userId":user_id})
+
+    def check_login_status(self, user_id, app_id=None, device_id=None):
+        """检查用户登录状态"""
+        url = "%s/api/v2/users/login-status" % self.options.host
+        return self.restClient.request(method="GET", url=url, token=self.tokenProvider.getAccessToken(),
+                                       params={"appId": app_id, "userId": user_id, "deviceId": device_id})

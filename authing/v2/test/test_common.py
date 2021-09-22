@@ -12,7 +12,8 @@ class TestHelper():
     def __init__(self):
         pass
 
-    def init_authentication_client(self):
+    @staticmethod
+    def init_authentication_client():
         authentication_client = AuthenticationClient(
             options=AuthenticationClientOptions(
                 app_id=os.getenv("AUTHING_APP_ID"),
@@ -21,6 +22,14 @@ class TestHelper():
             )
         )
         return authentication_client
+
+    @staticmethod
+    def init_mfa_authentication_client():
+        return MfaAuthenticationClient(options=AuthenticationClientOptions(
+                app_id=os.getenv("AUTHING_APP_ID"),
+                app_host=os.getenv("AUTHING_APP_HOST"),
+                use_unverified_ssl=True
+            ))
 
     def register_random_user(self):
         authentication_client = self.init_authentication_client()

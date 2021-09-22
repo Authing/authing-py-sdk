@@ -6,18 +6,18 @@ from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
 from ..exceptions import AuthingWrongArgumentException
 from ..common.rest import RestClient
-from ..common.utils import format_authorized_resources
-
+from ..common.utils import format_authorized_resources,get_random_string_secret
 
 class AclManagementClient(object):
     """Authing Access Control Management Client"""
 
-    def __init__(self, options, graphqlClient, restClient, tokenProvider):
+    def __init__(self, options, graphqlClient, restClient, tokenProvider, managementClient):
         # type:(ManagementClientOptions,GraphqlClient,RestClient,ManagementTokenProvider) -> AclManagementClient
         self.options = options
         self.graphqlClient = graphqlClient
         self.restClient = restClient
         self.tokenProvider = tokenProvider
+        self.__super__ = managementClient
 
     def allow(self, resource, action, namespace, role=None, user_id=None):
         """允许某个用户对某个资源进行某个操作
@@ -438,3 +438,206 @@ class AclManagementClient(object):
         )
 
         return data['authorizedTargets']
+
+    def programmatic_access_account_list(self, app_id, page=1, limit=10):
+        """编程访问账号列表
+
+        Args:
+            app_id (str): 应用ID
+            page (int): 分页
+            limit (int): 每页数量
+        """
+        if not app_id:
+            raise AuthingWrongArgumentException("app_id not found")
+        url = "%s/api/v2/applications/%s/programmatic-access-accounts?limit=%s&page=%s" % (self.options.host, app_id,
+                                                                                           limit, page)
+        return self.restClient.request(method='GET', token=self.tokenProvider.getAccessToken(), url=url)
+
+    def create_programmatic_access_account(self, app_id, remark=None, token_lifetime=600):
+        """添加编程访问账号
+
+        Args:
+            app_id (str): 应用ID
+            remark (str): 备注
+            token_lifetime (int): Token过期时间
+        """
+        url = "%s/api/v2/applications/%s/programmatic-access-accounts" % (self.options.host, app_id)
+        body = {
+            'tokenLifetime': token_lifetime
+        }
+        if remark:
+            body['remark'] = remark
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def disable_programmatic_access_account(self, programmatic_access_account_id):
+        """禁用编程访问账号
+
+         Args:
+            programmatic_access_account_id (str): 编程账号ID
+        """
+        url = "%s/api/v2/applications/programmatic-access-accounts" % self.options.host
+        body = {
+            'id': programmatic_access_account_id,
+            'enabled': False
+        }
+        return self.restClient.request(method='PATCH', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def delete_programmatic_access_account(self, programmatic_access_account_id):
+        """删除编程访问账号
+
+        Args:
+            programmatic_access_account_id (str): 编程账号ID
+        """
+        url = "%s/api/v2/applications/programmatic-access-accounts?id=%s" % (self.options.host,programmatic_access_account_id )
+        return self.restClient.request(method='DELETE', token=self.tokenProvider.getAccessToken(), url=url)
+
+    def enable_programmatic_access_account(self, programmatic_access_account_id):
+        """启用编程访问账号
+
+         Args:
+            programmatic_access_account_id (str): 编程账号ID
+        """
+        url = "%s/api/v2/applications/programmatic-access-accounts" % self.options.host
+        body = {
+            'id': programmatic_access_account_id,
+            'enabled': True
+        }
+        return self.restClient.request(method='PATCH', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def refresh_programmatic_access_account_secret(self, programmatic_access_account_id, secret=get_random_string_secret(32)):
+        """刷新编程访问账号密钥
+
+         Args:
+            programmatic_access_account_id (str): 编程账号ID
+            secret (str) : 默认秘钥
+        """
+        url = "%s/api/v2/applications/programmatic-access-accounts" % self.options.host
+        body = {
+            'id': programmatic_access_account_id,
+            'secret': secret
+        }
+        return self.restClient.request(method='PATCH', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def get_resource_by_id(self, id):
+        """根据 ID 获取单个资源
+
+          Args:
+            id (str): 资源ID
+        """
+        url = "%s/api/v2/resources/detail" % self.options.host
+        return self.restClient.request(method='GET', token=self.tokenProvider.getAccessToken(),
+                                       url=url,params={'id': id})
+
+    def get_resource_by_code(self, namespace, code):
+        """根据 Code 获取单个资源
+
+        Args:
+            namespace (str): 空间编码
+            code (str): 资源Code
+        """
+        url = "%s/api/v2/resources/detail" % self.options.host
+        return self.restClient.request(method='GET', token=self.tokenProvider.getAccessToken(),
+                                       url=url, params={'namespace': namespace, 'code': code})
+
+    def __convert_access_application_params_to_json(self, app_id, target_type, target_identifiers, namespace, inherit_by_children):
+        self.__super__.check.target_type(target_type)
+        if not app_id:
+            raise AuthingWrongArgumentException("app_id is required")
+        body = {
+            'targetType': target_type,
+            'targetIdentifiers': target_identifiers,
+            'namespace': namespace,
+            'inheritByChildren': inherit_by_children
+        }
+        return body
+
+    def enable_application_access_policies(self, app_id, target_type, target_identifiers, namespace, inherit_by_children):
+        """启用应用访问控制策略
+
+        Args:
+            app_id (str): 应用编码
+            target_type (str): 对象类型
+            target_identifiers (str[]): 对象ID集合
+            namespace (str):空间编码
+            inherit_by_children(bool):是否内联子类
+        """
+        body = self.__convert_access_application_params_to_json(app_id, target_type, target_identifiers, namespace, inherit_by_children)
+        url = "%s/api/v2/applications/%s/authorization/enable-effect" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def disable_application_access_policies(self, app_id, target_type, target_identifiers, namespace,
+                                           inherit_by_children):
+        """停用应用访问控制策略
+
+        Args:
+            app_id (str): 应用编码
+            target_type (str): 对象类型
+            target_identifiers (str[]): 对象ID集合
+            namespace (str):空间编码
+            inherit_by_children(bool):是否内联子类
+        """
+        body = self.__convert_access_application_params_to_json(app_id, target_type, target_identifiers, namespace, inherit_by_children)
+
+        url = "%s/api/v2/applications/%s/authorization/disable-effect" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def delete_application_access_policies(self, app_id, target_type, target_identifiers, namespace,
+                                            inherit_by_children):
+        """删除应用访问控制策略
+
+        Args:
+            app_id (str): 应用编码
+            target_type (str): 对象类型
+            target_identifiers (str[]): 对象ID集合
+            namespace (str):空间编码
+            inherit_by_children(bool):是否内联子类
+        """
+        body = self.__convert_access_application_params_to_json(app_id, target_type, target_identifiers, namespace, inherit_by_children)
+
+        url = "%s/api/v2/applications/%s/authorization/revoke" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def allow_access_application(self, app_id, target_type, target_identifiers, namespace,
+                                            inherit_by_children):
+        """配置「允许主体（用户、角色、分组、组织机构节点）访问应用」的控制策略
+
+                   Args:
+                       app_id (str): 应用编码
+                       target_type (str): 对象类型
+                       target_identifiers (str[]): 对象ID集合
+                       namespace (str):空间编码
+                       inherit_by_children(bool):是否内联子类
+                   """
+        body = self.__convert_access_application_params_to_json(app_id, target_type, target_identifiers, namespace, inherit_by_children)
+
+        url = "%s/api/v2/applications/%s/authorization/allow" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def deny_access_application(self, app_id, target_type, target_identifiers, namespace,
+                                            inherit_by_children):
+        """配置「拒绝主体（用户、角色、分组、组织机构节点）访问应用」的控制策略
+
+             Args:
+                 app_id (str): 应用编码
+                 target_type (str): 对象类型
+                 target_identifiers (str[]): 对象ID集合
+                 namespace (str):空间编码
+                 inherit_by_children(bool):是否内联子类
+             """
+        body = self.__convert_access_application_params_to_json(app_id, target_type, target_identifiers, namespace, inherit_by_children)
+
+        url = "%s/api/v2/applications/%s/authorization/deny" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def update_default_application_access_policy(self, app_id, default_strategy):
+        """更改默认应用访问策略（默认拒绝所有用户访问应用、默认允许所有用户访问应用）"""
+        if default_strategy not in ['ALLOW_ALL', 'DENY_ALL']:
+            raise AuthingWrongArgumentException('default_strategy value only "ALLOW_ALL" or "DENY_ALL" ')
+        if not app_id:
+            raise AuthingWrongArgumentException(' app_id is required')
+        url = "%s/api/v2/applications/%s" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json={
+            'permissionStrategy': {
+                'defaultStrategy': default_strategy
+            }
+        })

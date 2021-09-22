@@ -10,7 +10,13 @@ load_dotenv()
 management = ManagementClient(ManagementClientOptions(
     user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
-    host=os.getenv('AUTHING_SERVER')
+    host=os.getenv('AUTHING_SERVER'),
+    enc_public_key="""-----BEGIN PUBLIC KEY-----
+    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
+    4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
+    DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
+    o/E0RlTdNza6FcAHeQIDAQAB
+    -----END PUBLIC KEY-----"""
 ))
 
 default_namespace = 'default'
@@ -74,5 +80,35 @@ class TestApp(unittest.TestCase):
        self.assertTrue(rs)
 
     def test_get_access_policies(self):
-        res = management.applications.get_access_policies("61384d3ee1b81dd1342e5635")
+        res = management.applications.get_access_policies("6139c4d24e78a4d706b7545b")
         print (res)
+
+    def test_create_agreement(self):
+        title = "cc"
+        res = management.applications.create_agreement("6139c4d24e78a4d706b7545b",title)
+        self.assertEquals(res['data']['title'], title)
+
+    def test_list_agreement(self):
+        res = management.applications.list_agreement("6139c4d24e78a4d706b7545b")
+        self.assertTrue(isinstance(res['data']['list'], list))
+
+    def test_modify_agreement(self):
+        title = "cc"
+        res = management.applications.modify_agreement("6139c4d24e78a4d706b7545b","210",title)
+        self.assertEquals(res['data']['title'], title)
+
+    def test_delete_agreement(self):
+        res = management.applications.delete_agreement("6139c4d24e78a4d706b7545b", "210")
+        self.assertEquals(res['code'], 200)
+
+    def test_order_agreement(self):
+        res = management.applications.sort_agreement("6139c4d24e78a4d706b7545b",["210",'110'])
+        self.assertEquals(res['code'], 200)
+
+    def test_refresh_application_secret(self):
+        res = management.applications.refresh_application_secret("6139c4d24e78a4d706b7545b")
+        self.assertEquals(res['code'], 200)
+
+    def test_active_users(self):
+        res = management.applications.active_users("6139c4d24e78a4d706b7545b")
+        self.assertTrue(isinstance(res['data']['list'],list))

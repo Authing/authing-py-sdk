@@ -375,3 +375,93 @@ class TestAcl(unittest.TestCase):
     def test_get_authorized_targets(self):
         data = management.acl.get_authorized_targets(namespace="mvcbbdutsn", resource_type="DATA", resource="test",target_type="GROUP")
         print (data)
+
+    def test_programmatic_access_account_list(self):
+        result = management.acl.programmatic_access_account_list("6139c4d24e78a4d706b7545b")
+        self.assertEquals(result['message'], '获取编程访问账号列表成功')
+
+    def test_create_programmatic_access_account(self):
+        result = management.acl.create_programmatic_access_account(app_id='6139c4d24e78a4d706b7545b', remark='xx')
+        self.assertEquals(result['code'], 200)
+
+    def test_disable_programmatic_access_account(self):
+        result = management.acl.disable_programmatic_access_account("61418fad9d4357a5308e5ecd")
+        self.assertFalse(result['data']['enabled'])
+
+    def test_delete_programmatic_access_account(self):
+        result = management.acl.delete_programmatic_access_account('61418fad9d4357a5308e5ecd')
+        self.assertEquals(result['code'], 200)
+
+    def test_enable_programmatic_access_account(self):
+        account = management.acl.create_programmatic_access_account(app_id='6139c4d24e78a4d706b7545b', remark='xx')
+        result = management.acl.enable_programmatic_access_account(account['data']['id'])
+        self.assertTrue(result['data']['enabled'])
+
+    def test_refresh_programmatic_access_account_secret(self):
+        account = management.acl.create_programmatic_access_account(app_id='6139c4d24e78a4d706b7545b', remark='xx')
+        result = management.acl.refresh_programmatic_access_account_secret(account['data']['id'])
+        self.assertNotEqual(account['data']['secret'], result['data']['secret'])
+
+    def test_get_resource_by_id(self):
+        result = management.acl.get_resource_by_id('6141a1bc2129d0b83415227f')
+        self.assertEquals(result['data']['id'], '6141a1bc2129d0b83415227f')
+
+    def test_get_resource_by_code(self):
+        result = management.acl.get_resource_by_code(namespace='gvymeeehxt', code='eyqcalgaeo')
+        self.assertEquals(result['data']['id'], '6141a1bc2129d0b83415227f')
+
+    def test_enable_application_access_policies(self):
+        result = management.acl.enable_application_access_policies(namespace='61360547f4807f63584fa152',
+                                                                   app_id='61360547f4807f63584fa152',
+                                                                   inherit_by_children=False,
+                                                                   target_type='USER',
+                                                                   target_identifiers=[
+                                                                       '613ad7081436dc0f42d8ee65'
+                                                                   ])
+        self.assertEquals(result['code'], 200)
+
+    def test_disable_application_access_policies(self):
+        result = management.acl.disable_application_access_policies(namespace='gvymeeehxt',
+                                                                    app_id='6139c4d24e78a4d706b7545b',
+                                                                    inherit_by_children=False,
+                                                                    target_type='USER',
+                                                                    target_identifiers=[
+                                                                       '613eb8b33cd935afe7470c88'
+                                                                    ])
+        self.assertEquals(result['code'], 200)
+
+    def test_delete_application_access_policies(self):
+        result = management.acl.disable_application_access_policies(namespace='gvymeeehxt',
+                                                                    app_id='6139c4d24e78a4d706b7545b',
+                                                                    inherit_by_children=False,
+                                                                    target_type='USER',
+                                                                    target_identifiers=[
+                                                                        '613eb8b33cd935afe7470c88'
+                                                                    ])
+        self.assertEquals(result['code'], 200)
+
+    def test_allow_access_application(self):
+        result = management.acl.allow_access_application(namespace='gvymeeehxt',
+                                                         app_id='6139c4d24e78a4d706b7545b',
+                                                         inherit_by_children=False,
+                                                         target_type='USER',
+                                                         target_identifiers=[
+                                                                        '613eb8b33cd935afe7470c88'
+                                                                    ])
+        self.assertEquals(result['code'], 200)
+
+    def test_deny_access_application(self):
+        result = management.acl.deny_access_application(namespace='gvymeeehxt',
+                                                        app_id='6139c4d24e78a4d706b7545b',
+                                                        inherit_by_children=False,
+                                                        target_type='USER',
+                                                        target_identifiers=[
+                                                                        '613eb8b33cd935afe7470c88'
+                                                                    ])
+        self.assertEquals(result['code'], 200)
+
+    def test_update_default_application_access_policy(self):
+        result = management.acl.update_default_application_access_policy( app_id='6139c4d24e78a4d706b7545b',
+                                                                          default_strategy='ALLOW_ALL')
+        self.assertEquals(result['code'], 200)
+

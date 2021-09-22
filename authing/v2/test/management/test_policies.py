@@ -202,3 +202,52 @@ class TestPolicies(unittest.TestCase):
         )
         totalCount = data['totalCount']
         self.assertTrue(totalCount == 0)
+
+    def test_enable_assignments(self):
+        code = get_random_string(10)
+        statements = [
+            {
+                'resource': 'book:123',
+                'actions': ['books:read'],
+                'effect': 'ALLOW'
+            }
+        ]
+        policy = management.policies.create(
+            code=code,
+            statements=statements
+        )
+        role = management.roles.create(code=get_random_string(10))
+
+        management.policies.add_assignments(
+            policies=[policy['code']],
+            targetType='ROLE',
+            targetIdentifiers=[role['code']]
+        )
+        res = management.policies.enable_assignment(code, target_type='ROLE', target_identifier=role['id'])
+        print res
+
+    def test_disable_assignments(self):
+        code = get_random_string(10)
+        statements = [
+            {
+                'resource': 'book:123',
+                'actions': ['books:read'],
+                'effect': 'ALLOW'
+            }
+        ]
+        policy = management.policies.create(
+            code=code,
+            statements=statements
+        )
+        role = management.roles.create(code=get_random_string(10))
+
+        management.policies.add_assignments(
+            policies=[policy['code']],
+            targetType='ROLE',
+            targetIdentifiers=[role['code']]
+        )
+        res = management.policies.enable_assignment(code, target_type='ROLE', target_identifier=role['id'])
+        res = management.policies.disable_assignment(code, target_type='ROLE',
+                                                    target_identifier=role['id'])
+        print res
+        self.assertEquals(res['code'],200)

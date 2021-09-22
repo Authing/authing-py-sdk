@@ -9,12 +9,13 @@ from .token_provider import ManagementTokenProvider
 class PolicyManagementClient(object):
     """Authing Policy Management Client"""
 
-    def __init__(self, options, graphqlClient, tokenProvider):
+    def __init__(self, options, graphqlClient, tokenProvider, managementClient):
         # type:(ManagementClientOptions,GraphqlClient,ManagementTokenProvider) -> PolicyManagementClient
 
         self.options = options
         self.graphqlClient = graphqlClient
         self.tokenProvider = tokenProvider
+        self.__super__ = managementClient
 
     def list(self, page=1, limit=10):
         """获取策略列表
@@ -118,3 +119,47 @@ class PolicyManagementClient(object):
             token=self.tokenProvider.getAccessToken(),
         )
         return data["removePolicyAssignments"]
+
+    def enable_assignment(self, policy, target_type, target_identifier, namespace=None):
+        """设置策略授权状态为开启
+
+        Args:
+            policy(str): 策略
+            target_type(str): 策略类型 可选值为 USER (用户), ROLE (角色), GROUP（分组）, ORG（组织机构）
+            target_identifier(str): 目标ID
+            namespace(str):命名空间
+        """
+        self.__super__.check.target_type(target_type)
+        data = self.graphqlClient.request(
+            query=QUERY["enablePolicyAssignment"],
+            params={
+                "policy": policy,
+                "targetType": target_type,
+                "targetIdentifier": target_identifier,
+                "namespace": namespace
+            },
+            token=self.tokenProvider.getAccessToken(),
+        )
+        return data["enablePolicyAssignment"]
+
+    def disable_assignment(self, policy, target_type, target_identifier, namespace=None):
+        """设置策略授权状态为关闭
+
+        Args:
+            policy(str): 策略
+            target_type(str): 策略类型 可选值为 USER (用户), ROLE (角色), GROUP（分组）, ORG（组织机构）
+            target_identifier(str): 目标ID
+            namespace(str):命名空间
+        """
+        self.__super__.check.target_type(target_type)
+        data = self.graphqlClient.request(
+            query=QUERY["disbalePolicyAssignment"],
+            params={
+                "policy": policy,
+                "targetType": target_type,
+                "targetIdentifier": target_identifier,
+                "namespace": namespace
+            },
+            token=self.tokenProvider.getAccessToken(),
+        )
+        return data["disbalePolicyAssignment"]
