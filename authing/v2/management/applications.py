@@ -13,7 +13,12 @@ class ApplicationsManagementClient(object):
         self.__super__ = managementClient
 
     def list(self, page=1, limit=10):
-        """获取应用列表"""
+        """获取应用列表
+
+        Args:
+            page(int):页号
+            limit(int):每页记录数
+        """
         url = "%s/api/v2/applications?page=%s&limit=%s" % (self.options.host, page, limit)
 
         res = self.restClient.request(
@@ -28,7 +33,14 @@ class ApplicationsManagementClient(object):
             self.options.on_error(res.get("code"), res.get("message"))
 
     def create(self, name, identifier, redirect_uris, logo=None):
-        """创建应用"""
+        """创建应用
+
+        Args:
+            name(str): 应用名称
+            identifier(str): 应用唯一标志符
+            redirect_uris(list): 回调链接
+            logo(str): Logo图标地址
+        """
         if not isinstance(redirect_uris, list):
             raise AuthingWrongArgumentException('empty redirect_uris list')
 
@@ -52,7 +64,11 @@ class ApplicationsManagementClient(object):
             self.options.on_error(res.get("code"), res.get("message"))
 
     def delete(self, app_id):
-        """删除应用"""
+        """删除应用
+
+        Args:
+            app_id(str):应用id
+        """
         url = "%s/api/v2/applications/%s" % (self.options.host, app_id)
 
         res = self.restClient.request(
@@ -115,7 +131,7 @@ class ApplicationsManagementClient(object):
         """更新资源"""
         self.__super__.check.resource_type(resource_type)
 
-        return self.__super__.acl.create_resource(
+        return self.__super__.acl.update_resource(
             namespace=app_id,
             code=code,
             resource_type=resource_type,

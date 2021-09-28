@@ -121,7 +121,7 @@ class RolesManagementClient(object):
         )
         return data["deleteRoles"]
 
-    def list_users(self, code, page=0, limit=10, namespace=None, with_custom_data=False):
+    def list_users(self, code, page=1, limit=10, namespace=None, with_custom_data=False):
         """获取角色用户列表
 
         Args:

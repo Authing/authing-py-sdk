@@ -635,7 +635,7 @@ class AuthenticationClient(object):
             },
             token=self._get_token(),
         )
-        user = data["updatePhone"]
+        user = data["updateEmail"]
         self._set_current_user(user)
         return user
 
@@ -1633,7 +1633,7 @@ class AuthenticationClient(object):
         return data["resetPasswordByFirstLoginToken"]
 
     def reset_password_with_force_reset(self, token, old_password, new_password):
-        """通过密码强制更新临时 Token 修改密码"""
+        """通过密码强制更新临时 Token 修改密码 TODO 500"""
         old_password = encrypt(old_password, self.options.enc_public_key)
         new_password = encrypt(new_password, self.options.enc_public_key)
         data = self.graphqlClient.request(

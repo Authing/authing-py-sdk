@@ -85,7 +85,7 @@ class OrgManagementClient(object):
         return data['createOrg']
 
     def delete_by_id(self, id):
-        """删除组织机构 TODO
+        """删除组织机构
 
         Args:
             id(str):机构ID

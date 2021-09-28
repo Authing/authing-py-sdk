@@ -733,9 +733,9 @@ class UsersManagementClient(object):
         query = url_join_args(url, {
             "page": page,
             "limit": limit,
-            "clientip": client_ip,
-            "operation_name": operation_name,
-            "operator_arn": operato_arn
+            "clientip": client_ip if client_ip else '',
+            "operation_name": operation_name if operation_name else '',
+            "operator_arn": operato_arn if operato_arn else ''
         })
 
         return self.restClient.request(

@@ -195,7 +195,7 @@ class TestAuthentication(unittest.TestCase):
 
     def test_check_password_strength(self):
         authentication = init_authentication_client()
-        res = authentication.check_password_strength('')
+        res = authentication.check_password_strength('asdas21asd')
         valid, message = res['valid'], res['message']
         self.assertTrue(valid is False)
         self.assertTrue(message)
@@ -305,7 +305,7 @@ class TestAuthentication(unittest.TestCase):
         management.udf.set(
             targetType="USER", key="school", dataType="STRING", label="学校"
         )
-        authentication.set_udv(key="school", value="ucla")
+        d=authentication.set_udv(key="school", value="ucla")
         udvs = authentication.list_udv()
         self.assertTrue(len(udvs) == 1)
         self.assertTrue(isinstance(udvs[0]["value"], str))
@@ -416,10 +416,10 @@ class TestAuthentication(unittest.TestCase):
         user = authentication_client.login_by_ad('admin', 'admin')
         self.assertTrue(user)
 
-    @unittest.skip('list_orgs')
+    # @unittest.skip('list_orgs')
     def test_list_orgs(self):
         authentication_client = init_authentication_client()
-        user = authentication_client.login_by_username('18515006338', 'password')
+        user = authentication_client.login_by_username('18515006338', '123456')
         data = authentication_client.list_orgs()
         self.assertTrue(data)
 

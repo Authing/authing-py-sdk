@@ -13,12 +13,12 @@ management = ManagementClient(ManagementClientOptions(
     user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
     host=os.getenv('AUTHING_SERVER'),
-    enc_public_key="""-----BEGIN PUBLIC KEY-----
-    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
-    4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
-    DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
-    o/E0RlTdNza6FcAHeQIDAQAB
-    -----END PUBLIC KEY-----"""
+    # enc_public_key="""-----BEGIN PUBLIC KEY-----
+    # MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
+    # 4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
+    # DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
+    # o/E0RlTdNza6FcAHeQIDAQAB
+    # -----END PUBLIC KEY-----"""
 ))
 
 
@@ -160,10 +160,10 @@ class TestRoles(unittest.TestCase):
         self.assertIsNone(newRole)
 
     def test_list_users(self):
-        role = management.roles.create(
-            code=get_random_string(5)
-        )
-        data = management.roles.list_users(code=role['code'],namespace=namespace)
+        # role = management.roles.create(
+        #     code=get_random_string(5)
+        # )
+        data = management.roles.list_users(code='uqetc',namespace=namespace)
         totalCount = data['totalCount']
         users = data['list']
         self.assertTrue(totalCount == 0)

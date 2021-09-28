@@ -79,12 +79,17 @@ class TestApp(unittest.TestCase):
        print (rs)
        self.assertTrue(rs)
 
+    def test_create_resources(self):
+        res = management.applications.create_resource(app_id="61384d3ee1b81dd1342e5635", resource_type="MENU",
+                                                      code='xx', actions=[{'name':'x','description':'xxx'}])
+        print res
+
     def test_get_access_policies(self):
         res = management.applications.get_access_policies("6139c4d24e78a4d706b7545b")
         print (res)
 
     def test_create_agreement(self):
-        title = "cc"
+        title = "cccc"
         res = management.applications.create_agreement("6139c4d24e78a4d706b7545b",title)
         self.assertEquals(res['data']['title'], title)
 
@@ -98,7 +103,7 @@ class TestApp(unittest.TestCase):
         self.assertEquals(res['data']['title'], title)
 
     def test_delete_agreement(self):
-        res = management.applications.delete_agreement("6139c4d24e78a4d706b7545b", "210")
+        res = management.applications.delete_agreement("6139c4d24e78a4d706b7545b", "218")
         self.assertEquals(res['code'], 200)
 
     def test_order_agreement(self):

@@ -19,7 +19,7 @@ class AuditLogManagementClient(object):
         self.__super__ = managementClient
 
     def list_audit_logs(self, client_ip=None, operation_names=None, user_ids=None, app_ids=None, page=None, limit=None):
-        """获取白名单记录
+        """审计日志列表查询
 
         Args:
             client_ip(str): 登录IP
@@ -31,7 +31,6 @@ class AuditLogManagementClient(object):
         """
         url = "%s/api/v2/analysis/audit" % self.options.host
         params = {}
-        # requestParam
         if client_ip:
             params['clientip'] = client_ip
         if operation_names:

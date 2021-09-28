@@ -92,8 +92,8 @@ class TestRoles(unittest.TestCase):
 
 
     def test_create(self):
-        result = management.org.create("xx2")
-        self.assertEquals(result['rootNode']['name'],"xx")
+        result = management.org.create("xx21")
+        self.assertEquals(result['rootNode']['name'],"xx21")
 
     def test_list(self):
         result = management.org.list(treeify=True)
@@ -105,7 +105,7 @@ class TestRoles(unittest.TestCase):
         self.assertEquals(result['id'], '6142c2c41c6e6c6cc3edfd88')
 
     def test_delete_by_id(self):
-        result = management.org.delete_by_id('6142c29bf6c4483bd4ed12d2')
+        result = management.org.delete_by_id('614c3822355bb8538eb5b663')
         self.assertEquals(result['code'], 200)
 
     def test_get_node_by_id(self):
@@ -121,7 +121,7 @@ class TestRoles(unittest.TestCase):
         self.assertEquals(result['id'], '6142c2c41c6e6c6cc3edfd88')
 
     def test_delete_node(self):
-        result = management.org.delete_node(org_id="6142c2c41c6e6c6cc3edfd88", node_id='6142dfc193be89f7dfacf991')
+        result = management.org.delete_node(org_id="6142c2c41c6e6c6cc3edfd88", node_id='614c3c5372b6b3f340ab6937')
         self.assertEquals(result['code'], 200)
 
     def test_is_root_node(self):
@@ -146,25 +146,7 @@ class TestRoles(unittest.TestCase):
                 {
                     "name": "北京非凡科技有限公司",
                     "code": "feifan",
-                    "children": [{
-
-                    "code": "operation",
-                    "name": "运营",
-                    "description": "商业化部门"
-                },
-                {
-        
-                    "code": "dev",
-                    "name": "研发",
-                    "description": "研发部门",
-                    "children": [{
-        
-                        "code": "backend",
-                        "name": "后端",
-                        "description": "后端研发部门"
-                    }]
-                }
-            ]
+                    "children": []
             } """
         result = management.org.import_by_json(json)
         print (result)

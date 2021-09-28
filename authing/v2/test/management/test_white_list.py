@@ -31,7 +31,7 @@ class TestWhiteList(unittest.TestCase):
         self.assertEquals(res, [])
 
     def test_add(self):
-        result = self.management.whiteList.add("USERNAME", ["xx2x"])
+        result = self.management.whiteList.add("USERNAME", ["xx2x1"])
         self.assertTrue(isinstance(result, list))
 
     def test_remove(self):

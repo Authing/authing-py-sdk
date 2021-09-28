@@ -14,12 +14,12 @@ management = ManagementClient(ManagementClientOptions(
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
     host=os.getenv('AUTHING_SERVER'),
     use_unverified_ssl=True,
-    enc_public_key="""-----BEGIN PUBLIC KEY-----
-    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
-    4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
-    DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
-    o/E0RlTdNza6FcAHeQIDAQAB
-    -----END PUBLIC KEY-----"""
+    # enc_public_key="""-----BEGIN PUBLIC KEY-----
+    # MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
+    # 4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
+    # DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
+    # o/E0RlTdNza6FcAHeQIDAQAB
+    # -----END PUBLIC KEY-----"""
 ))
 
 def create_user(custom_data=None):
@@ -532,7 +532,7 @@ class TestUsers(unittest.TestCase):
             }
         )
 
-        management.users.add_policies(
+        d=management.users.add_policies(
             userId=user['id'],
             policies=[policy['code']]
         )
@@ -565,7 +565,7 @@ class TestUsers(unittest.TestCase):
             userId=user['id'],
             policies=[policy['code']]
         )
-        management.users.remove_policies(
+        d=management.users.remove_policies(
             userId=user['id'],
             policies=[policy['code']]
         )
@@ -695,7 +695,7 @@ class TestUsers(unittest.TestCase):
             dataType='BOOLEAN',
             label='是否为 boss'
         )
-        management.users.set_udv(
+        d=management.users.set_udv(
             userId=user['id'],
             key='is_boss',
             value=False
@@ -768,7 +768,7 @@ class TestUsers(unittest.TestCase):
             key='age',
             value=18
         )
-        management.users.remove_udv(
+        d = management.users.remove_udv(
             userId=user['id'],
             key='age',
         )
@@ -955,15 +955,15 @@ class TestUsers(unittest.TestCase):
         self.assertTrue(success)
 
     def test_list_user_actions(self):
-        res = management.users.list_user_actions(operation_name='login')
+        res = management.users.list_user_actions()
         print(res)
 
     def test_list_org(self):
-        res = management.users.list_org('613ad7c00eb52ddadba7efdc')
+        res = management.users.list_org('613872b19c90be7d4da44466')
         self.assertIsNotNone(res)
 
     def test_list_dept(self):
-        res = management.users.list_department('613ad7c00eb52ddadba7efdc')
+        res = management.users.list_department('613872b19c90be7d4da44466')
         self.assertIsNotNone(res)
 
 

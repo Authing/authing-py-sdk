@@ -32,7 +32,7 @@ class TestUserPool(unittest.TestCase):
         self.assertEquals(dict.get(res[u'data'][0],"key"),"tt")
 
     def test_add_env(self):
-        result = self.management.userPool.add_env("tt", "xx")
+        result = self.management.userPool.add_env("tct", "xx")
         self.assertEquals(result['code'], 200)
 
     def test_remove_env(self):
