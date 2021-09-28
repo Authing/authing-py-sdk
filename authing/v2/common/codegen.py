@@ -2377,6 +2377,25 @@ query functions($page: Int, $limit: Int, $sortBy: SortByEnum) {
 }
 
 """,
+'getNodeRoles': """
+query getNodeRoles($id: String!, $namespace: String) {
+  nodeById(id: $id) {
+    roles(namespace: $namespace) {
+      totalCount
+      list {
+        id
+        code
+        namespace
+        arn
+        description
+        createdAt
+        updatedAt
+      }
+    }
+  }
+}
+
+""",
 'getUserDepartments': """
 query getUserDepartments($id: String!, $orgId: String) {
   user(id: $id) {

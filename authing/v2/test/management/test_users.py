@@ -831,7 +831,7 @@ class TestUsers(unittest.TestCase):
 
         self.assertFalse(random_user)
 
-    def test_list_authorized_resources(self):
+    def test_list_authorized_resources_case1(self):
         user = create_user()
         management.acl.authorize_resource(
             namespace='default',
@@ -853,6 +853,319 @@ class TestUsers(unittest.TestCase):
         _list, total_count = data.get('list'), data.get('totalCount')
         self.assertTrue(len(_list) == 1)
         self.assertTrue(total_count == 1)
+        for item in _list:
+            self.assertTrue(item.get('code'))
+            self.assertTrue(item.get('code') == 'books:*')
+            self.assertTrue(item.get('actions'))
+            self.assertTrue(isinstance(item.get('actions'), list))
+            self.assertTrue(len(item.get('actions')) == 1)
+
+    def test_list_authorized_resources_case2(self):
+        user = create_user()
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:1',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        data = management.users.list_authorized_resources(
+            user_id=user.get('id'),
+            namespace="default",
+        )
+        _list, total_count = data.get('list'), data.get('totalCount')
+        self.assertTrue(len(_list) == 1)
+        self.assertTrue(total_count == 1)
+        for item in _list:
+            self.assertTrue(item.get('code'))
+            self.assertTrue(item.get('code') == 'books:1')
+            self.assertTrue(item.get('actions'))
+            self.assertTrue(isinstance(item.get('actions'), list))
+            self.assertTrue(len(item.get('actions')) == 1)
+
+
+    def test_check_resource_permission_batch_case1(self):
+        # 授权某一类资源，判断某个具体资源权限
+        user = create_user()
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:*',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='orders:*',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'orders:edit'
+                    ]
+                }
+            ]
+        )
+
+        data = management.users.check_resource_permission_batch(
+            user_id=user.get('id'),
+            namespace='default',
+            resources=['books:1', 'orders:2']
+        )
+
+        # 返回数据格式：[{'code': 'books:1', 'actions': ['books:edit']}, {'code': 'orders:2', 'actions': ['orders:edit']}]
+
+        self.assertTrue(len(data) == 2)
+        self.assertTrue(data[0]['code'] == 'books:1')
+        self.assertTrue(data[0]['actions'])
+        self.assertTrue(data[1]['code'] == 'orders:2')
+        self.assertTrue(data[1]['actions'])
+
+    def test_check_resource_permission_batch_case2(self):
+        # 授权具体资源，判断具体资源权限
+        user = create_user()
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:1',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='orders:2',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'orders:edit'
+                    ]
+                }
+            ]
+        )
+
+        data = management.users.check_resource_permission_batch(
+            user_id=user.get('id'),
+            namespace='default',
+            resources=['books:1', 'orders:2']
+        )
+
+        # 返回数据格式：[{'code': 'books:1', 'actions': ['books:edit']}, {'code': 'orders:2', 'actions': ['orders:edit']}]
+
+        self.assertTrue(len(data) == 2)
+        self.assertTrue(data[0]['code'] == 'books:1')
+        self.assertTrue(data[0]['actions'])
+        self.assertTrue(data[1]['code'] == 'orders:2')
+        self.assertTrue(data[1]['actions'])
+
+    def test_check_resource_permission_batch_case3(self):
+        # 授权具体资源，判断具体资源权限
+        user = create_user()
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:1',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='orders:2',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'orders:edit'
+                    ]
+                }
+            ]
+        )
+
+        data = management.users.check_resource_permission_batch(
+            user_id=user.get('id'),
+            namespace='default',
+            resources=['books:2', 'orders:1']
+        )
+
+        # 返回数据格式：[{'code': 'books:1', 'actions': ['books:edit']}, {'code': 'orders:2', 'actions': ['orders:edit']}]
+        self.assertTrue(len(data) == 0)
+
+    def test_check_resource_permission_batch_case4(self):
+        # 授权具体资源，判断某类资源权限
+        user = create_user()
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:1',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='orders:2',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'orders:edit'
+                    ]
+                }
+            ]
+        )
+
+        data = management.users.check_resource_permission_batch(
+            user_id=user.get('id'),
+            namespace='default',
+            resources=['books:*', 'orders:*']
+        )
+
+        # 返回数据格式：[{'code': 'books:1', 'actions': ['books:edit']}, {'code': 'orders:2', 'actions': ['orders:edit']}]
+        self.assertTrue(len(data) == 0)
+
+    def test_check_resource_permission_batch_case5(self):
+        # 授权某类资源，判断某类资源权限
+        user = create_user()
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:*',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='orders:*',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'orders:edit'
+                    ]
+                }
+            ]
+        )
+
+        data = management.users.check_resource_permission_batch(
+            user_id=user.get('id'),
+            namespace='default',
+            resources=['books:*', 'orders:*']
+        )
+
+        # 返回数据格式：[{'code': 'books:1', 'actions': ['books:edit']}, {'code': 'orders:2', 'actions': ['orders:edit']}]
+        self.assertTrue(len(data) == 2)
+        self.assertTrue(data[0]['code'] == 'books:*')
+        self.assertTrue(data[0]['actions'])
+        self.assertTrue(data[1]['code'] == 'orders:*')
+        self.assertTrue(data[1]['actions'])
+
+    def test_list_authorized_resources_of_resource_kind_case1(self):
+        user = create_user()
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:1',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        data = management.users.list_authorized_resources_of_resource_kind(user_id=user['id'], namespace='default', resource='books')
+        self.assertTrue(len(data) == 1)
+        self.assertTrue(data[0]['code'] == 'books:1')
+        self.assertTrue(data[0]['actions'])
+
+    def test_list_authorized_resources_of_resource_kind_case2(self):
+        user = create_user()
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:1',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='books:2',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        management.acl.authorize_resource(
+            namespace='default',
+            resource='orders:2',
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        'books:edit'
+                    ]
+                }
+            ]
+        )
+        data = management.users.list_authorized_resources_of_resource_kind(user_id=user['id'], namespace='default', resource='books')
+        self.assertTrue(len(data) == 2)
+        self.assertTrue(data[0]['code'] == 'books:1')
+        self.assertTrue(data[0]['actions'])
+        self.assertTrue(data[1]['code'] == 'books:2')
+        self.assertTrue(data[1]['actions'])
 
     def test_list_authorized_resources_without_namespace(self):
         user = create_user()

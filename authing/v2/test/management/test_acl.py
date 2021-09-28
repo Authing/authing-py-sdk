@@ -349,6 +349,254 @@ class TestAcl(unittest.TestCase):
         )
         self.assertTrue(data.get('totalCount') == 1)
 
+    def test_revoke_resource(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        user2 = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        resource = get_random_string()
+        management.acl.authorize_resource(
+            namespace=default_namespace,
+            resource=resource,
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        get_random_string(),
+                        get_random_string()
+                    ]
+                },
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user2.get('id'),
+                    'actions': [
+                        get_random_string(),
+                        get_random_string()
+                    ]
+                }
+            ]
+        )
+        management.acl.revoke_resource(
+            namespace=default_namespace,
+            resource=resource,
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                }
+            ]
+        )
+        data1 = management.acl.list_authorized_resources(
+            namespace=default_namespace,
+            target_type='USER',
+            target_identifier=user.get('id')
+        )
+        self.assertTrue(data1.get('totalCount') == 0)
+
+        data2 = management.acl.list_authorized_resources(
+            namespace=default_namespace,
+            target_type='USER',
+            target_identifier=user2.get('id')
+        )
+        self.assertTrue(data2.get('totalCount') == 1)
+
+    def test_revoke_resource_2(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        user2 = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        resource = "%s:%s" % (get_random_string(), '1')
+        management.acl.authorize_resource(
+            namespace=default_namespace,
+            resource=resource,
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        get_random_string(),
+                        get_random_string()
+                    ]
+                },
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user2.get('id'),
+                    'actions': [
+                        get_random_string(),
+                        get_random_string()
+                    ]
+                }
+            ]
+        )
+        management.acl.revoke_resource(
+            namespace=default_namespace,
+            resource=resource,
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                }
+            ]
+        )
+        data1 = management.acl.list_authorized_resources(
+            namespace=default_namespace,
+            target_type='USER',
+            target_identifier=user.get('id')
+        )
+        self.assertTrue(data1.get('totalCount') == 0)
+
+        data2 = management.acl.list_authorized_resources(
+            namespace=default_namespace,
+            target_type='USER',
+            target_identifier=user2.get('id')
+        )
+        self.assertTrue(data2.get('totalCount') == 1)
+
+    def test_revoke_resource_3(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        user2 = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        resource_type = get_random_string()
+        # 授权一个具体资源
+        resource = "%s:%s" % (resource_type, '1')
+        management.acl.authorize_resource(
+            namespace=default_namespace,
+            resource=resource,
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        get_random_string(),
+                        get_random_string()
+                    ]
+                },
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user2.get('id'),
+                    'actions': [
+                        get_random_string(),
+                        get_random_string()
+                    ]
+                }
+            ]
+        )
+
+        # 取消授权
+        management.acl.revoke_resource(
+            namespace=default_namespace,
+            resource=resource_type,
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                }
+            ]
+        )
+        data1 = management.acl.list_authorized_resources(
+            namespace=default_namespace,
+            target_type='USER',
+            target_identifier=user.get('id')
+        )
+        self.assertTrue(data1.get('totalCount') == 0)
+
+        data2 = management.acl.list_authorized_resources(
+            namespace=default_namespace,
+            target_type='USER',
+            target_identifier=user2.get('id')
+        )
+        self.assertTrue(data2.get('totalCount') == 1)
+
+    def test_revoke_resource_4(self):
+        user = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        user2 = management.users.create(
+            userInfo={
+                'username': get_random_string(10),
+                'password': get_random_string(10)
+            }
+        )
+        resource_type = get_random_string()
+        # 授权一类资源
+        management.acl.authorize_resource(
+            namespace=default_namespace,
+            resource=resource_type,
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                    'actions': [
+                        get_random_string(),
+                        get_random_string()
+                    ]
+                },
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user2.get('id'),
+                    'actions': [
+                        get_random_string(),
+                        get_random_string()
+                    ]
+                }
+            ]
+        )
+
+        # 取消授权某一个具体资源
+        resource = "%s:%s" % (resource_type, '1')
+        management.acl.revoke_resource(
+            namespace=default_namespace,
+            resource=resource,
+            opts=[
+                {
+                    'targetType': 'USER',
+                    'targetIdentifier': user.get('id'),
+                }
+            ]
+        )
+        data1 = management.acl.list_authorized_resources(
+            namespace=default_namespace,
+            target_type='USER',
+            target_identifier=user.get('id')
+        )
+        self.assertTrue(data1.get('totalCount') == 1)
+
+        data2 = management.acl.list_authorized_resources(
+            namespace=default_namespace,
+            target_type='USER',
+            target_identifier=user2.get('id')
+        )
+        self.assertTrue(data2.get('totalCount') == 1)
+
 
     def test_list_authorized_resources(self):
         user = management.users.create(

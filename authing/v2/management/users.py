@@ -673,7 +673,7 @@ class UsersManagementClient(object):
             'UI',
             'BUTTON'
         ]
-        if resource_type and not valid_resource_types.index(resource_type):
+        if resource_type and resource_type not in valid_resource_types:
             raise AuthingWrongArgumentException('invalid argument: resource_type')
 
         data = self.graphqlClient.request(
@@ -693,6 +693,52 @@ class UsersManagementClient(object):
             'totalCount': total_count,
             'list': _list
         }
+
+    def check_resource_permission_batch(self, user_id, namespace, resources):
+        """
+        传入一组资源列表，返回具备权限的资源列表。
+
+        """
+        if not isinstance(resources, list):
+            raise AuthingWrongArgumentException('invalid argument: resources')
+
+        url = "%s/api/v2/acl/check-resource-permission-batch" % (
+            self.options.host
+        )
+        data = self.restClient.request(
+            method='POST',
+            url=url,
+            token=self.tokenProvider.getAccessToken(),
+            auto_parse_result=True,
+            json={
+                "userId": user_id,
+                "namespace": namespace,
+                "resources": resources,
+            }
+        )
+        return data
+
+    def list_authorized_resources_of_resource_kind(self, user_id, namespace, resource):
+        """
+        获取某一类资源下面授权的具体权限
+        """
+
+        url = "%s/api/v2/acl/get-authorized-resources-of-resource-kind" % (
+            self.options.host
+        )
+        data = self.restClient.request(
+            method='POST',
+            url=url,
+            token=self.tokenProvider.getAccessToken(),
+            auto_parse_result=True,
+            json={
+                "userId": user_id,
+                "namespace": namespace,
+                "resource": resource,
+            }
+        )
+        return data
+
 
     def has_role(self, user_id, role_code, namespace=None):
         """判断用户是否有某个角色"""
