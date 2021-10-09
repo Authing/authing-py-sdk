@@ -174,7 +174,7 @@ class AclManagementClient(object):
         if resource_type not in ['DATA', 'API', 'MENU', 'UI', 'BUTTON']:
             raise AuthingWrongArgumentException('unsupported resource_type: %s' % resource_type)
 
-    def create_resource(self, namespace, code, resource_type, actions, description=None):
+    def create_resource(self, namespace, code, resource_type, actions, description=None, api_identifier=None):
         """创建资源
 
         Args:
@@ -183,6 +183,7 @@ class AclManagementClient(object):
             resource_type (str): 资源类型，可选值为 DATA、API、MENU、UI、BUTTON；
             actions (list): 资源操作对象数组。其中 name 为操作名称，填写一个动词，description 为操作描述，填写描述信息。
             description (str): 描述信息
+            api_identifier (str) 选填，API 资源 URL 地址，当 type 为 API 时此字段必填
         """
 
         self.__check_resource_actions(actions)
@@ -208,7 +209,7 @@ class AclManagementClient(object):
         else:
             self.options.on_error(code, message)
 
-    def update_resource(self, namespace, code, resource_type=None, actions=None, description=None):
+    def update_resource(self, namespace, code, resource_type=None, actions=None, description=None, api_identifier=None):
         """更新资源
 
         Args:
@@ -217,6 +218,7 @@ class AclManagementClient(object):
             resource_type (str): 新的资源类型；
             actions (list): 资源操作对象数组。其中 name 为操作名称，填写一个动词，description 为操作描述，填写描述信息。
             description (str): 描述信息
+            api_identifier (str) 选填，API 资源 URL 地址，当 type 为 API 时此字段必填
         """
 
         body = {
