@@ -240,7 +240,8 @@ class TestAcl(unittest.TestCase):
         namespace = management.acl.create_namespace(code, name)
         resource = management.acl.create_resource(
             code=code,
-            resource_type='DATA',
+            api_identifier='http://baidu.com',
+            resource_type='API',
             actions=[
                 {
                     'name': get_random_string(),
@@ -261,7 +262,8 @@ class TestAcl(unittest.TestCase):
             namespace=namespace.get('code'),
             code=code,
             description=new_description,
-            actions=new_actions
+            actions=new_actions,
+            api_identifier="http://feishu.com"
         )
         self.assertTrue(resource.get('description') == new_description)
         actions = resource.get('actions')

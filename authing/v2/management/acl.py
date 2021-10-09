@@ -198,7 +198,8 @@ class AclManagementClient(object):
                 'type': resource_type,
                 'actions': actions,
                 'namespace': namespace,
-                'description': description
+                'description': description,
+                'apiIdentifier': api_identifier
             },
             token=self.tokenProvider.getAccessToken()
         )
@@ -235,6 +236,9 @@ class AclManagementClient(object):
         if resource_type:
             self.__check_resource_type(resource_type)
             body['type'] = resource_type
+
+        if api_identifier:
+            body['apiIdentifier'] = api_identifier
 
         url = "%s/api/v2/resources/%s" % (self.options.host, code)
         data = self.restClient.request(
