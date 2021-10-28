@@ -122,7 +122,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        newUser = management.users.detail(userId=user['id'])
+        newUser = management.users.detail(user_id=user['id'])
         self.assertTrue(user['id'] == newUser['id'])
         self.assertTrue(user['username'] == newUser['username'])
 

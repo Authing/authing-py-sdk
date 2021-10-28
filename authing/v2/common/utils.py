@@ -5,6 +5,7 @@ import json
 import re
 import string
 import random
+import datetime
 from dateutil import parser
 
 try:
@@ -23,6 +24,14 @@ def encrypt(plainText, publicKey):
     return base64.b64encode(data).decode()
 
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+
 def convert_udv_data_type(data):
     for i, item in enumerate(data):
         dataType, value = item["dataType"], item["value"]
@@ -31,7 +40,13 @@ def convert_udv_data_type(data):
         elif dataType == "BOOLEAN":
             data[i]["value"] = json.loads(value)
         elif dataType == "DATETIME":
-            data[i]["value"] = parser.parse(value)
+            # 数字时间戳类型
+            if isinstance(value, int):
+                data[i]["value"] = datetime.datetime.fromtimestamp(value / 1e3)
+            elif is_number(value):
+                data[i]["value"] = datetime.datetime.fromtimestamp(int(value) / 1e3)
+            else:
+                data[i]["value"] = parser.parse(value)
         elif dataType == "OBJECT":
             data[i]["value"] = json.loads(value)
     return data
