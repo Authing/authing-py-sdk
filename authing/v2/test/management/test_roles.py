@@ -15,9 +15,9 @@ management = ManagementClient(ManagementClientOptions(
 ))
 
 
-def create_role():
+def create_role(namespace=None):
     code = get_random_string(5)
-    role = management.roles.create(code=code)
+    role = management.roles.create(code=code, namespace=namespace)
     return role
 
 
@@ -45,13 +45,18 @@ namespace = 'default'
 
 
 class TestRoles(unittest.TestCase):
-    def test_list(self):
-        totalCount, _list = management.roles.list()
+    def test_list_without_namespace(self):
+        data = management.roles.list()
+        totalCount, _list = data['totalCount'], data['list']
         self.assertTrue(totalCount)
         self.assertTrue(_list)
 
     def test_list_with_namespace(self):
-        totalCount, _list = management.roles.list(namespace=namespace)
+        namespace_code = get_random_string()
+        management.acl.create_namespace(namespace_code, get_random_string())
+        role = create_role(namespace=namespace_code)
+        data = management.roles.list(namespace=namespace_code)
+        totalCount, _list = data['totalCount'], data['list']
         self.assertTrue(totalCount)
         self.assertTrue(_list)
 
@@ -62,9 +67,11 @@ class TestRoles(unittest.TestCase):
 
     def test_create_with_namespace(self):
         code = get_random_string(5)
-        role = management.roles.create(code=code, namespace=namespace)
+        namespace_code = get_random_string()
+        management.acl.create_namespace(namespace_code, get_random_string())
+        role = management.roles.create(code=code, namespace=namespace_code)
         self.assertTrue(role)
-        self.assertTrue(role['code'])
+        self.assertTrue(role['code'] == code)
 
     def test_detail(self):
         code = get_random_string(5)

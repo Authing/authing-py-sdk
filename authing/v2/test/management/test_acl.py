@@ -613,3 +613,7 @@ class TestAcl(unittest.TestCase):
 
         self.assertTrue(data.get('totalCount') == 1)
 
+        item = data['list'][0]
+        self.assertTrue(item['code'] == 'books:123')
+        self.assertTrue(item['type'] == 'DATA')
+        self.assertTrue(item['actions'][0] == 'books:edit')
