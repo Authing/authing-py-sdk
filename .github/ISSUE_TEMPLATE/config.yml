@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+ - name: Questions
+   url: https://forum.authing.cn/
+   about: For general questions, support requests and discussions
+ - name: Documention
+   url: https://docs.authing.cn/v2/reference/sdk-for-python/
+   about: Authing SDK for Python
