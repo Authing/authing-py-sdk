@@ -1,8 +1,9 @@
 # Authing - Python
 
-<h1 align="center">
+<div align="center">
   <a href="https://authing.cn"><img width="300" src="https://files.authing.co/authing-console/authing-logo-new-20210924.svg?a=1" alt="Authing" /></a>
-</h1>
+</div>
+<br>
 
 Authing Python SDK 由两部分组成：`ManagementClient` 和 `AuthenticationClient`。
 
