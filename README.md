@@ -225,6 +225,12 @@ management_client = ManagementClient(
 
 你可以[在此查看完整文档](https://docs.authing.co/v2/reference/sdk-for-python/) 。
 
+## 参与贡献
+- Fork it
+- Create your feature branch (git checkout -b my-new-feature)
+- Commit your changes (git commit -am 'Add some feature')
+- Push to the branch (git push origin my-new-feature)
+- Create new Pull Request
 ## 获取帮助
 
 Join us on forum: [#authing-chat](https://forum.authing.cn/)
