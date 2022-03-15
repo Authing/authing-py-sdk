@@ -1,7 +1,7 @@
 from .. import __version__
 import requests
 
-from ..exceptions import AuthingWrongArgumentException
+from authing.v2.exceptions import AuthingWrongArgumentException
 
 
 class RestClient(object):
@@ -40,3 +40,4 @@ class RestClient(object):
                 self.options.on_error(code, message)
         else:
             return data
+

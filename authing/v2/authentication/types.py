@@ -1,4 +1,5 @@
-from ..exceptions import AuthingException
+# coding: utf-8
+from ..exceptions import  AuthingException
 import ssl
 
 def DEFAULT_ONERROR(code, message):

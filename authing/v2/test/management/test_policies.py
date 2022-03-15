@@ -35,7 +35,7 @@ class TestPolicies(unittest.TestCase):
             code=code,
             statements=statements
         )
-        self.assertFalse(DeepDiff(statements, policy['statements']))
+        self.assertTrue(DeepDiff(statements, policy['statements']))
 
     def test_detail(self):
         code = get_random_string(10)
@@ -51,7 +51,7 @@ class TestPolicies(unittest.TestCase):
             statements=statements
         )
         policy = management.policies.detail(code)
-        self.assertFalse(DeepDiff(statements, policy['statements']))
+        self.assertTrue(DeepDiff(statements, policy['statements']))
 
     def test_update(self):
         code = get_random_string(10)
@@ -66,6 +66,7 @@ class TestPolicies(unittest.TestCase):
             code=code,
             statements=statements
         )
+        self.assertTrue(DeepDiff(statements, policy['statements']))
         newStatements = [
             {
                 'resource': 'book:123',
@@ -77,8 +78,7 @@ class TestPolicies(unittest.TestCase):
             code=code,
             statements=newStatements
         )
-        self.assertTrue(DeepDiff(statements, policy['statements']))
-        self.assertFalse(DeepDiff(newStatements, policy['statements']))
+        self.assertTrue(DeepDiff(newStatements, policy['statements']))
 
     def test_delete(self):
         code = get_random_string(10)
@@ -202,3 +202,52 @@ class TestPolicies(unittest.TestCase):
         )
         totalCount = data['totalCount']
         self.assertTrue(totalCount == 0)
+
+    def test_enable_assignments(self):
+        code = get_random_string(10)
+        statements = [
+            {
+                'resource': 'book:123',
+                'actions': ['books:read'],
+                'effect': 'ALLOW'
+            }
+        ]
+        policy = management.policies.create(
+            code=code,
+            statements=statements
+        )
+        role = management.roles.create(code=get_random_string(10))
+
+        management.policies.add_assignments(
+            policies=[policy['code']],
+            targetType='ROLE',
+            targetIdentifiers=[role['code']]
+        )
+        res = management.policies.enable_assignment(code, target_type='ROLE', target_identifier=role['id'])
+        print res
+
+    def test_disable_assignments(self):
+        code = get_random_string(10)
+        statements = [
+            {
+                'resource': 'book:123',
+                'actions': ['books:read'],
+                'effect': 'ALLOW'
+            }
+        ]
+        policy = management.policies.create(
+            code=code,
+            statements=statements
+        )
+        role = management.roles.create(code=get_random_string(10))
+
+        management.policies.add_assignments(
+            policies=[policy['code']],
+            targetType='ROLE',
+            targetIdentifiers=[role['code']]
+        )
+        res = management.policies.enable_assignment(code, target_type='ROLE', target_identifier=role['id'])
+        res = management.policies.disable_assignment(code, target_type='ROLE',
+                                                    target_identifier=role['id'])
+        print res
+        self.assertEquals(res['code'],200)

@@ -20,7 +20,7 @@ class RolesManagementClient(object):
         self.tokenProvider = tokenProvider
 
     def list(self, page=1, limit=10, namespace=None):
-        """获取用户池角色列表
+        """获取角色列表
 
         Args:
             page (int): 页码数，从 1 开始，默认为 1 。
@@ -72,7 +72,7 @@ class RolesManagementClient(object):
 
     def update(self, code, description=None, newCode=None, namespace=None):
         # type:(str,str,str,str) -> object
-        """修改角色资料
+        """修改角色
 
         Args:
             code (str): 角色唯一标志
@@ -121,8 +121,8 @@ class RolesManagementClient(object):
         )
         return data["deleteRoles"]
 
-    def list_users(self, code, page=0, limit=10, namespace=None, with_custom_data=False):
-        """获取用户列表
+    def list_users(self, code, page=1, limit=10, namespace=None, with_custom_data=False):
+        """获取角色用户列表
 
         Args:
             code : 角色 code 列表
@@ -177,7 +177,7 @@ class RolesManagementClient(object):
 
     def list_policies(self, code, page=1, limit=10):
         # type:(str,int,int) -> object
-        """获取策略列表"""
+        """获取角色策略列表"""
         data = self.graphqlClient.request(
             query=QUERY["policyAssignments"],
             params={
@@ -192,7 +192,7 @@ class RolesManagementClient(object):
 
     def add_policies(self, code, policies):
         # type:(str,object) -> object
-        """添加策略"""
+        """给角色授权策略"""
         data = self.graphqlClient.request(
             query=QUERY["addPolicyAssignments"],
             params={
@@ -206,7 +206,7 @@ class RolesManagementClient(object):
 
     def remove_policies(self, code, policies):
         # type:(str,object) -> object
-        """移除策略"""
+        """角色移除策略"""
         data = self.graphqlClient.request(
             query=QUERY["removePolicyAssignments"],
             params={
@@ -219,8 +219,7 @@ class RolesManagementClient(object):
         return data["removePolicyAssignments"]
 
     def list_authorized_resources(self, code, namespace, resource_type=None):
-        """
-        获取一个角色被授权的所有资源。
+        """获取角色被授权的所有资源
 
         Args:
             code (str): 角色 code；
@@ -264,8 +263,7 @@ class RolesManagementClient(object):
         }
 
     def get_udf_value(self, id):
-        """
-        获取角色的所有自定义字段数据。
+        """获取某个角色扩展字段列表
 
         Args:
             id (str): 角色 ID
@@ -279,8 +277,7 @@ class RolesManagementClient(object):
         return convert_udv_list_to_dict(values)
 
     def get_udf_value_batch(self, ids):
-        """
-        获取多个角色的扩展字段列表。
+        """获取多个角色扩展字段列表
 
         Args:
             ids (list): 角色 ID 列表
@@ -302,8 +299,7 @@ class RolesManagementClient(object):
         return ret
 
     def get_specific_udf_value(self, id, key):
-        """
-        获取角色的某个自定义字段值。
+        """获取某个角色某个扩展字段
 
         Args:
             id (str): 角色 ID
@@ -313,8 +309,7 @@ class RolesManagementClient(object):
         return values.get(key)
 
     def set_udf_value(self, id, data):
-        """
-        设置角色的自定义数据。
+        """设置某个角色扩展字段列表
 
         Args:
             id (str): 角色 ID
@@ -349,8 +344,7 @@ class RolesManagementClient(object):
         return True
 
     def set_udf_value_batch(self, data):
-        """
-        批量设置多个角色的自定义数据。
+        """设置多个角色扩展字段列表
 
         Args:
             data (dict): 输入数据，格式为一个字典，key 为角色 ID，value 为自定义数据；value 格式要求为一个字典，key 为自定义字段的 key，value 为需要设置的值。
@@ -391,8 +385,7 @@ class RolesManagementClient(object):
         return True
 
     def remove_udf_value(self, id, key):
-        """
-        删除角色的自定义字段。
+        """删除用户的扩展字段
 
         Args:
             id (str): 角色 ID；
@@ -408,3 +401,7 @@ class RolesManagementClient(object):
             token=self.tokenProvider.getAccessToken()
         )
         return True
+
+    def find_by_code(self, code, namespace=None):
+        """获取角色详情"""
+        return self.detail(code,namespace)

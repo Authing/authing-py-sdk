@@ -1,9 +1,10 @@
-from ...common.utils import get_random_string
+# coding: utf-8
+from authing.v2.common.utils import get_random_string
 import unittest
 import os
-from ...management.types import ManagementClientOptions
-from ...management.authing import ManagementClient
-from ...exceptions import AuthingException
+from authing.v2.management.types import ManagementClientOptions
+from authing.v2.management.authing import ManagementClient
+from authing.v2.exceptions import AuthingException
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,7 +12,13 @@ load_dotenv()
 management = ManagementClient(ManagementClientOptions(
     user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
-    host=os.getenv('AUTHING_SERVER')
+    host=os.getenv('AUTHING_SERVER'),
+    enc_public_key="""-----BEGIN PUBLIC KEY-----
+    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
+    4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
+    DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
+    o/E0RlTdNza6FcAHeQIDAQAB
+    -----END PUBLIC KEY-----"""
 ))
 
 default_namespace = 'default'
@@ -233,7 +240,8 @@ class TestAcl(unittest.TestCase):
         namespace = management.acl.create_namespace(code, name)
         resource = management.acl.create_resource(
             code=code,
-            resource_type='DATA',
+            api_identifier='http://baidu.com',
+            resource_type='API',
             actions=[
                 {
                     'name': get_random_string(),
@@ -254,7 +262,8 @@ class TestAcl(unittest.TestCase):
             namespace=namespace.get('code'),
             code=code,
             description=new_description,
-            actions=new_actions
+            actions=new_actions,
+            api_identifier="http://feishu.com"
         )
         self.assertTrue(resource.get('description') == new_description)
         actions = resource.get('actions')
@@ -277,12 +286,12 @@ class TestAcl(unittest.TestCase):
             ],
             namespace=namespace.get('code')
         )
-        resources = management.acl.list_resources(namespace=namespace.get('code'))
+        resources = management.acl.list_resources(namespace=namespace.get('code').encode("utf-8"))
         self.assertTrue(resources.get('totalCount') == 1)
         self.assertTrue(len(resources.get('list')) == 1)
 
         resources = management.acl.list_resources(
-            namespace=namespace.get('code'),
+            namespace=namespace.get('code').encode("utf-8"),
             resource_type='MENU'
         )
         self.assertTrue(resources.get('totalCount') == 0)
@@ -306,7 +315,7 @@ class TestAcl(unittest.TestCase):
             namespace=namespace.get('code')
         )
         success = management.acl.delete_resource(
-            namespace=namespace.get('code'),
+            namespace=namespace.get('code').encode("utf-8"),
             code=resource_code
         )
         self.assertTrue(success)
@@ -617,3 +626,97 @@ class TestAcl(unittest.TestCase):
         self.assertTrue(item['code'] == 'books:123')
         self.assertTrue(item['type'] == 'DATA')
         self.assertTrue(item['actions'][0] == 'books:edit')
+
+    def test_get_authorized_targets(self):
+        data = management.acl.get_authorized_targets(namespace="mvcbbdutsn", resource_type="DATA", resource="test",target_type="GROUP")
+        print (data)
+
+    def test_programmatic_access_account_list(self):
+        result = management.acl.programmatic_access_account_list("6139c4d24e78a4d706b7545b")
+        self.assertEquals(result['message'], '获取编程访问账号列表成功')
+
+    def test_create_programmatic_access_account(self):
+        result = management.acl.create_programmatic_access_account(app_id='6139c4d24e78a4d706b7545b', remark='xx')
+        self.assertEquals(result['code'], 200)
+
+    def test_disable_programmatic_access_account(self):
+        result = management.acl.disable_programmatic_access_account("61418fad9d4357a5308e5ecd")
+        self.assertFalse(result['data']['enabled'])
+
+    def test_delete_programmatic_access_account(self):
+        result = management.acl.delete_programmatic_access_account('61418fad9d4357a5308e5ecd')
+        self.assertEquals(result['code'], 200)
+
+    def test_enable_programmatic_access_account(self):
+        account = management.acl.create_programmatic_access_account(app_id='6139c4d24e78a4d706b7545b', remark='xx')
+        result = management.acl.enable_programmatic_access_account(account['data']['id'])
+        self.assertTrue(result['data']['enabled'])
+
+    def test_refresh_programmatic_access_account_secret(self):
+        account = management.acl.create_programmatic_access_account(app_id='6139c4d24e78a4d706b7545b', remark='xx')
+        result = management.acl.refresh_programmatic_access_account_secret(account['data']['id'])
+        self.assertNotEqual(account['data']['secret'], result['data']['secret'])
+
+    def test_get_resource_by_id(self):
+        result = management.acl.get_resource_by_id('6141a1bc2129d0b83415227f')
+        self.assertEquals(result['data']['id'], '6141a1bc2129d0b83415227f')
+
+    def test_get_resource_by_code(self):
+        result = management.acl.get_resource_by_code(namespace='gvymeeehxt', code='eyqcalgaeo')
+        self.assertEquals(result['data']['id'], '6141a1bc2129d0b83415227f')
+
+    def test_enable_application_access_policies(self):
+        result = management.acl.enable_application_access_policies(namespace='61360547f4807f63584fa152',
+                                                                   app_id='61360547f4807f63584fa152',
+                                                                   inherit_by_children=False,
+                                                                   target_type='USER',
+                                                                   target_identifiers=[
+                                                                       '613ad7081436dc0f42d8ee65'
+                                                                   ])
+        self.assertEquals(result['code'], 200)
+
+    def test_disable_application_access_policies(self):
+        result = management.acl.disable_application_access_policies(namespace='gvymeeehxt',
+                                                                    app_id='6139c4d24e78a4d706b7545b',
+                                                                    inherit_by_children=False,
+                                                                    target_type='USER',
+                                                                    target_identifiers=[
+                                                                       '613eb8b33cd935afe7470c88'
+                                                                    ])
+        self.assertEquals(result['code'], 200)
+
+    def test_delete_application_access_policies(self):
+        result = management.acl.disable_application_access_policies(namespace='gvymeeehxt',
+                                                                    app_id='6139c4d24e78a4d706b7545b',
+                                                                    inherit_by_children=False,
+                                                                    target_type='USER',
+                                                                    target_identifiers=[
+                                                                        '613eb8b33cd935afe7470c88'
+                                                                    ])
+        self.assertEquals(result['code'], 200)
+
+    def test_allow_access_application(self):
+        result = management.acl.allow_access_application(namespace='gvymeeehxt',
+                                                         app_id='6139c4d24e78a4d706b7545b',
+                                                         inherit_by_children=False,
+                                                         target_type='USER',
+                                                         target_identifiers=[
+                                                                        '613eb8b33cd935afe7470c88'
+                                                                    ])
+        self.assertEquals(result['code'], 200)
+
+    def test_deny_access_application(self):
+        result = management.acl.deny_access_application(namespace='gvymeeehxt',
+                                                        app_id='6139c4d24e78a4d706b7545b',
+                                                        inherit_by_children=False,
+                                                        target_type='USER',
+                                                        target_identifiers=[
+                                                                        '613eb8b33cd935afe7470c88'
+                                                                    ])
+        self.assertEquals(result['code'], 200)
+
+    def test_update_default_application_access_policy(self):
+        result = management.acl.update_default_application_access_policy( app_id='6139c4d24e78a4d706b7545b',
+                                                                          default_strategy='ALLOW_ALL')
+        self.assertEquals(result['code'], 200)
+

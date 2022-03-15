@@ -1,7 +1,8 @@
+# coding: utf-8
 from datetime import datetime
-from ...management.types import ManagementClientOptions
-from ...management.authing import ManagementClient
-from ...test.utils import get_random_string
+from authing.v2.management.types import ManagementClientOptions
+from authing.v2.management.authing import ManagementClient
+from authing.v2.common.utils import get_random_string
 import unittest
 import os
 from dotenv import load_dotenv
@@ -12,7 +13,13 @@ management = ManagementClient(ManagementClientOptions(
     user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
     host=os.getenv('AUTHING_SERVER'),
-    use_unverified_ssl=True
+    use_unverified_ssl=True,
+    # enc_public_key="""-----BEGIN PUBLIC KEY-----
+    # MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
+    # 4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
+    # DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
+    # o/E0RlTdNza6FcAHeQIDAQAB
+    # -----END PUBLIC KEY-----"""
 ))
 
 def create_user(custom_data=None):
@@ -60,7 +67,7 @@ class TestUsers(unittest.TestCase):
                 key: value
             }
         )
-        data = management.users.list(with_custom_data=True)
+        data = management.users.list(limit=200,with_custom_data=True)
         totalCount = data['totalCount']
         users = data['list']
         self.assertTrue(totalCount)
@@ -411,7 +418,7 @@ class TestUsers(unittest.TestCase):
         code = data['code']
         self.assertTrue(code == 200)
 
-        newUser = management.users.detail(userId=user['id'])
+        newUser = management.users.detail(user_id=user['id'])
         self.assertTrue(newUser == None)
 
     def test_delete_many(self):
@@ -426,7 +433,7 @@ class TestUsers(unittest.TestCase):
         )
         code = data['code']
         self.assertTrue(code == 200)
-        newUser = management.users.detail(userId=user['id'])
+        newUser = management.users.detail(user_id=user['id'])
         self.assertTrue(newUser == None)
 
     def test_list_roles(self):
@@ -505,7 +512,7 @@ class TestUsers(unittest.TestCase):
         status = management.check_login_status(
             token=token)
         self.assertTrue(status)
-        self.assertTrue(status['id'] == user['id'])
+        self.assertTrue(status['data']['id'] == user['id'])
 
     def test_add_policies(self):
         policy = management.policies.create(
@@ -525,7 +532,7 @@ class TestUsers(unittest.TestCase):
             }
         )
 
-        management.users.add_policies(
+        d=management.users.add_policies(
             userId=user['id'],
             policies=[policy['code']]
         )
@@ -558,7 +565,7 @@ class TestUsers(unittest.TestCase):
             userId=user['id'],
             policies=[policy['code']]
         )
-        management.users.remove_policies(
+        d=management.users.remove_policies(
             userId=user['id'],
             policies=[policy['code']]
         )
@@ -688,7 +695,7 @@ class TestUsers(unittest.TestCase):
             dataType='BOOLEAN',
             label='是否为 boss'
         )
-        management.users.set_udv(
+        d=management.users.set_udv(
             userId=user['id'],
             key='is_boss',
             value=False
@@ -761,7 +768,7 @@ class TestUsers(unittest.TestCase):
             key='age',
             value=18
         )
-        management.users.remove_udv(
+        d = management.users.remove_udv(
             userId=user['id'],
             key='age',
         )
@@ -775,7 +782,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        group = 'feifan'
+        group = 'debug'
         data = management.users.add_group(user['id'], group)
         self.assertTrue(data['code'] == 200)
 
@@ -786,7 +793,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        group = 'feifan'
+        group = 'debug'
         data = management.users.remove_group(user['id'], group)
         self.assertTrue(data['code'] == 200)
 
@@ -1257,7 +1264,7 @@ class TestUsers(unittest.TestCase):
         self.assertTrue(users[1]['customData'][key] == value2)
 
     def test_kick_users(self):
-        success = management.users.kick(['userId'])
+        success = management.users.kick(['5a597f35085a2000144a10ed'])
         self.assertTrue(success)
 
     def test_has_role(self):
@@ -1269,3 +1276,32 @@ class TestUsers(unittest.TestCase):
         management.users.add_roles(user.get('id'), [code])
         has_role = management.users.has_role(user.get('id'), code)
         self.assertTrue(has_role)
+
+    def test_list_user_actions(self):
+        res = management.users.list_user_actions()
+        print(res)
+
+    def test_list_org(self):
+        res = management.users.list_org('613872b19c90be7d4da44466')
+        self.assertIsNotNone(res)
+
+    def test_list_dept(self):
+        res = management.users.list_department('613872b19c90be7d4da44466')
+        self.assertIsNotNone(res)
+
+
+    def test_has_role(self):
+       has = management.users.has_role(user_id='613ad439397280659fc1a056',role_code='vureo')
+       self.assertTrue(has)
+
+    def test_send_first_login_email(self):
+        res = management.users.send_first_login_verify_email(app_id="6139c4d24e78a4d706b7545b",user_id="613872b19c90be7d4da44466")
+        self.assertEquals(res['message'],'发送成功')
+
+    def test_logout(self):
+        res = management.users.logout("613872b19c90be7d4da44466")
+        self.assertEquals(res['code'], 200)
+
+    def test_check_login_status(self):
+        res = management.users.check_login_status("613872b19c90be7d4da44466")
+        self.assertEquals(res['message'],'用户不存在')

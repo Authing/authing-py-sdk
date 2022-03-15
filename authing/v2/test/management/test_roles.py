@@ -1,3 +1,4 @@
+# coding: utf-8
 from ...common.utils import get_random_string
 import unittest
 import os
@@ -11,7 +12,13 @@ load_dotenv()
 management = ManagementClient(ManagementClientOptions(
     user_pool_id=os.getenv('AUTHING_USERPOOL_ID'),
     secret=os.getenv('AUTHING_USERPOOL_SECRET'),
-    host=os.getenv('AUTHING_SERVER')
+    host=os.getenv('AUTHING_SERVER'),
+    # enc_public_key="""-----BEGIN PUBLIC KEY-----
+    # MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDb+rq+GQ8L8hgi6sXph2Dqcih0
+    # 4CfQt8Zm11GVhXh/0ad9uewFQIXMtytgdNfqFNiwSH5SQZSdA0AwDaYLG6Sc57L1
+    # DFuHxzHbMf9b8B2WnyJl3S85Qt6wmjBNfyy+dYlugFt04ZKDxsklXW5TVlGNA5Cg
+    # o/E0RlTdNza6FcAHeQIDAQAB
+    # -----END PUBLIC KEY-----"""
 ))
 
 
@@ -59,11 +66,19 @@ class TestRoles(unittest.TestCase):
         totalCount, _list = data['totalCount'], data['list']
         self.assertTrue(totalCount)
         self.assertTrue(_list)
+    def test_list(self):
+        data = management.roles.list()
+        self.assertTrue(data['totalCount'])
+        self.assertTrue(data['list'])
+
+    def test_list_with_namespace(self):
+        data = management.roles.list(namespace=namespace)
+        self.assertTrue(data['totalCount'])
+        self.assertTrue(data['list'])
 
     def test_create(self):
         role = create_role()
-        self.assertTrue(role)
-        self.assertTrue(role['code'])
+        self.assertIsNotNone(role['id'])
 
     def test_create_with_namespace(self):
         code = get_random_string(5)
@@ -72,34 +87,34 @@ class TestRoles(unittest.TestCase):
         role = management.roles.create(code=code, namespace=namespace_code)
         self.assertTrue(role)
         self.assertTrue(role['code'] == code)
+        role = management.roles.create(code=code, namespace=namespace)
+        self.assertIsNotNone(role['id'])
 
     def test_detail(self):
         code = get_random_string(5)
         management.roles.create(code=code)
         role = management.roles.detail(code=code)
-        self.assertTrue(role)
-        self.assertTrue(role['code'] == code)
+        self.assertEquals(role['code'],code)
 
     def test_detail_with_namespace(self):
         code = get_random_string(5)
         management.roles.create(code=code, namespace=namespace)
         role = management.roles.detail(code=code, namespace=namespace)
-        self.assertTrue(role)
-        self.assertTrue(role['code'] == code)
+        self.assertEquals(role['code'], code)
 
     def test_update(self):
         code = get_random_string(5)
         management.roles.create(code=code)
         desc = get_random_string(10)
         role = management.roles.update(code=code, description=desc)
-        self.assertTrue(role['description'] == desc)
+        self.assertEquals(role['description'], desc)
 
     def test_update_with_namespace(self):
         code = get_random_string(5)
         management.roles.create(code=code, namespace=namespace)
         desc = get_random_string(10)
         role = management.roles.update(code=code, description=desc, namespace=namespace)
-        self.assertTrue(role['description'] == desc)
+        self.assertEquals(role['description'],desc)
 
     def test_update_with_new_code(self):
         code = get_random_string(5)
@@ -107,7 +122,7 @@ class TestRoles(unittest.TestCase):
 
         newCode = get_random_string(5)
         role = management.roles.update(code=code, newCode=newCode)
-        self.assertTrue(role['code'] == newCode)
+        self.assertEquals(role['code'],newCode)
 
     def test_update_with_new_code_with_namespace(self):
         code = get_random_string(5)
@@ -115,7 +130,7 @@ class TestRoles(unittest.TestCase):
 
         newCode = get_random_string(5)
         role = management.roles.update(code=code, newCode=newCode, namespace=namespace)
-        self.assertTrue(role['code'] == newCode)
+        self.assertEquals(role['code'] , newCode)
 
     def test_delete(self):
         role = management.roles.create(
@@ -126,7 +141,7 @@ class TestRoles(unittest.TestCase):
         self.assertTrue(status_code == 200)
 
         newRole = management.roles.detail(code=role['code'])
-        self.assertTrue(newRole == None)
+        self.assertIsNone(newRole)
 
     def test_delete_namespace(self):
         role = management.roles.create(
@@ -138,7 +153,7 @@ class TestRoles(unittest.TestCase):
         self.assertTrue(status_code == 200)
 
         newRole = management.roles.detail(code=role['code'], namespace=namespace)
-        self.assertTrue(newRole == None)
+        self.assertIsNone(newRole )
 
     def test_delete_many(self):
         role = management.roles.create(
@@ -146,10 +161,10 @@ class TestRoles(unittest.TestCase):
         )
         data = management.roles.delete_many(code_list=[role['code']])
         status_code = data['code']
-        self.assertTrue(status_code == 200)
+        self.assertEquals(status_code, 200)
 
         newRole = management.roles.detail(code=role['code'])
-        self.assertTrue(newRole == None)
+        self.assertIsNone(newRole )
 
     def test_delete_many_with_namespace(self):
         role = management.roles.create(
@@ -158,16 +173,16 @@ class TestRoles(unittest.TestCase):
         )
         data = management.roles.delete_many(code_list=[role['code']], namespace=namespace)
         status_code = data['code']
-        self.assertTrue(status_code == 200)
+        self.assertEquals(status_code , 200)
 
         newRole = management.roles.detail(code=role['code'], namespace=namespace)
-        self.assertTrue(newRole == None)
+        self.assertIsNone(newRole)
 
     def test_list_users(self):
-        role = management.roles.create(
-            code=get_random_string(5)
-        )
-        data = management.roles.list_users(role['code'])
+        # role = management.roles.create(
+        #     code=get_random_string(5)
+        # )
+        data = management.roles.list_users(code='uqetc',namespace=namespace)
         totalCount = data['totalCount']
         users = data['list']
         self.assertTrue(totalCount == 0)
@@ -315,7 +330,7 @@ class TestRoles(unittest.TestCase):
     def test_get_udf_value(self):
         role = create_role()
         id = role.get('id')
-        values = management.roles.get_udf_value(id)
+        values = management.roles.get_udf_value('613acf1c57331c1246a80c0d')
         self.assertTrue(values is not None)
 
     def test_get_specific_udf_value(self):

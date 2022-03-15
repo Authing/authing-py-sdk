@@ -9,12 +9,13 @@ from .token_provider import ManagementTokenProvider
 class PolicyManagementClient(object):
     """Authing Policy Management Client"""
 
-    def __init__(self, options, graphqlClient, tokenProvider):
+    def __init__(self, options, graphqlClient, tokenProvider, managementClient):
         # type:(ManagementClientOptions,GraphqlClient,ManagementTokenProvider) -> PolicyManagementClient
 
         self.options = options
         self.graphqlClient = graphqlClient
         self.tokenProvider = tokenProvider
+        self.__super__ = managementClient
 
     def list(self, page=1, limit=10):
         """获取策略列表
@@ -31,7 +32,7 @@ class PolicyManagementClient(object):
         return data["policies"]
 
     def create(self, code, statements, description=None):
-        """创建策略"""
+        """添加策略"""
         data = self.graphqlClient.request(
             query=QUERY["createPolicy"],
             params={"code": code, "description": description, "statements": statements},
@@ -51,12 +52,7 @@ class PolicyManagementClient(object):
         )
         return data["policy"]
 
-    def update(
-        self,
-        code,
-        statements,
-        description=None,
-    ):
+    def update(self, code, statements, description=None):
         # type:(str,any,str) -> any
         """修改策略"""
         data = self.graphqlClient.request(
@@ -90,7 +86,7 @@ class PolicyManagementClient(object):
         return data["deletePolicies"]
 
     def list_assignments(self, code, page=1, limit=10):
-        """获取授权记录"""
+        """获取策略授权记录"""
         data = self.graphqlClient.request(
             query=QUERY["policyAssignments"],
             params={"code": code, "page": page, "limit": limit},
@@ -99,7 +95,7 @@ class PolicyManagementClient(object):
         return data["policyAssignments"]
 
     def add_assignments(self, policies, targetType, targetIdentifiers):
-        """添加授权"""
+        """添加策略授权"""
         data = self.graphqlClient.request(
             query=QUERY["addPolicyAssignments"],
             params={
@@ -112,7 +108,7 @@ class PolicyManagementClient(object):
         return data["addPolicyAssignments"]
 
     def remove_assignments(self, policies, targetType, targetIdentifiers):
-        """删除授权"""
+        """撤销策略授权"""
         data = self.graphqlClient.request(
             query=QUERY["removePolicyAssignments"],
             params={
@@ -123,3 +119,47 @@ class PolicyManagementClient(object):
             token=self.tokenProvider.getAccessToken(),
         )
         return data["removePolicyAssignments"]
+
+    def enable_assignment(self, policy, target_type, target_identifier, namespace=None):
+        """设置策略授权状态为开启
+
+        Args:
+            policy(str): 策略
+            target_type(str): 策略类型 可选值为 USER (用户), ROLE (角色), GROUP（分组）, ORG（组织机构）
+            target_identifier(str): 目标ID
+            namespace(str):命名空间
+        """
+        self.__super__.check.target_type(target_type)
+        data = self.graphqlClient.request(
+            query=QUERY["enablePolicyAssignment"],
+            params={
+                "policy": policy,
+                "targetType": target_type,
+                "targetIdentifier": target_identifier,
+                "namespace": namespace
+            },
+            token=self.tokenProvider.getAccessToken(),
+        )
+        return data["enablePolicyAssignment"]
+
+    def disable_assignment(self, policy, target_type, target_identifier, namespace=None):
+        """设置策略授权状态为关闭
+
+        Args:
+            policy(str): 策略
+            target_type(str): 策略类型 可选值为 USER (用户), ROLE (角色), GROUP（分组）, ORG（组织机构）
+            target_identifier(str): 目标ID
+            namespace(str):命名空间
+        """
+        self.__super__.check.target_type(target_type)
+        data = self.graphqlClient.request(
+            query=QUERY["disbalePolicyAssignment"],
+            params={
+                "policy": policy,
+                "targetType": target_type,
+                "targetIdentifier": target_identifier,
+                "namespace": namespace
+            },
+            token=self.tokenProvider.getAccessToken(),
+        )
+        return data["disbalePolicyAssignment"]

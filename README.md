@@ -1,6 +1,9 @@
 # Authing - Python
 
-<LastUpdated/>
+<div align="center">
+  <a href="https://authing.cn"><img width="300" src="https://files.authing.co/authing-console/authing-logo-new-20210924.svg?a=1" alt="Authing" /></a>
+</div>
+<br>
 
 Authing Python SDK 由两部分组成：`ManagementClient` 和 `AuthenticationClient`。
 
@@ -223,6 +226,12 @@ management_client = ManagementClient(
 
 你可以[在此查看完整文档](https://docs.authing.co/v2/reference/sdk-for-python/) 。
 
+## 参与贡献
+- Fork it
+- Create your feature branch (git checkout -b my-new-feature)
+- Commit your changes (git commit -am 'Add some feature')
+- Push to the branch (git push origin my-new-feature)
+- Create new Pull Request
 ## 获取帮助
 
-Join us on Gitter: [#authing-chat](https://forum.authing.cn/)
+Join us on forum: [#authing-chat](https://forum.authing.cn/)

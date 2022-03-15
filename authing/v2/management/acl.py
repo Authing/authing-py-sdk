@@ -6,21 +6,21 @@ from .token_provider import ManagementTokenProvider
 from ..common.codegen import QUERY
 from ..exceptions import AuthingWrongArgumentException
 from ..common.rest import RestClient
-from ..common.utils import format_authorized_resources
-
+from ..common.utils import format_authorized_resources,get_random_string_secret
 
 class AclManagementClient(object):
     """Authing Access Control Management Client"""
 
-    def __init__(self, options, graphqlClient, restClient, tokenProvider):
+    def __init__(self, options, graphqlClient, restClient, tokenProvider, managementClient):
         # type:(ManagementClientOptions,GraphqlClient,RestClient,ManagementTokenProvider) -> AclManagementClient
         self.options = options
         self.graphqlClient = graphqlClient
         self.restClient = restClient
         self.tokenProvider = tokenProvider
+        self.__super__ = managementClient
 
     def allow(self, resource, action, namespace, role=None, user_id=None):
-        """允许某个用户操作某个资源
+        """允许某个用户对某个资源进行某个操作
 
         Args:
             resource (str): 资源的 code
@@ -47,8 +47,7 @@ class AclManagementClient(object):
         return data["allow"]
 
     def is_allowed(self, user_id, action, resource, namespace):
-        """
-        判断某个用户是否能够具备某个资源资源某个操作的权限。
+        """判断某个用户是否对某个资源有某个操作权限
 
         Args:
             resource (str) 资源的 code
@@ -69,8 +68,7 @@ class AclManagementClient(object):
         return data["isActionAllowed"]
 
     def create_namespace(self, code, name, description=None):
-        """
-        创建权限分组。权限分组可以理解为权限的命名空间，不同权限分组中的角色和资源相互独立，即使同名也不会冲突。
+        """创建权限分组。权限分组可以理解为权限的命名空间，不同权限分组中的角色和资源相互独立，即使同名也不会冲突。
 
         Args:
             code (str): 权限分组唯一标识符；
@@ -97,8 +95,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def update_namespace(self, id, name=None, code=None, description=None):
-        """
-        更新权限分组。
+        """更新权限分组。
 
         Args:
             id (number): 权限分组的 ID；
@@ -125,9 +122,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def list_namespaces(self, page=1, limit=10):
-        """
-        获取权限分组列表。
-        """
+        """获取权限分组列表"""
 
         url = "%s/api/v2/resource-namespace/%s?page=%s&limit=%s" % (
             self.options.host, self.options.user_pool_id, page, limit)
@@ -144,8 +139,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def delete_namespace(self, id):
-        """
-        删除权限分组。
+        """删除权限分组。
 
         Args:
             id (str): 权限分组 ID;
@@ -180,9 +174,8 @@ class AclManagementClient(object):
         if resource_type not in ['DATA', 'API', 'MENU', 'UI', 'BUTTON']:
             raise AuthingWrongArgumentException('unsupported resource_type: %s' % resource_type)
 
-    def create_resource(self, namespace, code, resource_type, actions, description=None):
-        """
-        创建资源。
+    def create_resource(self, namespace, code, resource_type, actions, description=None, api_identifier=None):
+        """创建资源
 
         Args:
             namespace: (str): 权限分组信息
@@ -190,6 +183,7 @@ class AclManagementClient(object):
             resource_type (str): 资源类型，可选值为 DATA、API、MENU、UI、BUTTON；
             actions (list): 资源操作对象数组。其中 name 为操作名称，填写一个动词，description 为操作描述，填写描述信息。
             description (str): 描述信息
+            api_identifier (str) 选填，API 资源 URL 地址，当 type 为 API 时此字段必填
         """
 
         self.__check_resource_actions(actions)
@@ -204,7 +198,8 @@ class AclManagementClient(object):
                 'type': resource_type,
                 'actions': actions,
                 'namespace': namespace,
-                'description': description
+                'description': description,
+                'apiIdentifier': api_identifier
             },
             token=self.tokenProvider.getAccessToken()
         )
@@ -215,9 +210,8 @@ class AclManagementClient(object):
         else:
             self.options.on_error(code, message)
 
-    def update_resource(self, namespace, code, resource_type=None, actions=None, description=None):
-        """
-        更新资源。
+    def update_resource(self, namespace, code, resource_type=None, actions=None, description=None, api_identifier=None):
+        """更新资源
 
         Args:
             namespace (str): 权限分组 code；
@@ -225,6 +219,7 @@ class AclManagementClient(object):
             resource_type (str): 新的资源类型；
             actions (list): 资源操作对象数组。其中 name 为操作名称，填写一个动词，description 为操作描述，填写描述信息。
             description (str): 描述信息
+            api_identifier (str) 选填，API 资源 URL 地址，当 type 为 API 时此字段必填
         """
 
         body = {
@@ -242,6 +237,9 @@ class AclManagementClient(object):
             self.__check_resource_type(resource_type)
             body['type'] = resource_type
 
+        if api_identifier:
+            body['apiIdentifier'] = api_identifier
+
         url = "%s/api/v2/resources/%s" % (self.options.host, code)
         data = self.restClient.request(
             method='POST',
@@ -257,8 +255,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def list_resources(self, namespace, resource_type=None, page=1, limit=10):
-        """
-        根据筛选条件，查询用户池下的资源列表。
+        """获取资源列表
 
         Args:
             namespace (str): 权限分组 code；
@@ -305,8 +302,7 @@ class AclManagementClient(object):
             self.options.on_error(code, message)
 
     def delete_resource(self, namespace, code):
-        """
-        删除资源。
+        """删除资源
 
         Args:
             namespace (str): 权限分组 code；
@@ -336,8 +332,7 @@ class AclManagementClient(object):
             raise AuthingWrongArgumentException('unsupported target_type: %s' % target_type)
 
     def list_authorized_resources(self, namespace, target_type, target_identifier, resource_type=None):
-        """
-        获取某个主体（用户、角色、分组、组织机构节点）被授权的所有资源。
+        """获取某个主体（用户、角色、分组、组织机构节点）被授权的所有资源。
 
         Args:
             target_type (str): 主体类型，可选值包含 USER, ROLE, GROUP, ORG
@@ -418,8 +413,7 @@ class AclManagementClient(object):
 
 
     def authorize_resource(self, namespace, resource, opts):
-        """
-        批量授权资源权限。
+        """将一个（类）资源授权给用户、角色、分组、组织机构，且可以分别指定不同的操作权限。
 
         Args:
             namespace (str): 权限分组的 code
@@ -449,8 +443,7 @@ class AclManagementClient(object):
         return True
 
     def get_authorized_targets(self, namespace, resource_type, resource, actions=None, target_type=None):
-        """
-        获取具备某个（类）资源操作权限的用户、分组、角色、组织机构。
+        """获取具备某些资源操作权限的主体
 
         Args:
             namespace (str): 权限分组的 code
@@ -490,3 +483,206 @@ class AclManagementClient(object):
         )
 
         return data['authorizedTargets']
+
+    def programmatic_access_account_list(self, app_id, page=1, limit=10):
+        """编程访问账号列表
+
+        Args:
+            app_id (str): 应用ID
+            page (int): 分页
+            limit (int): 每页数量
+        """
+        if not app_id:
+            raise AuthingWrongArgumentException("app_id not found")
+        url = "%s/api/v2/applications/%s/programmatic-access-accounts?limit=%s&page=%s" % (self.options.host, app_id,
+                                                                                           limit, page)
+        return self.restClient.request(method='GET', token=self.tokenProvider.getAccessToken(), url=url)
+
+    def create_programmatic_access_account(self, app_id, remark=None, token_lifetime=600):
+        """添加编程访问账号
+
+        Args:
+            app_id (str): 应用ID
+            remark (str): 备注
+            token_lifetime (int): Token过期时间
+        """
+        url = "%s/api/v2/applications/%s/programmatic-access-accounts" % (self.options.host, app_id)
+        body = {
+            'tokenLifetime': token_lifetime
+        }
+        if remark:
+            body['remark'] = remark
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def disable_programmatic_access_account(self, programmatic_access_account_id):
+        """禁用编程访问账号
+
+         Args:
+            programmatic_access_account_id (str): 编程账号ID
+        """
+        url = "%s/api/v2/applications/programmatic-access-accounts" % self.options.host
+        body = {
+            'id': programmatic_access_account_id,
+            'enabled': False
+        }
+        return self.restClient.request(method='PATCH', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def delete_programmatic_access_account(self, programmatic_access_account_id):
+        """删除编程访问账号
+
+        Args:
+            programmatic_access_account_id (str): 编程账号ID
+        """
+        url = "%s/api/v2/applications/programmatic-access-accounts?id=%s" % (self.options.host,programmatic_access_account_id )
+        return self.restClient.request(method='DELETE', token=self.tokenProvider.getAccessToken(), url=url)
+
+    def enable_programmatic_access_account(self, programmatic_access_account_id):
+        """启用编程访问账号
+
+         Args:
+            programmatic_access_account_id (str): 编程账号ID
+        """
+        url = "%s/api/v2/applications/programmatic-access-accounts" % self.options.host
+        body = {
+            'id': programmatic_access_account_id,
+            'enabled': True
+        }
+        return self.restClient.request(method='PATCH', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def refresh_programmatic_access_account_secret(self, programmatic_access_account_id, secret=get_random_string_secret(32)):
+        """刷新编程访问账号密钥
+
+         Args:
+            programmatic_access_account_id (str): 编程账号ID
+            secret (str) : 默认秘钥
+        """
+        url = "%s/api/v2/applications/programmatic-access-accounts" % self.options.host
+        body = {
+            'id': programmatic_access_account_id,
+            'secret': secret
+        }
+        return self.restClient.request(method='PATCH', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def get_resource_by_id(self, id):
+        """根据 ID 获取单个资源
+
+          Args:
+            id (str): 资源ID
+        """
+        url = "%s/api/v2/resources/detail" % self.options.host
+        return self.restClient.request(method='GET', token=self.tokenProvider.getAccessToken(),
+                                       url=url,params={'id': id})
+
+    def get_resource_by_code(self, namespace, code):
+        """根据 Code 获取单个资源
+
+        Args:
+            namespace (str): 空间编码
+            code (str): 资源Code
+        """
+        url = "%s/api/v2/resources/detail" % self.options.host
+        return self.restClient.request(method='GET', token=self.tokenProvider.getAccessToken(),
+                                       url=url, params={'namespace': namespace, 'code': code})
+
+    def __convert_access_application_params_to_json(self, app_id, target_type, target_identifiers, namespace, inherit_by_children):
+        self.__super__.check.target_type(target_type)
+        if not app_id:
+            raise AuthingWrongArgumentException("app_id is required")
+        body = {
+            'targetType': target_type,
+            'targetIdentifiers': target_identifiers,
+            'namespace': namespace,
+            'inheritByChildren': inherit_by_children
+        }
+        return body
+
+    def enable_application_access_policies(self, app_id, target_type, target_identifiers, namespace, inherit_by_children):
+        """启用应用访问控制策略
+
+        Args:
+            app_id (str): 应用编码
+            target_type (str): 对象类型
+            target_identifiers (str[]): 对象ID集合
+            namespace (str):空间编码
+            inherit_by_children(bool):是否内联子类
+        """
+        body = self.__convert_access_application_params_to_json(app_id, target_type, target_identifiers, namespace, inherit_by_children)
+        url = "%s/api/v2/applications/%s/authorization/enable-effect" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def disable_application_access_policies(self, app_id, target_type, target_identifiers, namespace,
+                                           inherit_by_children):
+        """停用应用访问控制策略
+
+        Args:
+            app_id (str): 应用编码
+            target_type (str): 对象类型
+            target_identifiers (str[]): 对象ID集合
+            namespace (str):空间编码
+            inherit_by_children(bool):是否内联子类
+        """
+        body = self.__convert_access_application_params_to_json(app_id, target_type, target_identifiers, namespace, inherit_by_children)
+
+        url = "%s/api/v2/applications/%s/authorization/disable-effect" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def delete_application_access_policies(self, app_id, target_type, target_identifiers, namespace,
+                                            inherit_by_children):
+        """删除应用访问控制策略
+
+        Args:
+            app_id (str): 应用编码
+            target_type (str): 对象类型
+            target_identifiers (str[]): 对象ID集合
+            namespace (str):空间编码
+            inherit_by_children(bool):是否内联子类
+        """
+        body = self.__convert_access_application_params_to_json(app_id, target_type, target_identifiers, namespace, inherit_by_children)
+
+        url = "%s/api/v2/applications/%s/authorization/revoke" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def allow_access_application(self, app_id, target_type, target_identifiers, namespace,
+                                            inherit_by_children):
+        """配置「允许主体（用户、角色、分组、组织机构节点）访问应用」的控制策略
+
+                   Args:
+                       app_id (str): 应用编码
+                       target_type (str): 对象类型
+                       target_identifiers (str[]): 对象ID集合
+                       namespace (str):空间编码
+                       inherit_by_children(bool):是否内联子类
+                   """
+        body = self.__convert_access_application_params_to_json(app_id, target_type, target_identifiers, namespace, inherit_by_children)
+
+        url = "%s/api/v2/applications/%s/authorization/allow" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def deny_access_application(self, app_id, target_type, target_identifiers, namespace,
+                                            inherit_by_children):
+        """配置「拒绝主体（用户、角色、分组、组织机构节点）访问应用」的控制策略
+
+             Args:
+                 app_id (str): 应用编码
+                 target_type (str): 对象类型
+                 target_identifiers (str[]): 对象ID集合
+                 namespace (str):空间编码
+                 inherit_by_children(bool):是否内联子类
+             """
+        body = self.__convert_access_application_params_to_json(app_id, target_type, target_identifiers, namespace, inherit_by_children)
+
+        url = "%s/api/v2/applications/%s/authorization/deny" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json=body)
+
+    def update_default_application_access_policy(self, app_id, default_strategy):
+        """更改默认应用访问策略（默认拒绝所有用户访问应用、默认允许所有用户访问应用）"""
+        if default_strategy not in ['ALLOW_ALL', 'DENY_ALL']:
+            raise AuthingWrongArgumentException('default_strategy value only "ALLOW_ALL" or "DENY_ALL" ')
+        if not app_id:
+            raise AuthingWrongArgumentException(' app_id is required')
+        url = "%s/api/v2/applications/%s" % (self.options.host, app_id)
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url, json={
+            'permissionStrategy': {
+                'defaultStrategy': default_strategy
+            }
+        })

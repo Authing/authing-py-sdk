@@ -13,6 +13,10 @@ from .udf import UdfManagementClient
 from .groups import GroupsManagementClient
 from .orgs import OrgManagementClient
 from ..common.rest import RestClient
+from .user_pool import UserPoolManagementClient
+from .white_list import WhiteListManagementClient
+from .audit_log import AuditLogManagementClient
+from .principal_authentication import PrincipalAuthenticationClient
 
 
 class ManagementClient(object):
@@ -46,6 +50,7 @@ class ManagementClient(object):
             options=self.options,
             graphqlClient=self.graphqlClient,
             tokenProvider=self.tokenProvider,
+            managementClient=self
         )
 
         self.acl = AclManagementClient(
@@ -53,6 +58,7 @@ class ManagementClient(object):
             graphqlClient=self.graphqlClient,
             restClient=self.restClient,
             tokenProvider=self.tokenProvider,
+            managementClient=self
         )
 
         self.udf = UdfManagementClient(
@@ -78,9 +84,39 @@ class ManagementClient(object):
         self.org = OrgManagementClient(
             options=self.options,
             graphqlClient=self.graphqlClient,
-            tokenProvider=self.tokenProvider
+            tokenProvider=self.tokenProvider,
+            restClient=self.restClient
         )
 
+        self.userPool = UserPoolManagementClient(
+            options=self.options,
+            graphqlClient=self.graphqlClient,
+            restClient=self.restClient,
+            tokenProvider=self.tokenProvider,
+            managementClient=self
+        )
+
+        self.whiteList = WhiteListManagementClient(
+            options=self.options,
+            graphqlClient=self.graphqlClient,
+            restClient=self.restClient,
+            tokenProvider=self.tokenProvider,
+            managementClient=self
+        )
+        self.auditLog = AuditLogManagementClient(
+            options=self.options,
+            graphqlClient=self.graphqlClient,
+            restClient=self.restClient,
+            tokenProvider=self.tokenProvider,
+            managementClient=self
+        )
+        self.principalAuth = PrincipalAuthenticationClient(
+            options=self.options,
+            graphqlClient=self.graphqlClient,
+            restClient=self.restClient,
+            tokenProvider=self.tokenProvider,
+            managementClient=self
+        )
         # 用户池详情
         self._userpool_detail = None
 
@@ -101,8 +137,22 @@ class ManagementClient(object):
         return self._userpool_detail
 
     def check_login_status(self, token):
+        """检测登录状态"""
         # type:(str,bool) -> any
         data = self.graphqlClient.request(
             query=QUERY["checkLoginStatus"], params={"token": token}
         )
         return data["checkLoginStatus"]
+
+    def send_email(self, email, scene):
+        """发送邮件"""
+        data = self.graphqlClient.request(
+            query=QUERY["sendEmail"], params={"email": email, "scene": scene}
+        )
+        return data["sendEmail"]
+
+    def is_password_valid(self,password):
+        """检测密码是否合法"""
+        url = "%s/api/v2/password/check" % self.options.host
+        return self.restClient.request(method='POST', token=self.tokenProvider.getAccessToken(), url=url,
+                                       json={'password': password})
