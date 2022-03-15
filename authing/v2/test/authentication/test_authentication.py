@@ -56,15 +56,16 @@ class TestAuthentication(unittest.TestCase):
 
     def test_catch_error(self):
         authentication = init_authentication_client()
-        username = get_random_string(10)
-        password = get_random_string(10)
+        username = 'cj@authing.cn'
+        password = 'test'
 
         try:
-            authentication.login_by_username(
-                username=username,
+            authentication.login_by_email(
+                email=username,
                 password=password,
             )
         except AuthingException as e:
+            print(e)
             print(e.code)
             print(e.message)
             self.assertTrue(e.code)

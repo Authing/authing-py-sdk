@@ -753,20 +753,19 @@ class UsersManagementClient(object):
         )
         return data
 
-
     def has_role(self, user_id, role_code, namespace=None):
-        role_list = self.list_roles(user_id, namespace)
-
-        if role_list["totalCount"] < 1:
-            return False
-
-        has_role = False
-
-        for item in role_list["list"]:
-            if item["code"] == role_code:
-                has_role = True
-
-        return has_role
+        url = "%s/api/v2/users/%s/has-role" % (self.options.host, user_id)
+        data = self.restClient.request(
+            method='GET',
+            url=url,
+            token=self.tokenProvider.getAccessToken(),
+            auto_parse_result=True,
+            params={
+                "code": role_code,
+                "namespace": namespace
+            }
+        )
+        return data
 
     def kick(self, user_ids):
 

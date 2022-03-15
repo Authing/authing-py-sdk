@@ -1259,3 +1259,13 @@ class TestUsers(unittest.TestCase):
     def test_kick_users(self):
         success = management.users.kick(['userId'])
         self.assertTrue(success)
+
+    def test_has_role(self):
+        code = get_random_string(10)
+        management.roles.create(
+            code=code
+        )
+        user = create_user()
+        management.users.add_roles(user.get('id'), [code])
+        has_role = management.users.has_role(user.get('id'), code)
+        self.assertTrue(has_role)
