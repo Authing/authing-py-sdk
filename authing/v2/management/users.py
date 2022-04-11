@@ -117,14 +117,13 @@ class UsersManagementClient(object):
             user_id (str): 用户 ID
             with_custom_data (bool, optional): 是否获取自定义数据，默认为 false；如果设置为 true，将会在 customData 字段返回用户的所有自定义数据。
         """
-
-        query = QUERY["user"] if not with_custom_data else QUERY['userWithCustomData']
-        data = self.graphqlClient.request(
-            query=query,
-            params={"id": user_id},
+        url = "%s/api/v2/users/%s?with_custom_data=%s" % (self.options.host, user_id, '1' if with_custom_data else '0')
+        data = self.restClient.request(
+            method="GET",
+            url=url,
             token=self.tokenProvider.getAccessToken()
         )
-        data = data['user']
+        data = data['data']
         if with_custom_data:
             data['customData'] = convert_udv_list_to_dict(data['customData'])
         return data
@@ -423,6 +422,7 @@ class UsersManagementClient(object):
             elif dataType == "BOOLEAN":
                 data[i]["value"] = json.loads(value)
             elif dataType == "DATETIME":
+                print(value)
                 data[i]["value"] = parser.parse(value)
             elif dataType == "OBJECT":
                 data[i]["value"] = json.loads(value)

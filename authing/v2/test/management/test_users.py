@@ -456,6 +456,7 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
+        management.roles.create(get_random_string(10))
         data = management.roles.list()
         roles = data['list']
         management.users.add_roles(
@@ -782,8 +783,8 @@ class TestUsers(unittest.TestCase):
                 'password': get_random_string(10)
             }
         )
-        group = 'debug'
-        data = management.users.add_group(user['id'], group)
+        group = management.groups.create(get_random_string(10), get_random_string(10))
+        data = management.users.add_group(user['id'], group.get('code'))
         self.assertTrue(data['code'] == 200)
 
     def test_remove_group(self):
@@ -1201,8 +1202,8 @@ class TestUsers(unittest.TestCase):
             user_id=user.get('id'),
         )
         _list, total_count = data.get('list'), data.get('totalCount')
-        self.assertTrue(len(_list) == 2)
-        self.assertTrue(total_count == 2)
+        self.assertTrue(len(_list) == 1)
+        self.assertTrue(total_count == 1)
 
     def test_set_udf_value(self):
         user = create_user()
@@ -1289,10 +1290,6 @@ class TestUsers(unittest.TestCase):
         res = management.users.list_department('613872b19c90be7d4da44466')
         self.assertIsNotNone(res)
 
-
-    def test_has_role(self):
-       has = management.users.has_role(user_id='613ad439397280659fc1a056',role_code='vureo')
-       self.assertTrue(has)
 
     def test_send_first_login_email(self):
         res = management.users.send_first_login_verify_email(app_id="6139c4d24e78a4d706b7545b",user_id="613872b19c90be7d4da44466")

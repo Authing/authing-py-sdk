@@ -12,8 +12,6 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 
-from urlparse import urlparse,parse_qs
-
 # from urllib.parse import urlparse, parse_qs
 
 management = ManagementClient(
@@ -765,12 +763,10 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(queries.get('scope')[0] == 'user')
 
     def test_check_login_in(self):
-        user=init_authentication_client()._check_logged_in()
-        print user
+        user = init_authentication_client()._check_logged_in()
 
     def test_login_by_sub_account(self):
         user = init_authentication_client().login_by_sub_account("123456789","8558781")
-        print user
 
     def test_reset_password_by_first_token(self):
         authentication = init_authentication_client()
@@ -786,12 +782,10 @@ class TestAuthentication(unittest.TestCase):
         )
         password='12345678'
         res = authentication.reset_password_by_first_token(user['token'],password)
-        print res
         user = authentication.login_by_username(
             username=username,
             password=password,
         )
-        print user
 
 
     def test_reset_password_by_force_token(self):
@@ -808,12 +802,10 @@ class TestAuthentication(unittest.TestCase):
         )
         new_password='12345678'
         res = authentication.reset_password_with_force_reset(user['token'],password,new_password)
-        print res
         user = authentication.login_by_username(
             username=username,
             password=new_password,
         )
-        print user
 
     def test_list_user_dept(self):
         authentication = init_authentication_client()
