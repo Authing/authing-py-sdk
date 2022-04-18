@@ -1,13 +1,14 @@
-from .. import __version__
+from . import __version__
 from .ManagementTokenProvider import ManagementTokenProvider
 import requests
 
-class RestClient(object):
+class HttpClient(object):
     def __init__(self, options):
         self.options = options
         self.token_provider = ManagementTokenProvider(self.options);
 
     def request(self, method, url, json=None, **kwargs):
+        url = "%s%s" % (self.options.host, url)
         headers = {
             "x-authing-sdk-version": "python:%s" % __version__,
             "x-authing-userpool-id": self.options.user_pool_id if hasattr(self.options, 'user_pool_id') else None,
