@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 
 def find_version():
     file_dir = os.path.dirname(__file__)
-    with io.open(os.path.join(file_dir, 'authing', 'v2', '__init__.py')) as f:
+    with io.open(os.path.join(file_dir, 'authing', '__init__.py')) as f:
         version = re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', f.read())
         if version:
             return version.group(1)
@@ -27,7 +27,7 @@ setup(
     long_description_content_type="text/markdown",
     keywords='authing sso AaaS IdaaS',
     author='authing',  # 作者
-    author_email='ck@authing.cn',  # 作者邮箱
+    author_email='cj@authing.cn',  # 作者邮箱
     maintainer='authing',
     maintainer_email='cj@authing.cn',
     url='https://github.com/Authing/authing-py-sdk',  # 作者链接

@@ -1,4 +1,1 @@
-gql
 requests
-python-dateutil
-rsa==4.0
