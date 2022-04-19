@@ -14,6 +14,10 @@ class ManagementClient(object):
         """获取 Management API Token
 
         获取 Management API Token
+
+        Attributes:
+            secret (str): 用户池密钥
+            user_pool_id (str): 用户池 ID
         """
         return self.http_client.request(
             method="POST",
@@ -28,6 +32,10 @@ class ManagementClient(object):
         """获取用户信息
 
         获取用户信息
+
+        Attributes:
+            user_id (str): 用户 ID
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -42,6 +50,10 @@ class ManagementClient(object):
         """批量获取用户信息
 
         根据用户 id 批量获取用户信息
+
+        Attributes:
+            user_ids (list): 用户 ID 数组
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -56,6 +68,9 @@ class ManagementClient(object):
         """获取用户列表
 
         获取用户列表接口，支持分页
+
+        Attributes:
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -69,6 +84,9 @@ class ManagementClient(object):
         """获取用户的外部身份源
 
         获取用户的外部身份源
+
+        Attributes:
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -82,6 +100,9 @@ class ManagementClient(object):
         """获取用户自定义数据
 
         获取用户自定义数据
+
+        Attributes:
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -95,6 +116,9 @@ class ManagementClient(object):
         """设置用户自定义数据
 
         设置用户自定义数据
+
+        Attributes:
+            success (bool): 操作是否成功
         """
         return self.http_client.request(
             method="POST",
@@ -108,6 +132,10 @@ class ManagementClient(object):
         """获取用户角色列表
 
         获取用户角色列表
+
+        Attributes:
+            user_id (str): 用户 ID
+            namespace (str): 权限分组的 code
         """
         return self.http_client.request(
             method="POST",
@@ -122,6 +150,9 @@ class ManagementClient(object):
         """获取用户实名认证信息
 
         获取用户实名认证信息
+
+        Attributes:
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -135,6 +166,9 @@ class ManagementClient(object):
         """删除用户实名认证信息
 
         删除用户实名认证信息
+
+        Attributes:
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -148,6 +182,9 @@ class ManagementClient(object):
         """获取用户部门列表
 
         获取用户部门列表
+
+        Attributes:
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -161,6 +198,10 @@ class ManagementClient(object):
         """设置用户所在部门
 
         设置用户所在部门
+
+        Attributes:
+            departments (list): 部门信息
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -175,6 +216,9 @@ class ManagementClient(object):
         """获取用户分组列表
 
         获取用户分组列表
+
+        Attributes:
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -188,6 +232,9 @@ class ManagementClient(object):
         """删除用户
 
         删除用户（支持批量删除）
+
+        Attributes:
+            user_ids (list): 用户 ID 列表
         """
         return self.http_client.request(
             method="POST",
@@ -201,6 +248,9 @@ class ManagementClient(object):
         """获取用户 MFA 绑定信息
 
         获取用户 MFA 绑定信息
+
+        Attributes:
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -214,6 +264,9 @@ class ManagementClient(object):
         """获取已归档的用户列表
 
         获取已归档的用户列表
+
+        Attributes:
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -227,6 +280,10 @@ class ManagementClient(object):
         """强制下线用户
 
         强制下线用户
+
+        Attributes:
+            app_ids (list): APP ID 集合
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -241,6 +298,12 @@ class ManagementClient(object):
         """判断用户是否存在
 
         根据条件判断用户是否存在
+
+        Attributes:
+            username (str): 用户名，用户池内唯一
+            email (str): 邮箱
+            phone (str): 手机号
+            external_id (str): 第三方外部 ID
         """
         return self.http_client.request(
             method="POST",
@@ -277,6 +340,26 @@ class ManagementClient(object):
         """创建用户
 
         创建用户，邮箱、手机号、用户名必须包含其中一个
+
+        Attributes:
+            status (str): 账户当前状态
+            email (str): 邮箱
+            phone (str): 手机号
+            phone_country_code (str): 手机区号
+            username (str): 用户名，用户池内唯一
+            name (str): 用户真实名称，不具备唯一性
+            nickname (str): 昵称
+            photo (str): 头像链接
+            gender (str): 性别
+            email_verified (bool): 邮箱是否验证
+            phone_verified (bool): 手机号是否验证
+            external_id (str): 第三方外部 ID
+            department_ids (list): 用户所属部门 ID 列表
+            custom_data (dict): 自定义数据，传入的对象中的 key 必须先在用户池定义相关自定义字段
+            password (str): 密码。必须通过加密方式进行加密。
+            tenant_ids (list): 租户 ID
+            identities (list): 第三方身份源（建议调用绑定接口进行绑定）
+            options (dict): 附加选项
         """
         return self.http_client.request(
             method="POST",
@@ -307,6 +390,10 @@ class ManagementClient(object):
         """批量创建用户
 
         批量创建用户
+
+        Attributes:
+            list (list): 批量用户
+            options (dict): 附加选项
         """
         return self.http_client.request(
             method="POST",
@@ -337,6 +424,22 @@ class ManagementClient(object):
         """修改用户资料
 
         修改用户资料
+
+        Attributes:
+            phone_verified (bool): 手机号是否验证
+            email_verified (bool): 邮箱是否验证
+            gender (str): 性别
+            user_id (str): 用户 ID
+            phone_country_code (str): 手机区号
+            name (str): 用户真实名称，不具备唯一性
+            nickname (str): 昵称
+            photo (str): 头像链接
+            external_id (str): 第三方外部 ID
+            custom_data (dict): 自定义数据，传入的对象中的 key 必须先在用户池定义相关自定义字段
+            username (str): 用户名，用户池内唯一
+            email (str): 邮箱
+            phone (str): 手机号
+            password (str): 密码。必须通过加密方式进行加密。
         """
         return self.http_client.request(
             method="POST",
@@ -363,6 +466,9 @@ class ManagementClient(object):
         """获取用户可访问应用
 
         获取用户可访问应用
+
+        Attributes:
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -376,6 +482,9 @@ class ManagementClient(object):
         """获取用户授权的应用
 
         获取用户授权的应用
+
+        Attributes:
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -389,6 +498,9 @@ class ManagementClient(object):
         """判断用户是否有某个角色
 
         判断用户是否有某个角色，支持同时传入多个角色进行判断
+
+        Attributes:
+            has_any_role (bool): 是否拥有其中某一个角色
         """
         return self.http_client.request(
             method="POST",
@@ -404,6 +516,14 @@ class ManagementClient(object):
         """获取用户的登录历史记录
 
         获取用户登录历史记录
+
+        Attributes:
+            user_id (str): 用户 ID
+            app_id (str): 应用 ID
+            client_ip (str): 客户端 IP
+            start (int): 开始时间戳（毫秒）
+            end (int): 结束时间戳（毫秒）
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -422,6 +542,9 @@ class ManagementClient(object):
         """获取用户曾经登录过的应用
 
         获取用户曾经登录过的应用
+
+        Attributes:
+            user_id (str): 用户 ID
         """
         return self.http_client.request(
             method="POST",
@@ -435,6 +558,10 @@ class ManagementClient(object):
         """获取用户被授权的所有资源，用户被授权的资源是用户自身被授予、通过分组继承、通过角色继承、通过组织机构继承的集合
 
         获取用户被授权的所有资源
+
+        Attributes:
+            user_id (str): 用户 ID
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -449,6 +576,9 @@ class ManagementClient(object):
         """获取分组详情
 
         通过分组 code 获取分组详情
+
+        Attributes:
+            code (str): 分组 code
         """
         return self.http_client.request(
             method="POST",
@@ -462,6 +592,9 @@ class ManagementClient(object):
         """获取分组列表
 
         获取分组列表接口，支持分页
+
+        Attributes:
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -472,7 +605,15 @@ class ManagementClient(object):
         )
 
     def create_group(self, description, name, code):
-        """创建分组"""
+        """创建分组
+
+
+
+        Attributes:
+            description (str): 分组描述
+            name (str): 分组名称
+            code (str): 分组 code
+        """
         return self.http_client.request(
             method="POST",
             url="/api/v3/create-group",
@@ -484,7 +625,13 @@ class ManagementClient(object):
         )
 
     def create_group_batch(self, list):
-        """批量创建分组"""
+        """批量创建分组
+
+
+
+        Attributes:
+            list (list): 批量分组
+        """
         return self.http_client.request(
             method="POST",
             url="/api/v3/create-groups-batch",
@@ -494,7 +641,16 @@ class ManagementClient(object):
         )
 
     def update_group(self, new_code, description, name, code):
-        """修改分组"""
+        """修改分组
+
+
+
+        Attributes:
+            new_code (str): 分组新的 code
+            description (str): 分组描述
+            name (str): 分组名称
+            code (str): 分组 code
+        """
         return self.http_client.request(
             method="POST",
             url="/api/v3/update-group",
@@ -507,7 +663,13 @@ class ManagementClient(object):
         )
 
     def delete_groups(self, code_list):
-        """删除分组"""
+        """删除分组
+
+
+
+        Attributes:
+            code_list (list): 分组 code 列表
+        """
         return self.http_client.request(
             method="POST",
             url="/api/v3/delete-groups-batch",
@@ -517,7 +679,14 @@ class ManagementClient(object):
         )
 
     def add_group_members(self, user_ids, code):
-        """添加分组成员"""
+        """添加分组成员
+
+
+
+        Attributes:
+            user_ids (list): 用户 ID 数组
+            code (str): 分组 code
+        """
         return self.http_client.request(
             method="POST",
             url="/api/v3/add-group-members",
@@ -528,7 +697,14 @@ class ManagementClient(object):
         )
 
     def remove_group_members(self, user_ids, code):
-        """移除分组成员"""
+        """移除分组成员
+
+
+
+        Attributes:
+            user_ids (list): 用户 ID 数组
+            code (str): 分组 code
+        """
         return self.http_client.request(
             method="POST",
             url="/api/v3/remove-group-members",
@@ -539,7 +715,14 @@ class ManagementClient(object):
         )
 
     def list_group_members(self, code, options=None):
-        """获取分组成员列表"""
+        """获取分组成员列表
+
+
+
+        Attributes:
+            code (str): 分组 code
+            options (dict): 可选参数
+        """
         return self.http_client.request(
             method="POST",
             url="/api/v3/list-group-members",
@@ -550,7 +733,15 @@ class ManagementClient(object):
         )
 
     def get_group_authorized_resources(self, code, namespace=None, resource_type=None):
-        """获取分组被授权的资源列表"""
+        """获取分组被授权的资源列表
+
+
+
+        Attributes:
+            code (str): 分组 code
+            namespace (str): 权限分组的 code
+            resource_type (str): 资源类型
+        """
         return self.http_client.request(
             method="POST",
             url="/api/v3/get-group-authorized-resources",
@@ -565,6 +756,10 @@ class ManagementClient(object):
         """获取角色详情
 
         获取角色详情
+
+        Attributes:
+            code (str): 角色唯一标识符
+            namespace (str): 权限分组的 code
         """
         return self.http_client.request(
             method="POST",
@@ -579,6 +774,11 @@ class ManagementClient(object):
         """分配角色
 
         分配角色，被分配者可以是用户，可以是部门
+
+        Attributes:
+            targets (list): 目标对象
+            code (str): 分组 code，识别码
+            namespace (str): 权限分组
         """
         return self.http_client.request(
             method="POST",
@@ -594,6 +794,10 @@ class ManagementClient(object):
         """分配角色
 
         分配角色，被分配者可以是用户，可以是部门
+
+        Attributes:
+            targets (list): 部门信息
+            roles (list): 角色信息
         """
         return self.http_client.request(
             method="POST",
@@ -608,6 +812,11 @@ class ManagementClient(object):
         """分配角色
 
         分配角色，被分配者可以是用户，可以是部门
+
+        Attributes:
+            targets (list): 部门信息
+            code (str): 分组 code，识别码
+            namespace (str): 权限分组
         """
         return self.http_client.request(
             method="POST",
@@ -623,6 +832,10 @@ class ManagementClient(object):
         """分配角色
 
         分配角色，被分配者可以是用户，可以是部门
+
+        Attributes:
+            targets (list): 目标信息
+            roles (list): 角色信息
         """
         return self.http_client.request(
             method="POST",
@@ -637,6 +850,11 @@ class ManagementClient(object):
         """角色被授权的资源列表
 
         角色被授权的资源列表
+
+        Attributes:
+            code (str): 分组 code，识别码
+            namespace (str): 权限分组
+            resource_type (str): 资源类型
         """
         return self.http_client.request(
             method="POST",
@@ -652,6 +870,11 @@ class ManagementClient(object):
         """获取角色成员列表
 
         获取角色成员列表
+
+        Attributes:
+            code (str): 角色唯一标识符
+            namespace (str): 权限分组的 code
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -667,6 +890,11 @@ class ManagementClient(object):
         """获取角色的部门列表
 
         获取角色的部门列表
+
+        Attributes:
+            code (str): 部门唯一标识符
+            namespace (str): 权限分组的 code
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -682,6 +910,11 @@ class ManagementClient(object):
         """创建角色
 
         创建角色
+
+        Attributes:
+            code (str): 角色 code
+            namespace (str): 角色 namespace
+            description (str): 角色描述
         """
         return self.http_client.request(
             method="POST",
@@ -697,6 +930,10 @@ class ManagementClient(object):
         """获取角色列表
 
         获取角色列表
+
+        Attributes:
+            namespace (str): 角色 namespace
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -711,6 +948,10 @@ class ManagementClient(object):
         """删除角色
 
         删除角色
+
+        Attributes:
+            code_list (list): 角色 code 集合
+            namespace (str): 权限分组的 code
         """
         return self.http_client.request(
             method="POST",
@@ -725,6 +966,9 @@ class ManagementClient(object):
         """批量创建角色
 
         批量创建角色
+
+        Attributes:
+            list (list): 角色列表
         """
         return self.http_client.request(
             method="POST",
@@ -738,6 +982,12 @@ class ManagementClient(object):
         """修改角色
 
         修改角色
+
+        Attributes:
+            new_code (str): 新的角色 code
+            code (str): 角色 code
+            namespace (str): 权限分组
+            description (str): 角色描述
         """
         return self.http_client.request(
             method="POST",
@@ -754,6 +1004,9 @@ class ManagementClient(object):
         """获取顶层组织机构列表
 
         获取顶层组织机构列表
+
+        Attributes:
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -767,6 +1020,10 @@ class ManagementClient(object):
         """创建顶层组织机构
 
         创建顶层组织机构
+
+        Attributes:
+            organization_name (str): 组织名称
+            organization_code (str): 组织 code
         """
         return self.http_client.request(
             method="POST",
@@ -783,6 +1040,11 @@ class ManagementClient(object):
         """修改顶层组织机构
 
         修改顶层组织机构
+
+        Attributes:
+            organization_code (str): 组织 code
+            organization_new_code (str): 新组织 code
+            organization_name (str): 组织名称
         """
         return self.http_client.request(
             method="POST",
@@ -798,6 +1060,9 @@ class ManagementClient(object):
         """删除顶层组织机构
 
         删除顶层组织机构
+
+        Attributes:
+            organization_code (str): 组织 code
         """
         return self.http_client.request(
             method="POST",
@@ -811,6 +1076,10 @@ class ManagementClient(object):
         """获取部门信息
 
         获取部门信息
+
+        Attributes:
+            department_id (str): 部门 id，根部门传 `root`
+            organization_code (str): 组织 code
         """
         return self.http_client.request(
             method="POST",
@@ -832,6 +1101,13 @@ class ManagementClient(object):
         """创建部门
 
         创建部门
+
+        Attributes:
+            organization_code (str): 组织 code
+            name (str): 部门名称
+            parent_department_id (str): 父部门 id
+            code (str): 部门识别码
+            leader_user_id (str): 部门负责人 ID
         """
         return self.http_client.request(
             method="POST",
@@ -857,6 +1133,14 @@ class ManagementClient(object):
         """修改部门
 
         修改部门
+
+        Attributes:
+            organization_code (str): 组织 code
+            name (str): 部门名称
+            parent_department_id (str): 父部门 id
+            department_id (str): 部门 ID
+            code (str): 部门识别码
+            leader_user_id (str): 部门负责人 ID
         """
         return self.http_client.request(
             method="POST",
@@ -875,6 +1159,10 @@ class ManagementClient(object):
         """删除部门
 
         删除部门
+
+        Attributes:
+            organization_code (str): 组织 code
+            department_id (str): 部门 ID
         """
         return self.http_client.request(
             method="POST",
@@ -889,6 +1177,10 @@ class ManagementClient(object):
         """搜索部门
 
         搜索部门
+
+        Attributes:
+            search (str): 搜索关键词
+            organization_code (str): 组织 code
         """
         return self.http_client.request(
             method="POST",
@@ -903,6 +1195,10 @@ class ManagementClient(object):
         """获取子部门列表
 
         获取子部门列表
+
+        Attributes:
+            department_id (str): 部门 ID
+            organization_code (str): 组织 code
         """
         return self.http_client.request(
             method="POST",
@@ -917,6 +1213,11 @@ class ManagementClient(object):
         """获取部门直属成员列表
 
         获取部门直属成员列表
+
+        Attributes:
+            department_id (str): 部门 id，根部门传 `root`
+            organization_code (str): 组织 code
+            options (dict): 可选参数
         """
         return self.http_client.request(
             method="POST",
@@ -932,6 +1233,10 @@ class ManagementClient(object):
         """获取部门直属成员 ID 列表
 
         获取部门直属成员 ID 列表
+
+        Attributes:
+            department_id (str): 部门 ID
+            organization_code (str): 组织 code
         """
         return self.http_client.request(
             method="POST",
@@ -946,6 +1251,11 @@ class ManagementClient(object):
         """部门下添加成员
 
         部门下添加成员
+
+        Attributes:
+            department_id (str): 部门 ID
+            organization_code (str): 组织 code
+            user_ids (list): 用户 ID 列表
         """
         return self.http_client.request(
             method="POST",
@@ -961,6 +1271,11 @@ class ManagementClient(object):
         """部门下删除成员
 
         部门下删除成员
+
+        Attributes:
+            department_id (str): 部门 ID
+            organization_code (str): 组织 code
+            user_ids (list): 用户 ID 列表
         """
         return self.http_client.request(
             method="POST",
@@ -976,6 +1291,10 @@ class ManagementClient(object):
         """获取父部门信息
 
         获取父部门信息
+
+        Attributes:
+            department_id (str): 部门 id
+            organization_code (str): 组织 code
         """
         return self.http_client.request(
             method="POST",
@@ -990,6 +1309,9 @@ class ManagementClient(object):
         """获取用户池配置的扩展字段列表
 
         获取用户池配置的扩展字段列表
+
+        Attributes:
+            target_type (str): 主体类型，目前支持用户和角色
         """
         return self.http_client.request(
             method="POST",
@@ -1003,6 +1325,9 @@ class ManagementClient(object):
         """创建扩展字段
 
         创建扩展字段
+
+        Attributes:
+            list (list): 扩展字段列表
         """
         return self.http_client.request(
             method="POST",
