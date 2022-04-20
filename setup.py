@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 
 def find_version():
     file_dir = os.path.dirname(__file__)
-    with io.open(os.path.join(file_dir, 'authing', '__init__.py')) as f:
+    with io.open(os.path.join(file_dir, 'authing', 'version.py')) as f:
         version = re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', f.read())
         if version:
             return version.group(1)

@@ -1,4 +1,4 @@
-DEFAULT_ENCRYPT_PUBLICKEY = """
+DEFAULT_RSA_PUBLICKEY = """
 -----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4xKeUgQ+Aoz7TLfAfs9+paePb
 5KIofVthEopwrXFkp8OCeocaTHt9ICjTT2QeJh6cZaDaArfZ873GPUn00eOIZ7Ae
@@ -23,7 +23,7 @@ class ManagementClientOptions:
         self.secret = secret
         self.host = host or "https://core.authing.cn"
         self.timeout = timeout
-        self.enc_public_key = enc_public_key or DEFAULT_ENCRYPT_PUBLICKEY
+        self.enc_public_key = enc_public_key or DEFAULT_RSA_PUBLICKEY
         self.lang = lang
         self.use_unverified_ssl = use_unverified_ssl
 

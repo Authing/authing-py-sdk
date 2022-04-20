@@ -1,4 +1,4 @@
-from . import __version__
+from .version import __version__
 from .ManagementTokenProvider import ManagementTokenProvider
 import requests
 
@@ -9,6 +9,11 @@ class HttpClient(object):
 
     def request(self, method, url, json=None, **kwargs):
         url = "%s%s" % (self.options.host, url)
+
+        # 把 json 中为 null 的去掉
+        if json:
+            json = {k: v for k, v in json.items() if v is not None}
+
         headers = {
             "x-authing-sdk-version": "python:%s" % __version__,
             "x-authing-userpool-id": self.options.user_pool_id if hasattr(self.options, 'user_pool_id') else None,

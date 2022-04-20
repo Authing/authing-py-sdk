@@ -28,13 +28,25 @@ class ManagementClient(object):
             },
         )
 
-    def get_user(self, user_id, options=None):
+    def get_user(
+        self,
+        user_id=None,
+        phone=None,
+        email=None,
+        username=None,
+        external_id=None,
+        options=None,
+    ):
         """获取用户信息
 
         获取用户信息
 
         Attributes:
             user_id (str): 用户 ID
+            phone (str): 手机号
+            email (str): 邮箱
+            username (str): 用户名
+            external_id (str): 原系统 ID
             options (dict): 可选参数
         """
         return self.http_client.request(
@@ -42,6 +54,10 @@ class ManagementClient(object):
             url="/api/v3/get-user",
             json={
                 "userId": user_id,
+                "phone": phone,
+                "email": email,
+                "username": username,
+                "externalId": external_id,
                 "options": options,
             },
         )
@@ -96,38 +112,6 @@ class ManagementClient(object):
             },
         )
 
-    def get_user_custom_data(self, user_id):
-        """获取用户自定义数据
-
-        获取用户自定义数据
-
-        Attributes:
-            user_id (str): 用户 ID
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/get-user-custom-data",
-            json={
-                "userId": user_id,
-            },
-        )
-
-    def set_user_custom_data(self, success):
-        """设置用户自定义数据
-
-        设置用户自定义数据
-
-        Attributes:
-            success (bool): 操作是否成功
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/set-user-custom-data",
-            json={
-                "success": success,
-            },
-        )
-
     def get_user_roles(self, user_id, namespace=None):
         """获取用户角色列表
 
@@ -135,7 +119,7 @@ class ManagementClient(object):
 
         Attributes:
             user_id (str): 用户 ID
-            namespace (str): 权限分组的 code
+            namespace (str): 所属权限分组的 code
         """
         return self.http_client.request(
             method="POST",
@@ -406,59 +390,62 @@ class ManagementClient(object):
 
     def update_user(
         self,
-        phone_verified,
-        email_verified,
-        gender,
         user_id,
         phone_country_code=None,
         name=None,
         nickname=None,
         photo=None,
         external_id=None,
-        custom_data=None,
+        status=None,
+        email_verified=None,
+        phone_verified=None,
+        gender=None,
         username=None,
         email=None,
         phone=None,
         password=None,
+        custom_data=None,
     ):
         """修改用户资料
 
         修改用户资料
 
         Attributes:
-            phone_verified (bool): 手机号是否验证
-            email_verified (bool): 邮箱是否验证
-            gender (str): 性别
             user_id (str): 用户 ID
             phone_country_code (str): 手机区号
             name (str): 用户真实名称，不具备唯一性
             nickname (str): 昵称
             photo (str): 头像链接
             external_id (str): 第三方外部 ID
-            custom_data (dict): 自定义数据，传入的对象中的 key 必须先在用户池定义相关自定义字段
+            status (str): 账户当前状态
+            email_verified (bool): 邮箱是否验证
+            phone_verified (bool): 手机号是否验证
+            gender (str): 性别
             username (str): 用户名，用户池内唯一
             email (str): 邮箱
             phone (str): 手机号
             password (str): 密码。必须通过加密方式进行加密。
+            custom_data (dict): 自定义数据，传入的对象中的 key 必须先在用户池定义相关自定义字段
         """
         return self.http_client.request(
             method="POST",
             url="/api/v3/update-user",
             json={
-                "phoneVerified": phone_verified,
-                "emailVerified": email_verified,
-                "gender": gender,
                 "userId": user_id,
                 "phoneCountryCode": phone_country_code,
                 "name": name,
                 "nickname": nickname,
                 "photo": photo,
                 "externalId": external_id,
-                "customData": custom_data,
+                "status": status,
+                "emailVerified": email_verified,
+                "phoneVerified": phone_verified,
+                "gender": gender,
                 "username": username,
                 "email": email,
                 "phone": phone,
                 "password": password,
+                "customData": custom_data,
             },
         )
 
@@ -555,9 +542,9 @@ class ManagementClient(object):
         )
 
     def get_user_authorized_resources(self, user_id, options=None):
-        """获取用户被授权的所有资源，用户被授权的资源是用户自身被授予、通过分组继承、通过角色继承、通过组织机构继承的集合
+        """获取用户被授权的所有资源
 
-        获取用户被授权的所有资源
+        获取用户被授权的所有资源，用户被授权的资源是用户自身被授予、通过分组继承、通过角色继承、通过组织机构继承的集合
 
         Attributes:
             user_id (str): 用户 ID
@@ -739,7 +726,7 @@ class ManagementClient(object):
 
         Attributes:
             code (str): 分组 code
-            namespace (str): 权限分组的 code
+            namespace (str): 所属权限分组的 code
             resource_type (str): 资源类型
         """
         return self.http_client.request(
@@ -759,7 +746,7 @@ class ManagementClient(object):
 
         Attributes:
             code (str): 角色唯一标识符
-            namespace (str): 权限分组的 code
+            namespace (str): 所属权限分组的 code
         """
         return self.http_client.request(
             method="POST",
@@ -1305,6 +1292,197 @@ class ManagementClient(object):
             },
         )
 
+    def list_ext_idp(self, tenant_id=None):
+        """获取身份源列表
+
+        获取身份源列表
+
+        Attributes:
+            tenant_id (str): 租户 ID
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/list-ext-idp",
+            json={
+                "tenantId": tenant_id,
+            },
+        )
+
+    def get_ext_idp(self, id, tenant_id=None):
+        """获取身份源详情
+
+        获取身份源详情
+
+        Attributes:
+            id (str): 身份源 id
+            tenant_id (str): 租户 ID
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/get-ext-idp",
+            json={
+                "id": id,
+                "tenantId": tenant_id,
+            },
+        )
+
+    def create_ext_idp(self, type, name, tenant_id=None):
+        """创建身份源
+
+        创建身份源
+
+        Attributes:
+            type (str): 身份源连接类型
+            name (str): 名称
+            tenant_id (str): 租户 ID
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/create-ext-idp",
+            json={
+                "type": type,
+                "name": name,
+                "tenantId": tenant_id,
+            },
+        )
+
+    def update_ext_idp(self, id, name):
+        """更新身份源配置
+
+        更新身份源配置
+
+        Attributes:
+            id (str): 连接 ID
+            name (str): 名称
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/update-ext-idp",
+            json={
+                "id": id,
+                "name": name,
+            },
+        )
+
+    def delete_ext_idp(self, id):
+        """删除身份源配置
+
+        删除身份源配置
+
+        Attributes:
+            id (str): 连接 ID
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/delete-ext-idp",
+            json={
+                "id": id,
+            },
+        )
+
+    def create_ext_idp_conn(
+        self, fields, logo, identifier, type, ext_idp_id, display_name=None
+    ):
+        """在某个已有身份源下创建新连接
+
+        在某个已有身份源下创建新连接
+
+        Attributes:
+            fields (dict): 连接的自定义配置信息
+            logo (str): 身份源图标
+            identifier (str): 身份源连接标识
+            type (str): 身份源连接类型
+            ext_idp_id (str): 身份源连接 id
+            display_name (str): 连接在登录页的显示名称
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/create-ext-idp-conn",
+            json={
+                "fields": fields,
+                "logo": logo,
+                "identifier": identifier,
+                "type": type,
+                "extIdpId": ext_idp_id,
+                "displayName": display_name,
+            },
+        )
+
+    def update_ext_idp_conn(
+        self,
+        login_only,
+        association_mode,
+        logo,
+        fields,
+        display_name,
+        id,
+        challenge_binding_methods=None,
+    ):
+        """更新身份源连接
+
+        更新身份源连接
+
+        Attributes:
+            login_only (bool): 是否只支持登录
+            association_mode (str): 关联模式
+            logo (str): 图标
+            fields (dict): 身份源连接自定义参数
+            display_name (str): 身份源连接显示名称
+            id (str): 连接 ID
+            challenge_binding_methods (list): 绑定方式
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/update-ext-idp-conn",
+            json={
+                "loginOnly": login_only,
+                "associationMode": association_mode,
+                "logo": logo,
+                "fields": fields,
+                "displayName": display_name,
+                "id": id,
+                "challengeBindingMethods": challenge_binding_methods,
+            },
+        )
+
+    def delete_ext_idp_conn(self, id):
+        """删除身份源配置
+
+        删除身份源配置
+
+        Attributes:
+            id (str): 连接 ID
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/delete-ext-idp-conn",
+            json={
+                "id": id,
+            },
+        )
+
+    def change_conn_state(self, tenant_id, app_id, enabled, id):
+        """身份源连接开关
+
+        身份源连接开关
+
+        Attributes:
+            tenant_id (str): 租户 ID
+            app_id (str): 应用 ID
+            enabled (bool): 是否开启身份源连接
+            id (str): 连接 ID
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/enable-ext-idp-conn",
+            json={
+                "tenantId": tenant_id,
+                "appId": app_id,
+                "enabled": enabled,
+                "id": id,
+            },
+        )
+
     def get_custom_fields(self, target_type):
         """获取用户池配置的扩展字段列表
 
@@ -1334,5 +1512,335 @@ class ManagementClient(object):
             url="/api/v3/set-custom-fields",
             json={
                 "list": list,
+            },
+        )
+
+    def create_resource(
+        self, actions, type, code, description=None, api_identifier=None, namespace=None
+    ):
+        """创建资源
+
+        创建资源
+
+        Attributes:
+            actions (list): 资源定义的操作类型
+            type (str): 资源类型，如数据、API、按钮、菜单
+            code (str): 资源唯一标志符
+            description (str): 资源描述
+            api_identifier (str): API 资源的 URL 标识
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/create-resource",
+            json={
+                "actions": actions,
+                "type": type,
+                "code": code,
+                "description": description,
+                "apiIdentifier": api_identifier,
+                "namespace": namespace,
+            },
+        )
+
+    def create_resources_batch(self, list, namespace=None):
+        """批量创建资源
+
+        批量创建资源
+
+        Attributes:
+            list (list): 资源列表
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/create-resources-batch",
+            json={
+                "list": list,
+                "namespace": namespace,
+            },
+        )
+
+    def get_resource(self, code, namespace=None):
+        """获取资源详情
+
+        获取资源详情
+
+        Attributes:
+            code (str): 资源唯一标志符
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/get-resource",
+            json={
+                "code": code,
+                "namespace": namespace,
+            },
+        )
+
+    def get_resources_batch(self, code_list, namespace=None):
+        """批量获取资源详情
+
+        批量获取资源详情
+
+        Attributes:
+            code_list (list): 资源 code 列表
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/get-resources-batch",
+            json={
+                "codeList": code_list,
+                "namespace": namespace,
+            },
+        )
+
+    def list_resources(self, namespace=None, type=None, options=None):
+        """分页获取资源列表
+
+        分页获取资源列表
+
+        Attributes:
+            namespace (str): 所属权限分组的 code
+            type (str): 资源类型
+            options (dict): 可选参数
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/list-resources",
+            json={
+                "namespace": namespace,
+                "type": type,
+                "options": options,
+            },
+        )
+
+    def update_resource(
+        self, actions, type, code, description=None, api_identifier=None, namespace=None
+    ):
+        """修改资源
+
+        修改资源（Pratial Update）
+
+        Attributes:
+            actions (list): 资源定义的操作类型
+            type (str): 资源类型，如数据、API、按钮、菜单
+            code (str): 资源唯一标志符
+            description (str): 资源描述
+            api_identifier (str): API 资源的 URL 标识
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/update-resource",
+            json={
+                "actions": actions,
+                "type": type,
+                "code": code,
+                "description": description,
+                "apiIdentifier": api_identifier,
+                "namespace": namespace,
+            },
+        )
+
+    def delete_resource(self, code, namespace=None):
+        """删除资源
+
+        删除资源
+
+        Attributes:
+            code (str): 资源唯一标志符
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/delete-resource",
+            json={
+                "code": code,
+                "namespace": namespace,
+            },
+        )
+
+    def delete_resources_batch(self, code_list, namespace=None):
+        """批量删除资源
+
+        批量删除资源
+
+        Attributes:
+            code_list (list): 资源 code 列表
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/delete-resources-batch",
+            json={
+                "codeList": code_list,
+                "namespace": namespace,
+            },
+        )
+
+    def create_namespace(self, code, name=None, description=None):
+        """创建权限分组
+
+        创建权限分组
+
+        Attributes:
+            code (str): 权限分组唯一标志符
+            name (str): 权限分组名称
+            description (str): 权限分组描述信息
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/create-namespace",
+            json={
+                "code": code,
+                "name": name,
+                "description": description,
+            },
+        )
+
+    def create_namespaces_batch(self, list):
+        """创建权限分组
+
+        创建权限分组
+
+        Attributes:
+            list (list): 权限分组列表
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/create-namespaces-batch",
+            json={
+                "list": list,
+            },
+        )
+
+    def get_namespace(self, code):
+        """获取权限分组详情
+
+        获取权限分组详情
+
+        Attributes:
+            code (str): 权限分组唯一标志符
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/get-namespace",
+            json={
+                "code": code,
+            },
+        )
+
+    def get_namespaces_batch(self, code_list):
+        """批量获取权限分组详情
+
+        批量获取权限分组详情
+
+        Attributes:
+            code_list (list): 权限分组 code 列表
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/get-namespaces-batch",
+            json={
+                "codeList": code_list,
+            },
+        )
+
+    def update_namespace(self, new_code, code, description=None, name=None):
+        """修改权限分组信息
+
+        修改权限分组信息
+
+        Attributes:
+            new_code (str): 权限分组新的唯一标志符
+            code (str): 权限分组唯一标志符
+            description (str): 权限分组描述信息
+            name (str): 权限分组名称
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/update-namespace",
+            json={
+                "newCode": new_code,
+                "code": code,
+                "description": description,
+                "name": name,
+            },
+        )
+
+    def dekete_namespace(self, code):
+        """删除权限分组信息
+
+        删除权限分组信息
+
+        Attributes:
+            code (str): 权限分组唯一标志符
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/delete-namespace",
+            json={
+                "code": code,
+            },
+        )
+
+    def dekete_namespaces_batch(self, code_list):
+        """批量删除权限分组信息
+
+        批量删除权限分组信息
+
+        Attributes:
+            code_list (list): 权限分组 code 列表
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/delete-namespaces-batch",
+            json={
+                "codeList": code_list,
+            },
+        )
+
+    def authorize_resources(self, list, namespace=None):
+        """授权资源
+
+        给多个主体同时授权多个资源
+
+        Attributes:
+            list (list): 授权列表
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/authorize-resources",
+            json={
+                "list": list,
+                "namespace": namespace,
+            },
+        )
+
+    def get_target_authorized_resources(
+        self, target_identifier, target_type, namespace=None, resource_type=None
+    ):
+        """获取某个主体被授权的资源列表
+
+        获取某个主体被授权的资源列表
+
+        Attributes:
+            target_identifier (str): 目标对象唯一标志符
+            target_type (str): 目标对象类型
+            namespace (str): 所属权限分组的 code
+            resource_type (str): 资源类型，如数据、API、按钮、菜单
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/get-authorized-resources",
+            json={
+                "targetIdentifier": target_identifier,
+                "targetType": target_type,
+                "namespace": namespace,
+                "resourceType": resource_type,
             },
         )
