@@ -11,19 +11,16 @@ GKl64GDcIq3au+aqJQIDAQAB
 class ManagementClientOptions:
     def __init__(
         self,
-        user_pool_id,
-        secret,
+        access_key_id,
+        access_key_secret,
         host=None,
-        enc_public_key=None,
         timeout=10.0,
         lang=None,
         use_unverified_ssl=False
     ):
-        self.user_pool_id = user_pool_id
-        self.secret = secret
+        self.access_key_id = access_key_id
+        self.access_key_secret = access_key_secret
         self.host = host or "https://core.authing.cn"
         self.timeout = timeout
-        self.enc_public_key = enc_public_key or DEFAULT_RSA_PUBLICKEY
         self.lang = lang
         self.use_unverified_ssl = use_unverified_ssl
-
