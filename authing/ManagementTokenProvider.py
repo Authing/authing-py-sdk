@@ -1,4 +1,5 @@
 # coding: utf-8
+
 from this import d
 from webbrowser import get
 import requests

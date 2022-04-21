@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from .ManagementClientOptions import ManagementClientOptions
 from .HttpClient import HttpClient
 
@@ -10,21 +12,21 @@ class ManagementClient(object):
         self.options = options
         self.http_client = HttpClient(self.options)
 
-    def get_management_token(self, secret, user_pool_id):
+    def get_management_token(self, access_key_secret, access_key_id):
         """获取 Management API Token
 
         获取 Management API Token
 
         Attributes:
-            secret (str): 用户池密钥
-            user_pool_id (str): 用户池 ID
+            access_key_secret (str): AccessKey Secret: 如果是以用户池全局 AK/SK 初始化，为用户池密钥；如果是以协作管理员的 AK/SK 初始化，为协作管理员的 SK。
+            access_key_id (str): AccessKey ID: 如果是以用户池全局 AK/SK 初始化，为用户池 ID；如果是以协作管理员的 AK/SK 初始化，为协作管理员的 AccessKey ID。
         """
         return self.http_client.request(
             method="POST",
             url="/api/v3/get-management-token",
             json={
-                "secret": secret,
-                "userPoolId": user_pool_id,
+                "accessKeySecret": access_key_secret,
+                "accessKeyId": access_key_id,
             },
         )
 
@@ -1516,17 +1518,23 @@ class ManagementClient(object):
         )
 
     def create_resource(
-        self, actions, type, code, description=None, api_identifier=None, namespace=None
+        self,
+        type,
+        code,
+        description=None,
+        actions=None,
+        api_identifier=None,
+        namespace=None,
     ):
         """创建资源
 
         创建资源
 
         Attributes:
-            actions (list): 资源定义的操作类型
             type (str): 资源类型，如数据、API、按钮、菜单
             code (str): 资源唯一标志符
             description (str): 资源描述
+            actions (list): 资源定义的操作类型
             api_identifier (str): API 资源的 URL 标识
             namespace (str): 所属权限分组的 code
         """
@@ -1534,10 +1542,10 @@ class ManagementClient(object):
             method="POST",
             url="/api/v3/create-resource",
             json={
-                "actions": actions,
                 "type": type,
                 "code": code,
                 "description": description,
+                "actions": actions,
                 "apiIdentifier": api_identifier,
                 "namespace": namespace,
             },
@@ -1618,30 +1626,36 @@ class ManagementClient(object):
         )
 
     def update_resource(
-        self, actions, type, code, description=None, api_identifier=None, namespace=None
+        self,
+        code,
+        description=None,
+        actions=None,
+        api_identifier=None,
+        namespace=None,
+        type=None,
     ):
         """修改资源
 
         修改资源（Pratial Update）
 
         Attributes:
-            actions (list): 资源定义的操作类型
-            type (str): 资源类型，如数据、API、按钮、菜单
             code (str): 资源唯一标志符
             description (str): 资源描述
+            actions (list): 资源定义的操作类型
             api_identifier (str): API 资源的 URL 标识
             namespace (str): 所属权限分组的 code
+            type (str): 资源类型，如数据、API、按钮、菜单
         """
         return self.http_client.request(
             method="POST",
             url="/api/v3/update-resource",
             json={
-                "actions": actions,
-                "type": type,
                 "code": code,
                 "description": description,
+                "actions": actions,
                 "apiIdentifier": api_identifier,
                 "namespace": namespace,
+                "type": type,
             },
         )
 
@@ -1749,25 +1763,25 @@ class ManagementClient(object):
             },
         )
 
-    def update_namespace(self, new_code, code, description=None, name=None):
+    def update_namespace(self, code, description=None, name=None, new_code=None):
         """修改权限分组信息
 
         修改权限分组信息
 
         Attributes:
-            new_code (str): 权限分组新的唯一标志符
             code (str): 权限分组唯一标志符
             description (str): 权限分组描述信息
             name (str): 权限分组名称
+            new_code (str): 权限分组新的唯一标志符
         """
         return self.http_client.request(
             method="POST",
             url="/api/v3/update-namespace",
             json={
-                "newCode": new_code,
                 "code": code,
                 "description": description,
                 "name": name,
+                "newCode": new_code,
             },
         )
 
