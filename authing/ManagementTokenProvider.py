@@ -1,7 +1,5 @@
 # coding: utf-8
 
-from this import d
-from webbrowser import get
 import requests
 import base64
 import json
@@ -10,8 +8,10 @@ import time
 from authing.AuthingException import AuthingException
 
 class ManagementTokenProvider:
-    def __init__(self, options):
-        self.options = options
+    def __init__(self, host, access_key_id, access_key_secret):
+        self.host = host
+        self.access_key_id = access_key_id
+        self.access_key_secret = access_key_secret
         self._userpool_id = None
         self._access_token = None
         self._expires_at = None
@@ -29,22 +29,21 @@ class ManagementTokenProvider:
         """获取访问Token"""
         resp = requests.request(
             method="POST",
-            url="%s/api/v3/get-management-token" % self.options.host,
+            url="%s/api/v3/get-management-token" % self.host,
             json={
-                "accessKeyId": self.options.access_key_id,
-                "accessKeySecret": self.options.access_key_secret,
+                "accessKeyId": self.access_key_id,
+                "accessKeySecret": self.access_key_secret,
             },
         )
-        # TODO: 实现 token 缓存逻辑
         data = resp.json()
-        code, message, errorCode, data = (
-            data.get("code"),
+        statusCode, message, apiCode, data = (
+            data.get("statusCode"),
             data.get("message"),
-            data.get("errorCode"),
+            data.get("apiCode"),
             data.get("data"),
         )
-        if code != 200:
-            raise AuthingException(code, message, errorCode)
+        if statusCode != 200:
+            raise AuthingException(statusCode, message, apiCode)
         access_token, expires_in = data.get("access_token"), data.get("expires_in")
         if not access_token:
             raise AuthingException(500, "get access token failed")

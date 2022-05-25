@@ -17,13 +17,11 @@ pip install authing
 初始化 `ManagementClient` 需要使用 `accessKeyId` 和 `accessKeySecret` 参数:
 
 ```typescript
-from authing import ManagementClient, ManagementClientOptions
+from authing import ManagementClient
 
 management_client = ManagementClient(
-    options=ManagementClientOptions(
-        access_key_id="6250f12d5xxxx69bcfcf784b",
-        access_key_secret="4ae78d3e579a6xxxx01aeca7b1e29ec2",
-    )
+  access_key_id="6250f12d5xxxx69bcfcf784b",
+  access_key_secret="4ae78d3e579a6xxxx01aeca7b1e29ec2",
 )
 ```
 
@@ -69,8 +67,8 @@ data = management_client.create_role(
 
 `ManagementClient` 中的每个方法，遵循统一的返回结构：
 
-- `code`: 请求是否成功状态码，当 `code` 为 200 时，表示操作成功，非 200 全部为失败。
-- `errorCode`: 细分错误码，当 `code` 非 200 时，可通过此错误码得到具体的错误类型。完整的错误码列表，请见：[TODO](TODO)。
+- `statusCode`: 请求是否成功状态码，当 `code` 为 200 时，表示操作成功，非 200 全部为失败。
+- `apiCode`: 细分错误码，当 `code` 非 200 时，可通过此错误码得到具体的错误类型。完整的错误码列表，请见：[TODO](TODO)。
 - `message`: 具体的错误信息。
 - `data`: 具体返回的接口数据。
 
@@ -81,8 +79,8 @@ data = await management_client.get_user(
   userId="62559df6b2xxxx259877b5f4"
 )
 
-code, error_code, message = data.get('code'), data.get('error_code'), data.get('message')
-if (code !== 200) {
+status_code, api_code, message = data.get('status_code'), data.get('api_code'), data.get('message')
+if (status_code !== 200) {
   raise Exception(message); # 抛出异常，由全局异常捕捉中间件进行异常捕捉
 }
 
@@ -95,13 +93,11 @@ if (code !== 200) {
 如果你使用的是私有化部署的 Authing IDaaS 服务，需要指定此 Authing 私有化实例的 `host`，如：
 
 ```python
-from authing import ManagementClient, ManagementClientOptions
+from authing import ManagementClient
 
 management_client = ManagementClient(
-    options=ManagementClientOptions(
-        access_key_id="6250f12d5xxxx69bcfcf784b",
-        access_key_secret="4ae78d3e579a6xxxx01aeca7b1e29ec2",
-    )
+  access_key_id="6250f12d5xxxx69bcfcf784b",
+  access_key_secret="4ae78d3e579a6xxxx01aeca7b1e29ec2",
 )
 ```
 
