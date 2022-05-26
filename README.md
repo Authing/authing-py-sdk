@@ -9,8 +9,10 @@
 ## 安装
 
 ```bash
-pip install authing
+pip install authing==5.0.0a6
 ```
+
+> 如果你希望使用 V4 版本，请切换到 `v4` 分支查看文档。
 
 ## 初始化
 
