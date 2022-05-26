@@ -68,7 +68,7 @@ data = management_client.create_role(
 `ManagementClient` 中的每个方法，遵循统一的返回结构：
 
 - `statusCode`: 请求是否成功状态码，当 `code` 为 200 时，表示操作成功，非 200 全部为失败。
-- `apiCode`: 细分错误码，当 `code` 非 200 时，可通过此错误码得到具体的错误类型。完整的错误码列表，请见：[TODO](TODO)。
+- `apiCode`: 细分错误码，当 `code` 非 200 时，可通过此错误码得到具体的错误类型。
 - `message`: 具体的错误信息。
 - `data`: 具体返回的接口数据。
 
