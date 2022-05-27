@@ -949,9 +949,9 @@ class ManagementClient(object):
         )
 
     def revoke_role_batch(self, targets, roles):
-        """移除分配的角色
+        """批量移除分配的角色
 
-        移除分配的角色，被分配者可以是用户，可以是部门
+        批量移除分配的角色，被分配者可以是用户，可以是部门
 
         Attributes:
             targets (list): 移除角色的目标列表
@@ -1285,12 +1285,12 @@ class ManagementClient(object):
     def update_department(
         self,
         organization_code,
-        parent_department_id,
         department_id,
         code=None,
         leader_user_id=None,
         name=None,
         department_id_type=None,
+        parent_department_id=None,
     ):
         """修改部门
 
@@ -1298,24 +1298,24 @@ class ManagementClient(object):
 
         Attributes:
             organization_code (str): 组织 code
-            parent_department_id (str): 父部门 id
             department_id (str): 部门系统 ID（为 Authing 系统自动生成，不可修改）
             code (str): 部门识别码
             leader_user_id (str): 部门负责人 ID
             name (str): 部门名称
             department_id_type (str): 此次调用中使用的部门 ID 的类型
+            parent_department_id (str): 父部门 id
         """
         return self.http_client.request(
             method="POST",
             url="/api/v3/update-department",
             json={
                 "organizationCode": organization_code,
-                "parentDepartmentId": parent_department_id,
                 "departmentId": department_id,
                 "code": code,
                 "leaderUserId": leader_user_id,
                 "name": name,
                 "departmentIdType": department_id_type,
+                "parentDepartmentId": parent_department_id,
             },
         )
 
