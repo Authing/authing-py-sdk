@@ -56,17 +56,17 @@ class ManagementClient(object):
         phone=None,
         email=None,
         username=None,
-        externalId=None,
+        external_id=None,
     ):
         """获取用户信息
 
         通过 id、username、email、phone、email、externalId 获取用户详情
 
         Attributes:
-            user_id (str): 用户 ID
-            with_custom_data (bool): 是否获取自定义数据
-            with_identities (bool): 是否获取 identities
-            with_department_ids (bool): 是否获取部门 ID 列表
+            userId (str): 用户 ID
+            withCustomData (bool): 是否获取自定义数据
+            withIdentities (bool): 是否获取 identities
+            withDepartmentIds (bool): 是否获取部门 ID 列表
             phone (str): 手机号
             email (str): 邮箱
             username (str): 用户名
@@ -76,14 +76,14 @@ class ManagementClient(object):
             method="GET",
             url="/api/v3/get-user",
             params={
-                "with_custom_data": with_custom_data,
-                "with_identities": with_identities,
-                "with_department_ids": with_department_ids,
-                "user_id": user_id,
+                "withCustomData": with_custom_data,
+                "withIdentities": with_identities,
+                "withDepartmentIds": with_department_ids,
+                "userId": user_id,
                 "phone": phone,
                 "email": email,
                 "username": username,
-                "externalId": externalId,
+                "externalId": external_id,
             },
         )
 
@@ -99,19 +99,19 @@ class ManagementClient(object):
         根据用户 id 批量获取用户信息
 
         Attributes:
-            user_ids (str): 用户 ID 数组
-            with_custom_data (bool): 是否获取自定义数据
-            with_identities (bool): 是否获取 identities
-            with_department_ids (bool): 是否获取部门 ID 列表
+            userIds (str): 用户 ID 数组
+            withCustomData (bool): 是否获取自定义数据
+            withIdentities (bool): 是否获取 identities
+            withDepartmentIds (bool): 是否获取部门 ID 列表
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-batch",
             params={
-                "with_custom_data": with_custom_data,
-                "with_identities": with_identities,
-                "with_department_ids": with_department_ids,
-                "user_ids": user_ids,
+                "withCustomData": with_custom_data,
+                "withIdentities": with_identities,
+                "withDepartmentIds": with_department_ids,
+                "userIds": user_ids,
             },
         )
 
@@ -130,9 +130,9 @@ class ManagementClient(object):
         Attributes:
             page (int): 当前页数，从 1 开始
             limit (int): 每页数目，最大不能超过 50，默认为 10
-            with_custom_data (bool): 是否获取自定义数据
-            with_identities (bool): 是否获取 identities
-            with_department_ids (bool): 是否获取部门 ID 列表
+            withCustomData (bool): 是否获取自定义数据
+            withIdentities (bool): 是否获取 identities
+            withDepartmentIds (bool): 是否获取部门 ID 列表
         """
         return self.http_client.request(
             method="GET",
@@ -140,9 +140,9 @@ class ManagementClient(object):
             params={
                 "page": page,
                 "limit": limit,
-                "with_custom_data": with_custom_data,
-                "with_identities": with_identities,
-                "with_department_ids": with_department_ids,
+                "withCustomData": with_custom_data,
+                "withIdentities": with_identities,
+                "withDepartmentIds": with_department_ids,
             },
         )
 
@@ -152,13 +152,13 @@ class ManagementClient(object):
         获取用户的外部身份源
 
         Attributes:
-            user_id (str): 用户 ID
+            userId (str): 用户 ID
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-identities",
             params={
-                "user_id": user_id,
+                "userId": user_id,
             },
         )
 
@@ -168,35 +168,35 @@ class ManagementClient(object):
         获取用户角色列表
 
         Attributes:
-            user_id (str): 用户 ID
+            userId (str): 用户 ID
             namespace (str): 所属权限分组的 code
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-roles",
             params={
-                "user_id": user_id,
+                "userId": user_id,
                 "namespace": namespace,
             },
         )
 
-    def get_principal_authentication_info(self, user_id):
+    def get_user_principal_authentication_info(self, user_id):
         """获取用户实名认证信息
 
         获取用户实名认证信息
 
         Attributes:
-            user_id (str): 用户 ID
+            userId (str): 用户 ID
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-principal-authentication-info",
             params={
-                "user_id": user_id,
+                "userId": user_id,
             },
         )
 
-    def reset_principal_authentication_info(self, user_id):
+    def reset_user_principal_authentication_info(self, user_id):
         """删除用户实名认证信息
 
         删除用户实名认证信息
@@ -218,13 +218,13 @@ class ManagementClient(object):
         获取用户部门列表
 
         Attributes:
-            user_id (str): 用户 ID
+            userId (str): 用户 ID
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-departments",
             params={
-                "user_id": user_id,
+                "userId": user_id,
             },
         )
 
@@ -252,17 +252,17 @@ class ManagementClient(object):
         获取用户分组列表
 
         Attributes:
-            user_id (str): 用户 ID
+            userId (str): 用户 ID
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-groups",
             params={
-                "user_id": user_id,
+                "userId": user_id,
             },
         )
 
-    def delete_user_batch(self, user_ids):
+    def delete_users_batch(self, user_ids):
         """删除用户
 
         删除用户（支持批量删除）
@@ -284,13 +284,13 @@ class ManagementClient(object):
         获取用户 MFA 绑定信息
 
         Attributes:
-            user_id (str): 用户 ID
+            userId (str): 用户 ID
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-mfa-info",
             params={
-                "user_id": user_id,
+                "userId": user_id,
             },
         )
 
@@ -555,13 +555,13 @@ class ManagementClient(object):
         获取用户可访问应用
 
         Attributes:
-            user_id (str): 用户 ID
+            userId (str): 用户 ID
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-accessible-apps",
             params={
-                "user_id": user_id,
+                "userId": user_id,
             },
         )
 
@@ -571,13 +571,13 @@ class ManagementClient(object):
         获取用户授权的应用
 
         Attributes:
-            user_id (str): 用户 ID
+            userId (str): 用户 ID
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-authorized-apps",
             params={
-                "user_id": user_id,
+                "userId": user_id,
             },
         )
 
@@ -614,9 +614,9 @@ class ManagementClient(object):
         获取用户登录历史记录
 
         Attributes:
-            user_id (str): 用户 ID
-            app_id (str): 应用 ID
-            client_ip (str): 客户端 IP
+            userId (str): 用户 ID
+            appId (str): 应用 ID
+            clientIp (str): 客户端 IP
             start (int): 开始时间戳（毫秒）
             end (int): 结束时间戳（毫秒）
             page (int): 当前页数，从 1 开始
@@ -626,9 +626,9 @@ class ManagementClient(object):
             method="GET",
             url="/api/v3/get-user-login-history",
             params={
-                "user_id": user_id,
-                "app_id": app_id,
-                "client_ip": client_ip,
+                "userId": user_id,
+                "appId": app_id,
+                "clientIp": client_ip,
                 "start": start,
                 "end": end,
                 "page": page,
@@ -642,13 +642,13 @@ class ManagementClient(object):
         获取用户曾经登录过的应用
 
         Attributes:
-            user_id (str): 用户 ID
+            userId (str): 用户 ID
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-loggedin-apps",
             params={
-                "user_id": user_id,
+                "userId": user_id,
             },
         )
 
@@ -660,17 +660,17 @@ class ManagementClient(object):
         获取用户被授权的所有资源，用户被授权的资源是用户自身被授予、通过分组继承、通过角色继承、通过组织机构继承的集合
 
         Attributes:
-            user_id (str): 用户 ID
+            userId (str): 用户 ID
             namespace (str): 所属权限分组的 code
-            resource_type (str): 资源类型
+            resourceType (str): 资源类型
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-user-authorized-resources",
             params={
-                "user_id": user_id,
+                "userId": user_id,
                 "namespace": namespace,
-                "resource_type": resource_type,
+                "resourceType": resource_type,
             },
         )
 
@@ -690,7 +690,7 @@ class ManagementClient(object):
             },
         )
 
-    def get_group_list(self, page=None, limit=None):
+    def list_groups(self, page=None, limit=None):
         """获取分组列表
 
         获取分组列表接口，支持分页
@@ -728,7 +728,7 @@ class ManagementClient(object):
             },
         )
 
-    def create_group_batch(self, list):
+    def create_groups_batch(self, list):
         """批量创建分组
 
         批量创建分组
@@ -766,7 +766,7 @@ class ManagementClient(object):
             },
         )
 
-    def delete_groups(self, code_list):
+    def delete_groups_batch(self, code_list):
         """批量删除分组
 
         批量删除分组
@@ -835,9 +835,9 @@ class ManagementClient(object):
             code (str): 分组 code
             page (int): 当前页数，从 1 开始
             limit (int): 每页数目，最大不能超过 50，默认为 10
-            with_custom_data (bool): 是否获取自定义数据
-            with_identities (bool): 是否获取 identities
-            with_department_ids (bool): 是否获取部门 ID 列表
+            withCustomData (bool): 是否获取自定义数据
+            withIdentities (bool): 是否获取 identities
+            withDepartmentIds (bool): 是否获取部门 ID 列表
         """
         return self.http_client.request(
             method="GET",
@@ -846,9 +846,9 @@ class ManagementClient(object):
                 "code": code,
                 "page": page,
                 "limit": limit,
-                "with_custom_data": with_custom_data,
-                "with_identities": with_identities,
-                "with_department_ids": with_department_ids,
+                "withCustomData": with_custom_data,
+                "withIdentities": with_identities,
+                "withDepartmentIds": with_department_ids,
             },
         )
 
@@ -860,7 +860,7 @@ class ManagementClient(object):
         Attributes:
             code (str): 分组 code
             namespace (str): 所属权限分组的 code
-            resource_type (str): 资源类型
+            resourceType (str): 资源类型
         """
         return self.http_client.request(
             method="GET",
@@ -868,7 +868,7 @@ class ManagementClient(object):
             params={
                 "code": code,
                 "namespace": namespace,
-                "resource_type": resource_type,
+                "resourceType": resource_type,
             },
         )
 
@@ -910,24 +910,6 @@ class ManagementClient(object):
             },
         )
 
-    def assign_role_batch(self, targets, roles):
-        """批量分配角色
-
-        批量分配角色，被分配者可以是用户，可以是部门
-
-        Attributes:
-            targets (list): 分配角色的目标列表
-            roles (list): 角色信息列表
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/assign-role-batch",
-            json={
-                "targets": targets,
-                "roles": roles,
-            },
-        )
-
     def revoke_role(self, targets, code, namespace=None):
         """移除分配的角色
 
@@ -948,24 +930,6 @@ class ManagementClient(object):
             },
         )
 
-    def revoke_role_batch(self, targets, roles):
-        """批量移除分配的角色
-
-        批量移除分配的角色，被分配者可以是用户，可以是部门
-
-        Attributes:
-            targets (list): 移除角色的目标列表
-            roles (list): 角色信息列表
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/revoke-role-batch",
-            json={
-                "targets": targets,
-                "roles": roles,
-            },
-        )
-
     def get_role_authorized_resources(self, code, namespace=None, resource_type=None):
         """角色被授权的资源列表
 
@@ -974,7 +938,7 @@ class ManagementClient(object):
         Attributes:
             code (str): 权限分组内角色的唯一标识符
             namespace (str): 所属权限分组的 code
-            resource_type (str): 资源类型
+            resourceType (str): 资源类型
         """
         return self.http_client.request(
             method="GET",
@@ -982,7 +946,7 @@ class ManagementClient(object):
             params={
                 "code": code,
                 "namespace": namespace,
-                "resource_type": resource_type,
+                "resourceType": resource_type,
             },
         )
 
@@ -1004,9 +968,9 @@ class ManagementClient(object):
             code (str): 权限分组内角色的唯一标识符
             page (int): 当前页数，从 1 开始
             limit (int): 每页数目，最大不能超过 50，默认为 10
-            with_custom_data (bool): 是否获取自定义数据
-            with_identities (bool): 是否获取 identities
-            with_department_ids (bool): 是否获取部门 ID 列表
+            withCustomData (bool): 是否获取自定义数据
+            withIdentities (bool): 是否获取 identities
+            withDepartmentIds (bool): 是否获取部门 ID 列表
             namespace (str): 所属权限分组的 code
         """
         return self.http_client.request(
@@ -1015,9 +979,9 @@ class ManagementClient(object):
             params={
                 "page": page,
                 "limit": limit,
-                "with_custom_data": with_custom_data,
-                "with_identities": with_identities,
-                "with_department_ids": with_department_ids,
+                "withCustomData": with_custom_data,
+                "withIdentities": with_identities,
+                "withDepartmentIds": with_department_ids,
                 "code": code,
                 "namespace": namespace,
             },
@@ -1231,17 +1195,17 @@ class ManagementClient(object):
         获取部门信息
 
         Attributes:
-            organization_code (str): 组织 code
-            department_id (str): 部门 id，根部门传 `root`
-            department_id_type (str): 此次调用中使用的部门 ID 的类型
+            organizationCode (str): 组织 code
+            departmentId (str): 部门 id，根部门传 `root`
+            departmentIdType (str): 此次调用中使用的部门 ID 的类型
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-department",
             params={
-                "organization_code": organization_code,
-                "department_id": department_id,
-                "department_id_type": department_id_type,
+                "organizationCode": organization_code,
+                "departmentId": department_id,
+                "departmentIdType": department_id_type,
             },
         )
 
@@ -1285,12 +1249,12 @@ class ManagementClient(object):
     def update_department(
         self,
         organization_code,
-        parent_department_id,
         department_id,
         code=None,
         leader_user_id=None,
         name=None,
         department_id_type=None,
+        parent_department_id=None,
     ):
         """修改部门
 
@@ -1298,24 +1262,24 @@ class ManagementClient(object):
 
         Attributes:
             organization_code (str): 组织 code
-            parent_department_id (str): 父部门 id
             department_id (str): 部门系统 ID（为 Authing 系统自动生成，不可修改）
             code (str): 部门识别码
             leader_user_id (str): 部门负责人 ID
             name (str): 部门名称
             department_id_type (str): 此次调用中使用的部门 ID 的类型
+            parent_department_id (str): 父部门 id
         """
         return self.http_client.request(
             method="POST",
             url="/api/v3/update-department",
             json={
                 "organizationCode": organization_code,
-                "parentDepartmentId": parent_department_id,
                 "departmentId": department_id,
                 "code": code,
                 "leaderUserId": leader_user_id,
                 "name": name,
                 "departmentIdType": department_id_type,
+                "parentDepartmentId": parent_department_id,
             },
         )
 
@@ -1367,17 +1331,17 @@ class ManagementClient(object):
         获取子部门列表
 
         Attributes:
-            department_id (str): 需要获取的部门 ID
-            organization_code (str): 组织 code
-            department_id_type (str): 此次调用中使用的部门 ID 的类型
+            departmentId (str): 需要获取的部门 ID
+            organizationCode (str): 组织 code
+            departmentIdType (str): 此次调用中使用的部门 ID 的类型
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/list-children-departments",
             params={
-                "department_id": department_id,
-                "department_id_type": department_id_type,
-                "organization_code": organization_code,
+                "departmentId": department_id,
+                "departmentIdType": department_id_type,
+                "organizationCode": organization_code,
             },
         )
 
@@ -1397,27 +1361,27 @@ class ManagementClient(object):
         获取部门直属成员列表
 
         Attributes:
-            organization_code (str): 组织 code
-            department_id (str): 部门 id，根部门传 `root`
-            department_id_type (str): 此次调用中使用的部门 ID 的类型
+            organizationCode (str): 组织 code
+            departmentId (str): 部门 id，根部门传 `root`
+            departmentIdType (str): 此次调用中使用的部门 ID 的类型
             page (int): 当前页数，从 1 开始
             limit (int): 每页数目，最大不能超过 50，默认为 10
-            with_custom_data (bool): 是否获取自定义数据
-            with_identities (bool): 是否获取 identities
-            with_department_ids (bool): 是否获取部门 ID 列表
+            withCustomData (bool): 是否获取自定义数据
+            withIdentities (bool): 是否获取 identities
+            withDepartmentIds (bool): 是否获取部门 ID 列表
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/list-department-members",
             params={
-                "organization_code": organization_code,
-                "department_id": department_id,
-                "department_id_type": department_id_type,
+                "organizationCode": organization_code,
+                "departmentId": department_id,
+                "departmentIdType": department_id_type,
                 "page": page,
                 "limit": limit,
-                "with_custom_data": with_custom_data,
-                "with_identities": with_identities,
-                "with_department_ids": with_department_ids,
+                "withCustomData": with_custom_data,
+                "withIdentities": with_identities,
+                "withDepartmentIds": with_department_ids,
             },
         )
 
@@ -1429,17 +1393,17 @@ class ManagementClient(object):
         获取部门直属成员 ID 列表
 
         Attributes:
-            organization_code (str): 组织 code
-            department_id (str): 部门 id，根部门传 `root`
-            department_id_type (str): 此次调用中使用的部门 ID 的类型
+            organizationCode (str): 组织 code
+            departmentId (str): 部门 id，根部门传 `root`
+            departmentIdType (str): 此次调用中使用的部门 ID 的类型
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/list-department-member-ids",
             params={
-                "organization_code": organization_code,
-                "department_id": department_id,
-                "department_id_type": department_id_type,
+                "organizationCode": organization_code,
+                "departmentId": department_id,
+                "departmentIdType": department_id_type,
             },
         )
 
@@ -1499,17 +1463,17 @@ class ManagementClient(object):
         获取父部门信息
 
         Attributes:
-            organization_code (str): 组织 code
-            department_id (str): 部门 id
-            department_id_type (str): 此次调用中使用的部门 ID 的类型
+            organizationCode (str): 组织 code
+            departmentId (str): 部门 id
+            departmentIdType (str): 此次调用中使用的部门 ID 的类型
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-parent-department",
             params={
-                "organization_code": organization_code,
-                "department_id": department_id,
-                "department_id_type": department_id_type,
+                "organizationCode": organization_code,
+                "departmentId": department_id,
+                "departmentIdType": department_id_type,
             },
         )
 
@@ -1519,13 +1483,13 @@ class ManagementClient(object):
         获取身份源列表
 
         Attributes:
-            tenant_id (str): 租户 ID
+            tenantId (str): 租户 ID
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/list-ext-idp",
             params={
-                "tenant_id": tenant_id,
+                "tenantId": tenant_id,
             },
         )
 
@@ -1536,13 +1500,13 @@ class ManagementClient(object):
 
         Attributes:
             id (str): 身份源 id
-            tenant_id (str): 租户 ID
+            tenantId (str): 租户 ID
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-ext-idp",
             params={
-                "tenant_id": tenant_id,
+                "tenantId": tenant_id,
                 "id": id,
             },
         )
@@ -1706,13 +1670,13 @@ class ManagementClient(object):
         获取用户池配置的自定义字段列表
 
         Attributes:
-            target_type (str): 主体类型，目前支持用户、角色、分组和部门
+            targetType (str): 主体类型，目前支持用户、角色、分组和部门
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-custom-fields",
             params={
-                "target_type": target_type,
+                "targetType": target_type,
             },
         )
 
@@ -1760,16 +1724,16 @@ class ManagementClient(object):
         获取用户、分组、角色、组织机构的自定义字段值
 
         Attributes:
-            target_type (str): 主体类型，目前支持用户、角色、分组和部门
-            target_identifier (str): 目标对象唯一标志符
-            namespace (str): 所属权限分组的 code，当 target_type 为角色的时候需要填写，否则可以忽略。
+            targetType (str): 主体类型，目前支持用户、角色、分组和部门
+            targetIdentifier (str): 目标对象唯一标志符
+            namespace (str): 所属权限分组的 code，当 targetType 为角色的时候需要填写，否则可以忽略。
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-custom-data",
             params={
-                "target_type": target_type,
-                "target_identifier": target_identifier,
+                "targetType": target_type,
+                "targetIdentifier": target_identifier,
                 "namespace": namespace,
             },
         )
@@ -1850,7 +1814,7 @@ class ManagementClient(object):
         批量获取资源详情
 
         Attributes:
-            code_list (str): 资源 code 列表,批量可以使用逗号分隔
+            codeList (str): 资源 code 列表,批量可以使用逗号分隔
             namespace (str): 所属权限分组的 code
         """
         return self.http_client.request(
@@ -1858,7 +1822,7 @@ class ManagementClient(object):
             url="/api/v3/get-resources-batch",
             params={
                 "namespace": namespace,
-                "code_list": code_list,
+                "codeList": code_list,
             },
         )
 
@@ -2012,13 +1976,13 @@ class ManagementClient(object):
         批量获取权限分组详情
 
         Attributes:
-            code_list (str): 资源 code 列表,批量可以使用逗号分隔
+            codeList (str): 资源 code 列表,批量可以使用逗号分隔
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-namespaces-batch",
             params={
-                "code_list": code_list,
+                "codeList": code_list,
             },
         )
 
@@ -2102,18 +2066,18 @@ class ManagementClient(object):
         获取某个主体被授权的资源列表
 
         Attributes:
-            target_type (str): 目标对象类型
-            target_identifier (str): 目标对象唯一标志符
+            targetType (str): 目标对象类型
+            targetIdentifier (str): 目标对象唯一标志符
             namespace (str): 所属权限分组的 code
-            resource_type (str): 资源类型，如数据、API、按钮、菜单
+            resourceType (str): 资源类型，如数据、API、按钮、菜单
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-authorized-resources",
             params={
                 "namespace": namespace,
-                "target_type": target_type,
-                "target_identifier": target_identifier,
-                "resource_type": resource_type,
+                "targetType": target_type,
+                "targetIdentifier": target_identifier,
+                "resourceType": resource_type,
             },
         )
