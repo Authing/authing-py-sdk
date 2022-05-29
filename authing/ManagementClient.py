@@ -1124,7 +1124,11 @@ class ManagementClient(object):
         )
 
     def create_organization(
-        self, organization_name, organization_code, open_department_id=None
+        self,
+        organization_name,
+        organization_code,
+        description=None,
+        open_department_id=None,
     ):
         """创建顶层组织机构
 
@@ -1133,6 +1137,7 @@ class ManagementClient(object):
         Attributes:
             organization_name (str): 组织名称
             organization_code (str): 组织 code
+            description (str): 组织描述信息
             open_department_id (str): 根节点自定义 ID
         """
         return self.http_client.request(
@@ -1141,6 +1146,7 @@ class ManagementClient(object):
             json={
                 "organizationName": organization_name,
                 "organizationCode": organization_code,
+                "description": description,
                 "openDepartmentId": open_department_id,
             },
         )
@@ -1148,6 +1154,7 @@ class ManagementClient(object):
     def update_organization(
         self,
         organization_code,
+        description=None,
         open_department_id=None,
         organization_new_code=None,
         organization_name=None,
@@ -1158,6 +1165,7 @@ class ManagementClient(object):
 
         Attributes:
             organization_code (str): 组织 code
+            description (str): 组织描述信息
             open_department_id (str): 根节点自定义 ID
             organization_new_code (str): 新组织 code
             organization_name (str): 组织名称
@@ -1167,6 +1175,7 @@ class ManagementClient(object):
             url="/api/v3/update-organization",
             json={
                 "organizationCode": organization_code,
+                "description": description,
                 "openDepartmentId": open_department_id,
                 "organizationNewCode": organization_new_code,
                 "organizationName": organization_name,
@@ -1212,9 +1221,10 @@ class ManagementClient(object):
     def create_department(
         self,
         organization_code,
-        name,
         parent_department_id,
+        name,
         open_department_id=None,
+        description=None,
         code=None,
         leader_user_id=None,
         department_id_type=None,
@@ -1225,9 +1235,10 @@ class ManagementClient(object):
 
         Attributes:
             organization_code (str): 组织 code
-            name (str): 部门名称
             parent_department_id (str): 父部门 id
+            name (str): 部门名称
             open_department_id (str): 自定义部门 ID，用于存储自定义的 ID
+            description (str): 部门描述
             code (str): 部门识别码
             leader_user_id (str): 部门负责人 ID
             department_id_type (str): 此次调用中使用的父部门 ID 的类型
@@ -1237,9 +1248,10 @@ class ManagementClient(object):
             url="/api/v3/create-department",
             json={
                 "organizationCode": organization_code,
-                "name": name,
                 "parentDepartmentId": parent_department_id,
+                "name": name,
                 "openDepartmentId": open_department_id,
+                "description": description,
                 "code": code,
                 "leaderUserId": leader_user_id,
                 "departmentIdType": department_id_type,
@@ -1250,6 +1262,7 @@ class ManagementClient(object):
         self,
         organization_code,
         department_id,
+        description=None,
         code=None,
         leader_user_id=None,
         name=None,
@@ -1263,6 +1276,7 @@ class ManagementClient(object):
         Attributes:
             organization_code (str): 组织 code
             department_id (str): 部门系统 ID（为 Authing 系统自动生成，不可修改）
+            description (str): 部门描述
             code (str): 部门识别码
             leader_user_id (str): 部门负责人 ID
             name (str): 部门名称
@@ -1275,6 +1289,7 @@ class ManagementClient(object):
             json={
                 "organizationCode": organization_code,
                 "departmentId": department_id,
+                "description": description,
                 "code": code,
                 "leaderUserId": leader_user_id,
                 "name": name,
@@ -1305,20 +1320,20 @@ class ManagementClient(object):
             },
         )
 
-    def search_departments(self, search, organization_code):
+    def search_departments(self, keywords, organization_code):
         """搜索部门
 
         搜索部门
 
         Attributes:
-            search (str): 搜索关键词
+            keywords (str): 搜索关键词
             organization_code (str): 组织 code
         """
         return self.http_client.request(
             method="POST",
             url="/api/v3/search-departments",
             json={
-                "search": search,
+                "keywords": keywords,
                 "organizationCode": organization_code,
             },
         )
@@ -1350,20 +1365,22 @@ class ManagementClient(object):
         organization_code,
         department_id,
         department_id_type=None,
+        include_children_departments=None,
         page=None,
         limit=None,
         with_custom_data=None,
         with_identities=None,
         with_department_ids=None,
     ):
-        """获取部门直属成员列表
+        """获取部门成员列表
 
-        获取部门直属成员列表
+        获取部门成员列表
 
         Attributes:
             organizationCode (str): 组织 code
             departmentId (str): 部门 id，根部门传 `root`
             departmentIdType (str): 此次调用中使用的部门 ID 的类型
+            includeChildrenDepartments (bool): 是否包含子部门的成员
             page (int): 当前页数，从 1 开始
             limit (int): 每页数目，最大不能超过 50，默认为 10
             withCustomData (bool): 是否获取自定义数据
@@ -1377,6 +1394,7 @@ class ManagementClient(object):
                 "organizationCode": organization_code,
                 "departmentId": department_id,
                 "departmentIdType": department_id_type,
+                "includeChildrenDepartments": include_children_departments,
                 "page": page,
                 "limit": limit,
                 "withCustomData": with_custom_data,
