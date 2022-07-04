@@ -9,7 +9,7 @@
 ## 安装
 
 ```bash
-pip install authing==5.0.0a6
+pip install authing
 ```
 
 > 如果你希望使用 V4 版本，请切换到 [v4](https://github.com/Authing/authing-py-sdk/tree/v4) 分支查看文档。
