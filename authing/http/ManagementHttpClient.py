@@ -1,11 +1,11 @@
 # coding: utf-8
 
 from pickle import FALSE
-from .version import __version__
-from .ManagementTokenProvider import ManagementTokenProvider
+from ..version import __version__
+from ..ManagementTokenProvider import ManagementTokenProvider
 import requests
 
-class HttpClient(object):
+class ManagementHttpClient(object):
     def __init__(self, host, lang, use_unverified_ssl, access_key_id, access_key_secret):
         self.host = host
         self.lang = lang
