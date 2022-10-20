@@ -6,7 +6,8 @@ from .http.ProtocolHttpClient import ProtocolHttpClient
 from .utils import get_random_string, url_join_args
 import base64
 import hashlib
-
+import json
+import jwt
 
 class AuthenticationClient(object):
     """Authing Authentication Client"""
@@ -23,6 +24,7 @@ class AuthenticationClient(object):
         introspection_endpoint_auth_method=None,
         revocation_endpoint_auth_method=None,
         redirect_uri=None,
+        post_logout_redirect_uri=None,
         use_unverified_ssl=False,
         lang=None
     ):
@@ -31,9 +33,9 @@ class AuthenticationClient(object):
         初始化 AuthenticationClient 参数
 
         Args:
-            app_id (str): 应用 ID
-            app_host (str): 应用地址，如 https://your-app.authing.cn
-            app_secret (str): 应用密钥
+            app_id (str): Authing 应用 ID
+            app_host (str): Authing 应用地址，如 https://your-app.authing.cn
+            app_secret (str): Authing 应用密钥
             enc_public_key (str): 密码非对称加密公钥（可选），如果你使用的是 Authing 公有云服务，可以忽略；如果你使用的是私有化部署的 Authing，请联系 Authing IDaaS 服务管理员
             timeout (int): 请求超时时间，位为毫秒，默认为 10000（10 秒）
             lang (str): 接口 Message 返回语言格式（可选），可选值为 zh-CN 和 en-US，默认为 zh-CN。
@@ -41,7 +43,8 @@ class AuthenticationClient(object):
             token_endpoint_auth_method (str): 获取 token 端点验证方式，可选值为 client_secret_post、client_secret_basic、none，默认为 client_secret_post。
             introspection_endpoint_auth_method (str): 检验 token 端点验证方式，可选值为 `client_secret_post`、`client_secret_basic`、`none`，默认为 `client_secret_post`。
             revocation_endpoint_auth_method (str): 撤回 token 端点验证方式，可选值为 `client_secret_post`、`client_secret_basic`、`none`，默认为 `client_secret_post`。
-            redirect_uri (str): 业务回调 URL
+            redirect_uri (str): 认证完成后的重定向目标 URL。可选，默认使用控制台中配置的第一个回调地址。
+            post_logout_redirect_uri(str): 登出完成后的重定向目标 URL
         """
         if not app_id:
             raise Exception('Please provide app_id')
@@ -58,18 +61,21 @@ class AuthenticationClient(object):
         self.revocation_endpoint_auth_method = revocation_endpoint_auth_method or 'client_secret_post'
         self.redirect_uri = redirect_uri
         self.use_unverified_ssl = use_unverified_ssl
+        self.post_logout_redirect_uri = post_logout_redirect_uri
 
-        # V3 API 接口
+        # V3 API 接口使用的 HTTP Client
         self.http_client = AuthenticationHttpClient(
             app_id=self.app_id,
+            app_secret=self.app_secret,
             host=self.app_host,
             lang=self.lang,
             use_unverified_ssl=self.use_unverified_ssl,
+            token_endpoint_auth_method=token_endpoint_auth_method
         )
         if self.access_token:
             self.http_client.set_access_token(self.access_token)
 
-        # 标准协议相关接口
+        # 标准协议相关接口使用的 HTTP Client
         self.protocol_http_client = ProtocolHttpClient(
             host=self.app_host,
             use_unverified_ssl=self.use_unverified_ssl,
@@ -375,12 +381,14 @@ class AuthenticationClient(object):
             raise AuthingWrongArgumentException('unsupported method, must be S256 or plain')
 
     def __build_oidc_logout_url(self, redirect_uri=None, id_token=None):
-        if redirect_uri:
+        if redirect_uri and id_token:
             return "%s/oidc/session/end?id_token_hint=%s&post_logout_redirect_uri=%s" % (
                 self.app_host,
                 id_token,
                 redirect_uri
             )
+        elif (redirect_uri and not id_token) or (id_token and not redirect_uri):
+            raise AuthingWrongArgumentException('must pass redirect_uri and id_token together')
         else:
             return "%s/oidc/session/end" % self.app_host
 
@@ -406,21 +414,26 @@ class AuthenticationClient(object):
                 self.app_host
             )
 
-    def build_logout_url(self, expert=None, redirect_uri=None, id_token=None):
-        """拼接登出 URL。"""
+    def build_logout_url(self, redirect_uri=None, id_token=None, state=None):
+        """拼接登出 URL
+        
+        Attributes:
+            redirect_uri(str): 登出完成后的重定向目标 URL
+            id_token(str): 用户登录时获取的 ID Token，用于无效化用户 Token，建议传入
+            state(str): 传递到目标 URL 的中间状态标识符
+        """
         if not self.app_host:
             raise AuthingWrongArgumentException('must provider app_host when you init AuthenticationClient')
 
         if self.protocol == 'oidc':
-            if not expert:
-                return self.__build_easy_logout_url(redirect_uri)
-            else:
-                return self.__build_oidc_logout_url(
+            return self.__build_oidc_logout_url(
                     id_token=id_token,
-                    redirect_uri=redirect_uri
+                    redirect_uri=redirect_uri or self.post_logout_redirect_uri
                 )
         elif self.protocol == 'cas':
             return self.__build_cas_logout_url(redirect_uri=redirect_uri)
+        else:
+            return self.__build_easy_logout_url(redirect_uri)
 
     def __get_new_access_token_by_refresh_token_with_client_secret_post(self, refresh_token):
         url = "/%s/token" % ('oidc' if self.protocol == 'oidc' else 'oauth')
@@ -582,7 +595,7 @@ class AuthenticationClient(object):
 
     def introspect_token(self, token):
         """
-        检查 Access token 或 Refresh token 的状态。
+        在线验证 Access token 或 Refresh token 的状态。
 
         Args:
             token (str): Access token 或 Refresh token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 access_token、refresh_token 获得。
@@ -606,36 +619,34 @@ class AuthenticationClient(object):
         else:
             raise AuthingWrongArgumentException('unsupported argument token_endpoint_auth_method')
 
-    def __validate_id_token(self, id_token):
-        url = "/api/v2/oidc/validate_token?id_token=%s" % (id_token)
-        return self.protocol_http_client.request(
-            method='GET',
-            url=url,
-        )
+    def __fetch_jwks(self, server_jwks=None):
+        if server_jwks:
+            return server_jwks
+        else:
+            keys = self.protocol_http_client.request(
+                method="GET",
+                url="/oidc/.well-known/jwks.json"
+            )
+            return keys
 
-    def __validate_access_token(self, access_token):
-        url = "/api/v2/oidc/validate_token?access_token=%s" % (access_token)
-        return self.protocol_http_client.request(
-            method='GET',
-            url=url,
-        )
-
-    def validate_token(self, id_token=None, access_token=None):
+    def introspect_token_offline(self, token, server_jwks=None):
         """
-        通过 Authing 提供的在线接口验证 Id token 或 Access token。会产生网络请求。
+        本地验证 Access token 或 Refresh token 的状态。
 
         Args:
-            id_token (str):
-            access_token (str): Access token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 access_token 获得。
+            token (str): Access token 或 Refresh token，可以从 AuthenticationClient.get_access_token_by_code 方法的返回值中的 access_token、refresh_token 获得。
+                        注意: refresh_token 只有在 scope 中包含 offline_access 才会返回。
+            serverJWKS: 服务端的 JWKS 公钥，用于验证 Token 签名，默认会通过网络请求从服务端的 JWKS 端点自动获取
         """
-
-        if not access_token and not id_token:
-            raise AuthingWrongArgumentException('must provide id_token or access_token')
-
-        if id_token:
-            return self.__validate_id_token(id_token)
-        elif access_token:
-            return self.__validate_access_token(access_token)
+        jwks = self.__fetch_jwks(server_jwks)
+        public_keys = {}
+        for jwk in jwks['keys']:
+            kid = jwk['kid']
+            public_keys[kid] = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwk))
+        kid = jwt.get_unverified_header(token)['kid']
+        key = public_keys[kid]
+        payload = jwt.decode(token, key=key, algorithms=['RS256'], audience=self.app_id)
+        return payload
 
     def validate_ticket_v1(self, ticket, service):
         """
@@ -659,6 +670,173 @@ class AuthenticationClient(object):
             res['username'] = username
         if not valid:
             res['message'] = 'ticket is not valid'
+
+    # ==== 基于 signInByCredentials 封装的登录方式 BEGIN
+    def sign_in_by_email_password(self, email, password, options=None):
+        """
+        使用邮箱 + 密码登录
+        """
+        return self.sign_in_by_credentials(
+            connection="PASSWORD",
+            password_payload={
+                "email": email,
+                "password": password,
+            },
+            options=options,
+            client_id=self.app_id if self.token_endpoint_auth_method == 'client_secret_post' else None,
+            client_secret=self.app_secret if self.token_endpoint_auth_method == 'client_secret_post' else None,
+        )
+
+    def sign_in_by_phone_password(self, phone, password, options=None):
+        """
+        使用手机号 + 密码登录
+        """
+        return self.sign_in_by_credentials(
+            connection="PASSWORD",
+            password_payload={
+                "phone": phone,
+                "password": password,
+            },
+            options=options,
+            client_id=self.app_id if self.token_endpoint_auth_method == 'client_secret_post' else None,
+            client_secret=self.app_secret if self.token_endpoint_auth_method == 'client_secret_post' else None,
+        )
+
+    def sign_in_by_username_password(self, username, password, options=None):
+        """
+        使用用户名 + 密码登录
+        """
+        return self.sign_in_by_credentials(
+            connection="PASSWORD",
+            password_payload={
+                "username": username,
+                "password": password,
+            },
+            options=options,
+            client_id=self.app_id if self.token_endpoint_auth_method == 'client_secret_post' else None,
+            client_secret=self.app_secret if self.token_endpoint_auth_method == 'client_secret_post' else None,
+        )
+
+    def sign_in_by_account_password(self, account, password, options=None):
+        """
+        使用账号（用户名/手机号/邮箱） + 密码登录
+        """
+        return self.sign_in_by_credentials(
+            connection="PASSWORD",
+            password_payload={
+                "account": account,
+                "password": password,
+            },
+            options=options,
+            client_id=self.app_id if self.token_endpoint_auth_method == 'client_secret_post' else None,
+            client_secret=self.app_secret if self.token_endpoint_auth_method == 'client_secret_post' else None,
+        )
+
+    def sign_in_by_email_passcode(self, email, pass_code, options=None):
+        """
+        使用邮箱 + 验证码登录
+        """
+        return self.sign_in_by_credentials(
+            connection="PASSCODE",
+            pass_code_payload={
+                "email": email,
+                "passCode": pass_code,
+            },
+            options=options,
+            client_id=self.app_id if self.token_endpoint_auth_method == 'client_secret_post' else None,
+            client_secret=self.app_secret if self.token_endpoint_auth_method == 'client_secret_post' else None,
+        )
+
+    def sign_in_by_phone_passcode(self, phone, pass_code, phone_country_code=None, options=None):
+        """
+        使用手机号 + 验证码登录
+        """
+        return self.sign_in_by_credentials(
+            connection="PASSCODE",
+            pass_code_payload={
+                "phone": phone,
+                "passCode": pass_code,
+                "phoneCountryCode": phone_country_code
+            },
+            options=options,
+            client_id=self.app_id if self.token_endpoint_auth_method == 'client_secret_post' else None,
+            client_secret=self.app_secret if self.token_endpoint_auth_method == 'client_secret_post' else None,
+        )
+
+    def sign_in_by_ldap(self, sAMAccountName, password, options=None):
+        """
+        使用 LDAP 账号密码登录
+        """
+        return self.sign_in_by_credentials(
+            connection="LDAP",
+            ldap_payload={
+                "sAMAccountName": sAMAccountName,
+                "password": password,
+            },
+            options=options,
+            client_id=self.app_id if self.token_endpoint_auth_method == 'client_secret_post' else None,
+            client_secret=self.app_secret if self.token_endpoint_auth_method == 'client_secret_post' else None,
+        )
+
+    def sign_in_by_ad(self, sAMAccountName, password, options=None):
+        """
+        使用 AD 账号密码登录
+        """
+        return self.sign_in_by_credentials(
+            connection="AD",
+            ad_payload={
+                "sAMAccountName": sAMAccountName,
+                "password": password,
+            },
+            options=options,
+            client_id=self.app_id if self.token_endpoint_auth_method == 'client_secret_post' else None,
+            client_secret=self.app_secret if self.token_endpoint_auth_method == 'client_secret_post' else None,
+        )
+    # ==== 基于 signInByCredentials 封装的登录方式 BEGIN
+
+
+    # ==== 基于 signup 封装的注册方式 BEGIN
+    def sign_up_by_email_password(self, email, password, options=None):
+        """
+        使用邮箱 + 密码注册
+        """
+        return self.sign_up(
+            connection="PASSWORD",
+            password_payload={
+                "email": email,
+                "password": password,
+            },
+            options=options
+        )
+
+    def sign_up_by_email_passcode(self, email, pass_code, options=None):
+        """
+        使用邮箱 + 密码注册
+        """
+        return self.sign_up(
+            connection="PASSCODE",
+            pass_code_payload={
+                "email": email,
+                "passCode": pass_code,
+            },
+            options=options
+        )
+
+    def sign_up_by_phone_passcode(self, phone, pass_code, phone_country_code=None, options=None):
+        """
+        使用邮箱 + 密码注册
+        """
+        return self.sign_up(
+            connection="PASSCODE",
+            pass_code_payload={
+                "phone": phone,
+                "passCode": pass_code,
+                "phoneCountryCode": phone_country_code
+            },
+            options=options
+        )
+    # ==== 基于 signUp 封装的注册方式 END
+
 
     # ==== AUTO GENERATED AUTHENTICATION METHODS BEGIN ====
     def send_enroll_factor_request(self, profile, factor_type ):
@@ -1214,33 +1392,56 @@ class AuthenticationClient(object):
             },
         )
 
-    def sign_in_by_credentials(self, connection, password_payload=None, pass_code_payload=None, ad_payload=None, ldap_payload=None, options=None ):
+    def sign_in_by_credentials(self, connection, password_payload=None, pass_code_payload=None, ad_payload=None, ldap_payload=None, options=None, client_id=None, client_secret=None ):
         """使用用户凭证登录
 
         
     此端点为基于直接 API 调用形式的登录端点，适用于你需要自建登录页面的场景。**此端点暂时不支持 MFA、信息补全、首次密码重置等流程，如有需要，请使用 OIDC 标准协议认证端点。**
 
-    ### 错误码
 
-    此接口可能出现的异常类型：
+    注意事项：取决于你在 Authing 创建应用时选择的**应用类型**和应用配置的**换取 token 身份验证方式**，在调用此接口时需要对客户端的身份进行不同形式的验证。
 
-    | 请求状态码 `statusCode` | 业务状态码 `apiCode` | 含义 | 错误提示示例 |
-    | --- | --- | --- | --- |
-    | 400  | - | 请求参数错误 | Parameter passwordPayload must include account, email, username or phone when authenticationType is PASSWORD. |
-    | 403  | 2333 | 账号或密码错误 | Account not exists or password is incorrect. |
-    | 403  | 2006 | 密码错误 | Password is incorrect. |
-    | 403  | 2000 | 当用户池开启**登录失败次数限制**并且**登录安全策略**设置为**验证码**时，如果当前请求触发登录失败次数上限，要求用户输入图形验证码。见**生成图形验证码**接口了解如何生成图形验证码。图形验证码参数通过 `options.captchaCode` 进行传递。 | Please enter captcha code for this login request. |
-    | 404  | 2004 | 用户不存在 | User not exists. |
-    | 499  | 2016 | 当 `passwordEncryptType` 不为 `none` 时，服务器尝试解密密码失败 | Decrypt password failed, please check your encryption configuration. |
+    <details>
+    <summary>点击展开详情</summary>
 
-    错误示例：
+    <br>
 
-    ```json
-    {
-    "statusCode": 400,
-    "message": "Parameter passwordPayload must include account, email, username or phone when authenticationType is PASSWORD."
-    }
+    你可以在 [Authing 控制台](https://console.authing.cn) 的**应用** - **自建应用** - **应用详情** - **应用配置** - **其他设置** - **授权配置**
+    中找到**换取 token 身份验证方式** 配置项：
+
+    > 单页 Web 应用和客户端应用隐藏，默认为 `none`，不允许修改；后端应用和标准 Web 应用可以修改此配置项。
+
+    ![](https://files.authing.co/api-explorer/tokenAuthMethod.jpg)
+
+    #### 换取 token 身份验证方式为 none 时
+
+    调用此接口不需要进行额外操作。
+
+    #### 换取 token 身份验证方式为 client_secret_post 时
+
+    调用此接口时必须在 body 中传递 `client_id` 和 `client_secret` 参数，作为验证客户端身份的条件。其中 `client_id` 为应用 ID、`client_secret` 为应用密钥。
+
+    #### 换取 token 身份验证方式为 client_secret_basic 时
+
+    调用此接口时必须在 HTTP 请求头中携带 `authorization` 请求头，作为验证客户端身份的条件。`authorization` 请求头的格式如下（其中 `client_id` 为应用 ID、`client_secret` 为应用密钥。）：
+
     ```
+    Basic base64(<client_id>:<client_secret>)
+    ```
+
+    结果示例：
+
+    ```
+    Basic NjA2M2ZiMmYzY3h4eHg2ZGY1NWYzOWViOjJmZTdjODdhODFmODY3eHh4eDAzMjRkZjEyZGFlZGM3
+    ```
+
+    JS 代码示例：
+
+    ```js
+    'Basic ' + Buffer.from(client_id + ':' + client_secret).toString('base64');
+    ```
+
+    </details>
 
     
 
@@ -1256,6 +1457,8 @@ class AuthenticationClient(object):
             ad_payload (dict): 当认证方式为 `AD` 时此参数必填
             ldap_payload (dict): 当认证方式为 `LDAP` 时此参数必填
             options (dict): 可选参数
+            client_id (str): 应用 ID。当应用的「换取 token 身份验证方式」配置为 `client_secret_post` 需要传。
+            client_secret (str): 应用密钥。当应用的「换取 token 身份验证方式」配置为 `client_secret_post` 需要传。
         """
         return self.http_client.request(
             method='POST',
@@ -1267,14 +1470,62 @@ class AuthenticationClient(object):
                 'adPayload': ad_payload,
                 'ldapPayload': ldap_payload,
                 'options': options,
+                'client_id': client_id,
+                'client_secret': client_secret,
             },
         )
 
-    def sign_in_by_mobile(self, ext_idp_connidentifier, connection, wechat_payload=None, alipay_payload=None, wechatwork_payload=None, wechatwork_agency_payload=None, lark_public_payload=None, lark_internal_payload=None, yidun_payload=None, wechat_mini_program_code_payload=None, wechat_mini_program_phone_payload=None, options=None ):
+    def sign_in_by_mobile(self, ext_idp_connidentifier, connection, wechat_payload=None, alipay_payload=None, wechatwork_payload=None, wechatwork_agency_payload=None, lark_public_payload=None, lark_internal_payload=None, yidun_payload=None, wechat_mini_program_code_payload=None, wechat_mini_program_phone_payload=None, google_payload=None, options=None, client_id=None, client_secret=None ):
         """使用移动端社会化登录
 
         
     此端点为移动端社会化登录接口，使用第三方移动社会化登录返回的临时凭证登录，并换取用户的 `id_token` 和 `access_token`。请先阅读相应社会化登录的接入流程。
+
+
+    注意事项：取决于你在 Authing 创建应用时选择的**应用类型**和应用配置的**换取 token 身份验证方式**，在调用此接口时需要对客户端的身份进行不同形式的验证。
+
+    <details>
+    <summary>点击展开详情</summary>
+
+    <br>
+
+    你可以在 [Authing 控制台](https://console.authing.cn) 的**应用** - **自建应用** - **应用详情** - **应用配置** - **其他设置** - **授权配置**
+    中找到**换取 token 身份验证方式** 配置项：
+
+    > 单页 Web 应用和客户端应用隐藏，默认为 `none`，不允许修改；后端应用和标准 Web 应用可以修改此配置项。
+
+    ![](https://files.authing.co/api-explorer/tokenAuthMethod.jpg)
+
+    #### 换取 token 身份验证方式为 none 时
+
+    调用此接口不需要进行额外操作。
+
+    #### 换取 token 身份验证方式为 client_secret_post 时
+
+    调用此接口时必须在 body 中传递 `client_id` 和 `client_secret` 参数，作为验证客户端身份的条件。其中 `client_id` 为应用 ID、`client_secret` 为应用密钥。
+
+    #### 换取 token 身份验证方式为 client_secret_basic 时
+
+    调用此接口时必须在 HTTP 请求头中携带 `authorization` 请求头，作为验证客户端身份的条件。`authorization` 请求头的格式如下（其中 `client_id` 为应用 ID、`client_secret` 为应用密钥。）：
+
+    ```
+    Basic base64(<client_id>:<client_secret>)
+    ```
+
+    结果示例：
+
+    ```
+    Basic NjA2M2ZiMmYzY3h4eHg2ZGY1NWYzOWViOjJmZTdjODdhODFmODY3eHh4eDAzMjRkZjEyZGFlZGM3
+    ```
+
+    JS 代码示例：
+
+    ```js
+    'Basic ' + Buffer.from(client_id + ':' + client_secret).toString('base64');
+    ```
+
+    </details>
+
     
 
         Attributes:
@@ -1289,17 +1540,21 @@ class AuthenticationClient(object):
     - `yidun`: 网易易盾一键登录
     - `wechat_mini_program_code`: 微信小程序使用 code 登录
     - `wechat_mini_program_phone `: 微信小程序使用手机号登录
+    - `google`: Google 移动端社会化登录
 
             wechat_payload (dict): 微信移动端社会化登录数据，当 `connection` 为 `wechat` 的时候必填
             alipay_payload (dict): 支付宝移动端社会化登录数据，当 `connection` 为 `alipay` 的时候必填
             wechatwork_payload (dict): 企业微信移动端社会化登录数据，当 `connection` 为 `wechatwork` 的时候必填
             wechatwork_agency_payload (dict): 企业微信（代开发模式）移动端社会化登录数据，当 `connection` 为 `wechatwork_agency` 的时候必填
             lark_public_payload (dict): 飞书应用商店应用移动端社会化登录数据，当 `connection` 为 `lark_public` 的时候必填
-            lark_internal_payload (dict): 飞书应用商店应用移动端社会化登录数据，当 `connection` 为 `lark_internal` 的时候必填
+            lark_internal_payload (dict): 飞书自建应用移动端社会化登录数据，当 `connection` 为 `lark_internal` 的时候必填
             yidun_payload (dict): 网易易盾移动端社会化登录数据，当 `connection` 为 `yidun` 的时候必填
             wechat_mini_program_code_payload (dict): 网易易盾移动端社会化登录数据，当 `connection` 为 `wechat_mini_program_code` 的时候必填
             wechat_mini_program_phone_payload (dict): 网易易盾移动端社会化登录数据，当 `connection` 为 `wechat_mini_program_phone` 的时候必填
+            google_payload (dict): Google 移动端社会化登录数据，当 `connection` 为 `google` 的时候必填
             options (dict): 可选参数
+            client_id (str): 应用 ID。当应用的「换取 token 身份验证方式」配置为 `client_secret_post` 需要传。
+            client_secret (str): 应用密钥。当应用的「换取 token 身份验证方式」配置为 `client_secret_post` 需要传。
         """
         return self.http_client.request(
             method='POST',
@@ -1316,7 +1571,10 @@ class AuthenticationClient(object):
                 'yidunPayload': yidun_payload,
                 'wechatMiniProgramCodePayload': wechat_mini_program_code_payload,
                 'wechatMiniProgramPhonePayload': wechat_mini_program_phone_payload,
+                'googlePayload': google_payload,
                 'options': options,
+                'client_id': client_id,
+                'client_secret': client_secret,
             },
         )
 
@@ -1379,19 +1637,71 @@ class AuthenticationClient(object):
             },
         )
 
-    def exchange_token_set_with_qr_code_ticket(self, ticket ):
+    def exchange_token_set_with_qr_code_ticket(self, ticket, client_id=None, client_secret=None ):
         """使用二维码 ticket 换取 TokenSet
+
+        
+    此端点为使用二维码的 ticket 换取用户的 `access_token` 和 `id_token`。
+
+
+    注意事项：取决于你在 Authing 创建应用时选择的**应用类型**和应用配置的**换取 token 身份验证方式**，在调用此接口时需要对客户端的身份进行不同形式的验证。
+
+    <details>
+    <summary>点击展开详情</summary>
+
+    <br>
+
+    你可以在 [Authing 控制台](https://console.authing.cn) 的**应用** - **自建应用** - **应用详情** - **应用配置** - **其他设置** - **授权配置**
+    中找到**换取 token 身份验证方式** 配置项：
+
+    > 单页 Web 应用和客户端应用隐藏，默认为 `none`，不允许修改；后端应用和标准 Web 应用可以修改此配置项。
+
+    ![](https://files.authing.co/api-explorer/tokenAuthMethod.jpg)
+
+    #### 换取 token 身份验证方式为 none 时
+
+    调用此接口不需要进行额外操作。
+
+    #### 换取 token 身份验证方式为 client_secret_post 时
+
+    调用此接口时必须在 body 中传递 `client_id` 和 `client_secret` 参数，作为验证客户端身份的条件。其中 `client_id` 为应用 ID、`client_secret` 为应用密钥。
+
+    #### 换取 token 身份验证方式为 client_secret_basic 时
+
+    调用此接口时必须在 HTTP 请求头中携带 `authorization` 请求头，作为验证客户端身份的条件。`authorization` 请求头的格式如下（其中 `client_id` 为应用 ID、`client_secret` 为应用密钥。）：
+
+    ```
+    Basic base64(<client_id>:<client_secret>)
+    ```
+
+    结果示例：
+
+    ```
+    Basic NjA2M2ZiMmYzY3h4eHg2ZGY1NWYzOWViOjJmZTdjODdhODFmODY3eHh4eDAzMjRkZjEyZGFlZGM3
+    ```
+
+    JS 代码示例：
+
+    ```js
+    'Basic ' + Buffer.from(client_id + ':' + client_secret).toString('base64');
+    ```
+
+    </details>
 
         
 
         Attributes:
             ticket (str): 当二维码状态为已授权时返回。如果在控制台应用安全 - 通用安全 - 登录安全 - APP 扫码登录 Web 安全中未开启「Web 轮询接口返回完整用户信息」（默认处于关闭状态），会返回此 ticket，用于换取完整的用户信息。
+            client_id (str): 应用 ID。当应用的「换取 token 身份验证方式」配置为 `client_secret_post` 需要传。
+            client_secret (str): 应用密钥。当应用的「换取 token 身份验证方式」配置为 `client_secret_post` 需要传。
         """
         return self.http_client.request(
             method='POST',
             url='/api/v3/exchange-tokenset-with-qrcode-ticket',
             json={
                 'ticket': ticket,
+                'client_id': client_id,
+                'client_secret': client_secret,
             },
         )
 
@@ -1439,7 +1749,19 @@ class AuthenticationClient(object):
         发送短信时必须指定短信 Channel，每个手机号同一 Channel 在一分钟内只能发送一次。
 
         Attributes:
-            channel (str): 短信通道，指定发送此短信的目的，如 CHANNEL_LOGIN 用于登录、CHANNEL_REGISTER 用于注册。
+            channel (str): 短信通道，指定发送此短信的目的：
+    - `CHANNEL_LOGIN`: 用户用户登录
+    - `CHANNEL_REGISTER`: 用于用户注册
+    - `CHANNEL_RESET_PASSWORD`: 用于重置密码
+    - `CHANNEL_BIND_PHONE`: 用于绑定手机号
+    - `CHANNEL_UNBIND_PHONE`: 用于解绑手机号
+    - `CHANNEL_BIND_MFA`: 用于绑定 MFA
+    - `CHANNEL_VERIFY_MFA`: 用于验证 MFA
+    - `CHANNEL_UNBIND_MFA`: 用于解绑 MFA
+    - `CHANNEL_COMPLETE_PHONE`: 用于在注册/登录时补全手机号信息  
+    - `CHANNEL_IDENTITY_VERIFICATION`: 用于进行用户实名认证
+    - `CHANNEL_DELETE_ACCOUNT`: 用于注销账号
+        
             phone_number (str): 手机号，不带区号。如果是国外手机号，请在 phoneCountryCode 参数中指定区号。
             phone_country_code (str): 手机区号，中国大陆手机号可不填。Authing 短信服务暂不内置支持国际手机号，你需要在 Authing 控制台配置对应的国际短信服务。完整的手机区号列表可参阅 https://en.wikipedia.org/wiki/List_of_country_calling_codes。
         """
@@ -1459,7 +1781,18 @@ class AuthenticationClient(object):
         发送邮件时必须指定邮件 Channel，每个邮箱同一 Channel 在一分钟内只能发送一次。
 
         Attributes:
-            channel (str): 短信通道，指定发送此短信的目的，如 CHANNEL_LOGIN 用于登录、CHANNEL_REGISTER 用于注册。
+            channel (str): 短信通道，指定发送此短信的目的：
+    - `CHANNEL_LOGIN`: 用户用户登录
+    - `CHANNEL_REGISTER`: 用于用户注册
+    - `CHANNEL_RESET_PASSWORD`: 用于重置密码
+    - `CHANNEL_VERIFY_EMAIL_LINK`: 用于验证邮箱地址
+    - `CHANNEL_UPDATE_EMAIL`: 用于修改邮箱
+    - `CHANNEL_BIND_EMAIL`: 用于绑定邮箱
+    - `CHANNEL_UNBIND_EMAIL`: 用于解绑邮箱
+    - `CHANNEL_VERIFY_MFA`: 用于验证 MFA
+    - `CHANNEL_UNLOCK_ACCOUNT`: 用于自助解锁
+    - `CHANNEL_COMPLETE_EMAIL`: 用于注册/登录时补全邮箱信息      
+
             email (str): 邮箱，不区分大小写
         """
         return self.http_client.request(
@@ -1551,6 +1884,20 @@ class AuthenticationClient(object):
             },
         )
 
+    def unbind_email(self, ):
+        """解绑邮箱
+
+        用户解绑邮箱，如果用户没有绑定其他登录方式（手机号、社会化登录账号），将无法解绑邮箱，会提示错误。
+
+        Attributes:
+        """
+        return self.http_client.request(
+            method='POST',
+            url='/api/v3/unbind-email',
+            json={
+            },
+        )
+
     def bind_phone(self, pass_code, phone_number, phone_country_code=None ):
         """绑定手机号
 
@@ -1568,6 +1915,20 @@ class AuthenticationClient(object):
                 'passCode': pass_code,
                 'phoneNumber': phone_number,
                 'phoneCountryCode': phone_country_code,
+            },
+        )
+
+    def unbind_phone(self, ):
+        """解绑手机号
+
+        用户解绑手机号，如果用户没有绑定其他登录方式（邮箱、社会化登录账号），将无法解绑手机号，会提示错误。
+
+        Attributes:
+        """
+        return self.http_client.request(
+            method='POST',
+            url='/api/v3/unbind-phone',
+            json={
             },
         )
 
@@ -1620,7 +1981,7 @@ class AuthenticationClient(object):
         """
         return self.http_client.request(
             method='POST',
-            url='/api/v3/veirfy-update-email-request',
+            url='/api/v3/verify-update-email-request',
             json={
                 'emailPasscodePayload': email_passcode_payload,
                 'verifyMethod': verify_method,
@@ -1657,7 +2018,7 @@ class AuthenticationClient(object):
         """
         return self.http_client.request(
             method='POST',
-            url='/api/v3/veirfy-update-phone-request',
+            url='/api/v3/verify-update-phone-request',
             json={
                 'phonePassCodePayload': phone_pass_code_payload,
                 'verifyMethod': verify_method,
@@ -1703,7 +2064,7 @@ class AuthenticationClient(object):
             },
         )
 
-    def reset_password(self, password, password_reset_token ):
+    def reset_password(self, password, password_reset_token, password_encrypt_type=None ):
         """忘记密码
 
         此端点用于用户忘记密码之后，通过**手机号验证码**或者**邮箱验证码**的方式重置密码。此接口需要提供用于重置密码的临时凭证 `passwordResetToken`，此参数需要通过**发起忘记密码请求**接口获取。
@@ -1711,6 +2072,11 @@ class AuthenticationClient(object):
         Attributes:
             password (str): 密码
             password_reset_token (str): 重置密码的 token
+            password_encrypt_type (str): 密码加密类型，支持 sm2 和 rsa。默认可以不加密。
+    - `none`: 不对密码进行加密，使用明文进行传输。
+    - `rsa`: 使用 RSA256 算法对密码进行加密，需要使用 Authing 服务的 RSA 公钥进行加密，请阅读**介绍**部分了解如何获取 Authing 服务的 RSA256 公钥。
+    - `sm2`: 使用 [国密 SM2 算法](https://baike.baidu.com/item/SM2/15081831) 对密码进行加密，需要使用 Authing 服务的 SM2 公钥进行加密，请阅读**介绍**部分了解如何获取 Authing 服务的 SM2 公钥。
+        
         """
         return self.http_client.request(
             method='POST',
@@ -1718,6 +2084,7 @@ class AuthenticationClient(object):
             json={
                 'password': password,
                 'passwordResetToken': password_reset_token,
+                'passwordEncryptType': password_encrypt_type,
             },
         )
 
@@ -1750,7 +2117,7 @@ class AuthenticationClient(object):
     def delete_account(self, delete_account_token ):
         """注销账户
 
-        此端点用于用户自主注销账号，需要提供用于注销账号的临时凭证 passwordResetToken，此参数需要通过**发起注销账号请求**接口获取。
+        此端点用于用户自主注销账号，需要提供用于注销账号的临时凭证 deleteAccountToken，此参数需要通过**发起注销账号请求**接口获取。
 
         Attributes:
             delete_account_token (str): 注销账户的 token
@@ -1824,4 +2191,4 @@ class AuthenticationClient(object):
         )
 
 
-# ==== AUTO GENERATED AUTHENTICATION METHODS END ====
+    # ==== AUTO GENERATED AUTHENTICATION METHODS END ====

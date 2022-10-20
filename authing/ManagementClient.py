@@ -2284,7 +2284,7 @@ class ManagementClient(object):
             id (str): 身份源 ID
             tenantId (str): 租户 ID
             appId (str): 应用 ID
-            type (): 身份源类型
+            type (str): 身份源类型
         """
         return self.http_client.request(
             method="GET",
@@ -2482,7 +2482,7 @@ class ManagementClient(object):
         Attributes:
             tenantId (str): 租户 ID
             appId (str): 应用 ID
-            type (): 身份源类型
+            type (str): 身份源类型
             page (str): 页码
             limit (str): 每页获取的数据量
         """
@@ -2507,7 +2507,7 @@ class ManagementClient(object):
             id (str): 身份源 ID
             tenantId (str): 租户 ID
             appId (str): 应用 ID
-            type (): 身份源类型
+            type (str): 身份源类型
         """
         return self.http_client.request(
             method="GET",
@@ -3488,11 +3488,11 @@ class ManagementClient(object):
             isIntegrateApp (bool): 是否为集成应用
             isSelfBuiltApp (bool): 是否为自建应用
             ssoEnabled (bool): 是否开启单点登录
-            keyword (bool): 模糊搜索字符串
+            keyword (str): 模糊搜索字符串
         """
         return self.http_client.request(
             method="GET",
-            url="/api/v3/list-application",
+            url="/api/v3/list-applications",
             params={
                 "page": page,
                 "limit": limit,
@@ -3538,7 +3538,7 @@ class ManagementClient(object):
             isIntegrateApp (bool): 是否为集成应用
             isSelfBuiltApp (bool): 是否为自建应用
             ssoEnabled (bool): 是否开启单点登录
-            keyword (bool): 模糊搜索字符串
+            keyword (str): 模糊搜索字符串
         """
         return self.http_client.request(
             method="GET",
