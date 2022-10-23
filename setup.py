@@ -50,5 +50,6 @@ setup(
     ],
     install_requires=[
         'requests',
+        'pyjwt'
     ]
 )
