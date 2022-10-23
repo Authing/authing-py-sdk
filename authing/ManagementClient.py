@@ -29,25 +29,7 @@ class ManagementClient(object):
             access_key_secret=self.access_key_secret,
         )
 
-    def get_management_token(self, access_key_secret, access_key_id):
-        """获取 Management API Token
-
-        通过 AccessKey ID 与 AccessKey Secret 获取 Management API Token，此 Token 可以用来操作 Management API。
-
-        Attributes:
-            access_key_secret (str): AccessKey Secret: 如果是以用户池全局 AK/SK 初始化，为用户池密钥；如果是以协作管理员的 AK/SK 初始化，为协作管理员的 SK。
-            access_key_id (str): AccessKey ID: 如果是以用户池全局 AK/SK 初始化，为用户池 ID；如果是以协作管理员的 AK/SK 初始化，为协作管理员的 AccessKey ID。
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/get-management-token",
-            json={
-                "accessKeySecret": access_key_secret,
-                "accessKeyId": access_key_id,
-            },
-        )
-
-    def list_users(self, query=None, advanced_filter=None, options=None):
+    def list_users(self, keywords=None, advanced_filter=None, options=None):
         """获取/搜索用户列表
 
 
@@ -60,7 +42,7 @@ class ManagementClient(object):
 
         ```json
         {
-          "query": "北京",
+          "keywords": "北京",
           "options": {
             "fuzzySearchOn": [
               "address"
@@ -101,6 +83,20 @@ class ManagementClient(object):
               "field": "email",
               "operator": "CONTAINS",
               "value": "@example.com"
+            }
+          ]
+        }
+        ```
+
+        #### 根据用户的任意扩展字段进行搜索
+
+        ```json
+        {
+          "advancedFilter": [
+            {
+              "field": "some-custom-key",
+              "operator": "EQUAL",
+              "value": "some-value"
             }
           ]
         }
@@ -212,7 +208,7 @@ class ManagementClient(object):
 
 
                 Attributes:
-                    query (str): 模糊搜索关键字
+                    keywords (str): 模糊搜索关键字
                     advanced_filter (list): 高级搜索
                     options (dict): 可选项
         """
@@ -220,7 +216,7 @@ class ManagementClient(object):
             method="POST",
             url="/api/v3/list-users",
             json={
-                "query": query,
+                "keywords": keywords,
                 "advancedFilter": advanced_filter,
                 "options": options,
             },
@@ -341,6 +337,320 @@ class ManagementClient(object):
                 "withCustomData": with_custom_data,
                 "withIdentities": with_identities,
                 "withDepartmentIds": with_department_ids,
+            },
+        )
+
+    def create_user(
+        self,
+        status=None,
+        email=None,
+        phone=None,
+        phone_country_code=None,
+        username=None,
+        external_id=None,
+        name=None,
+        nickname=None,
+        photo=None,
+        gender=None,
+        email_verified=None,
+        phone_verified=None,
+        birthdate=None,
+        country=None,
+        province=None,
+        city=None,
+        address=None,
+        street_address=None,
+        postal_code=None,
+        company=None,
+        browser=None,
+        device=None,
+        given_name=None,
+        family_name=None,
+        middle_name=None,
+        profile=None,
+        preferred_username=None,
+        website=None,
+        zoneinfo=None,
+        locale=None,
+        formatted=None,
+        region=None,
+        password=None,
+        salt=None,
+        tenant_ids=None,
+        otp=None,
+        department_ids=None,
+        custom_data=None,
+        identities=None,
+        options=None,
+    ):
+        """创建用户
+
+        创建用户，邮箱、手机号、用户名必须包含其中一个，邮箱、手机号、用户名、externalId 用户池内唯一，此接口将以管理员身份创建用户因此不需要进行手机号验证码检验等安全检测。
+
+        Attributes:
+            status (str): 账户当前状态
+            email (str): 邮箱，不区分大小写
+            phone (str): 手机号，不带区号。如果是国外手机号，请在 phoneCountryCode 参数中指定区号。
+            phone_country_code (str): 手机区号，中国大陆手机号可不填。Authing 短信服务暂不内置支持国际手机号，你需要在 Authing 控制台配置对应的国际短信服务。完整的手机区号列表可参阅 https://en.wikipedia.org/wiki/List_of_country_calling_codes。
+            username (str): 用户名，用户池内唯一
+            external_id (str): 第三方外部 ID
+            name (str): 用户真实名称，不具备唯一性
+            nickname (str): 昵称
+            photo (str): 头像链接
+            gender (str): 性别
+            email_verified (bool): 邮箱是否验证
+            phone_verified (bool): 手机号是否验证
+            birthdate (str): 出生日期
+            country (str): 所在国家
+            province (str): 所在省份
+            city (str): 所在城市
+            address (str): 所处地址
+            street_address (str): 所处街道地址
+            postal_code (str): 邮政编码号
+            company (str): 所在公司
+            browser (str): 最近一次登录时使用的浏览器 UA
+            device (str): 最近一次登录时使用的设备
+            given_name (str): 名
+            family_name (str): 姓
+            middle_name (str): 中间名
+            profile (str): Preferred Username
+            preferred_username (str): Preferred Username
+            website (str): 用户个人网页
+            zoneinfo (str): 用户时区信息
+            locale (str): Locale
+            formatted (str): 标准的完整地址
+            region (str): 用户所在区域
+            password (str): 用户密码。我们使用 HTTPS 协议对密码进行安全传输，可以在一定程度上保证安全性。如果你还需要更高级别的安全性，我们还支持 RSA256 和国密 SM2 两种方式对密码进行加密。详情见 `passwordEncryptType` 参数。
+            salt (str): 加密用户密码的盐
+            tenant_ids (list): 租户 ID
+            otp (dict): 用户的 OTP 验证器
+            department_ids (list): 用户所属部门 ID 列表
+            custom_data (dict): 自定义数据，传入的对象中的 key 必须先在用户池定义相关自定义字段
+            identities (list): 第三方身份源（建议调用绑定接口进行绑定）
+            options (dict): 可选参数
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/create-user",
+            json={
+                "status": status,
+                "email": email,
+                "phone": phone,
+                "phoneCountryCode": phone_country_code,
+                "username": username,
+                "externalId": external_id,
+                "name": name,
+                "nickname": nickname,
+                "photo": photo,
+                "gender": gender,
+                "emailVerified": email_verified,
+                "phoneVerified": phone_verified,
+                "birthdate": birthdate,
+                "country": country,
+                "province": province,
+                "city": city,
+                "address": address,
+                "streetAddress": street_address,
+                "postalCode": postal_code,
+                "company": company,
+                "browser": browser,
+                "device": device,
+                "givenName": given_name,
+                "familyName": family_name,
+                "middleName": middle_name,
+                "profile": profile,
+                "preferredUsername": preferred_username,
+                "website": website,
+                "zoneinfo": zoneinfo,
+                "locale": locale,
+                "formatted": formatted,
+                "region": region,
+                "password": password,
+                "salt": salt,
+                "tenantIds": tenant_ids,
+                "otp": otp,
+                "departmentIds": department_ids,
+                "customData": custom_data,
+                "identities": identities,
+                "options": options,
+            },
+        )
+
+    def create_users_batch(self, list, options=None):
+        """批量创建用户
+
+        批量创建用户，邮箱、手机号、用户名必须包含其中一个，邮箱、手机号、用户名、externalId 用户池内唯一，此接口将以管理员身份创建用户因此不需要进行手机号验证码检验等安全检测。
+
+        Attributes:
+            list (list): 用户列表
+            options (dict): 可选参数
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/create-users-batch",
+            json={
+                "list": list,
+                "options": options,
+            },
+        )
+
+    def update_user(
+        self,
+        user_id,
+        phone_country_code=None,
+        name=None,
+        nickname=None,
+        photo=None,
+        external_id=None,
+        status=None,
+        email_verified=None,
+        phone_verified=None,
+        birthdate=None,
+        country=None,
+        province=None,
+        city=None,
+        address=None,
+        street_address=None,
+        postal_code=None,
+        gender=None,
+        username=None,
+        email=None,
+        phone=None,
+        password=None,
+        company=None,
+        browser=None,
+        device=None,
+        given_name=None,
+        family_name=None,
+        middle_name=None,
+        profile=None,
+        preferred_username=None,
+        website=None,
+        zoneinfo=None,
+        locale=None,
+        formatted=None,
+        region=None,
+        custom_data=None,
+        options=None,
+    ):
+        """修改用户资料
+
+        通过用户 ID，修改用户资料，邮箱、手机号、用户名、externalId 用户池内唯一，此接口将以管理员身份修改用户资料因此不需要进行手机号验证码检验等安全检测。
+
+        Attributes:
+            user_id (str): 用户唯一标志，可以是用户 ID、用户名、邮箱、手机号、外部 ID、在外部身份源的 ID。
+            phone_country_code (str): 手机区号，中国大陆手机号可不填。Authing 短信服务暂不内置支持国际手机号，你需要在 Authing 控制台配置对应的国际短信服务。完整的手机区号列表可参阅 https://en.wikipedia.org/wiki/List_of_country_calling_codes。
+            name (str): 用户真实名称，不具备唯一性
+            nickname (str): 昵称
+            photo (str): 头像链接
+            external_id (str): 第三方外部 ID
+            status (str): 账户当前状态
+            email_verified (bool): 邮箱是否验证
+            phone_verified (bool): 手机号是否验证
+            birthdate (str): 出生日期
+            country (str): 所在国家
+            province (str): 所在省份
+            city (str): 所在城市
+            address (str): 所处地址
+            street_address (str): 所处街道地址
+            postal_code (str): 邮政编码号
+            gender (str): 性别
+            username (str): 用户名，用户池内唯一
+            email (str): 邮箱，不区分大小写
+            phone (str): 手机号，不带区号。如果是国外手机号，请在 phoneCountryCode 参数中指定区号。
+            password (str): 用户密码。我们使用 HTTPS 协议对密码进行安全传输，可以在一定程度上保证安全性。如果你还需要更高级别的安全性，我们还支持 RSA256 和国密 SM2 两种方式对密码进行加密。详情见 `passwordEncryptType` 参数。
+            company (str): 所在公司
+            browser (str): 最近一次登录时使用的浏览器 UA
+            device (str): 最近一次登录时使用的设备
+            given_name (str): 名
+            family_name (str): 姓
+            middle_name (str): 中间名
+            profile (str): Preferred Username
+            preferred_username (str): Preferred Username
+            website (str): 用户个人网页
+            zoneinfo (str): 用户时区信息
+            locale (str): Locale
+            formatted (str): 标准的完整地址
+            region (str): 用户所在区域
+            custom_data (dict): 自定义数据，传入的对象中的 key 必须先在用户池定义相关自定义字段
+            options (dict): 可选参数
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/update-user",
+            json={
+                "userId": user_id,
+                "phoneCountryCode": phone_country_code,
+                "name": name,
+                "nickname": nickname,
+                "photo": photo,
+                "externalId": external_id,
+                "status": status,
+                "emailVerified": email_verified,
+                "phoneVerified": phone_verified,
+                "birthdate": birthdate,
+                "country": country,
+                "province": province,
+                "city": city,
+                "address": address,
+                "streetAddress": street_address,
+                "postalCode": postal_code,
+                "gender": gender,
+                "username": username,
+                "email": email,
+                "phone": phone,
+                "password": password,
+                "company": company,
+                "browser": browser,
+                "device": device,
+                "givenName": given_name,
+                "familyName": family_name,
+                "middleName": middle_name,
+                "profile": profile,
+                "preferredUsername": preferred_username,
+                "website": website,
+                "zoneinfo": zoneinfo,
+                "locale": locale,
+                "formatted": formatted,
+                "region": region,
+                "customData": custom_data,
+                "options": options,
+            },
+        )
+
+    def update_user_batch(self, list, options=None):
+        """批量修改用户资料
+
+        批量修改用户资料，邮箱、手机号、用户名、externalId 用户池内唯一，此接口将以管理员身份修改用户资料因此不需要进行手机号验证码检验等安全检测。
+
+        Attributes:
+            list (list): 用户列表
+            options (dict): 可选参数
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/update-user-batch",
+            json={
+                "list": list,
+                "options": options,
+            },
+        )
+
+    def delete_users_batch(self, user_ids, options=None):
+        """删除用户
+
+        通过用户 ID 列表，删除用户，支持批量删除，可以选择指定用户 ID 类型等。
+
+        Attributes:
+            user_ids (list): 用户 ID 列表
+            options (dict): 可选参数
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/delete-users-batch",
+            json={
+                "userIds": user_ids,
+                "options": options,
             },
         )
 
@@ -533,24 +843,6 @@ class ManagementClient(object):
             },
         )
 
-    def delete_users_batch(self, user_ids, options=None):
-        """删除用户
-
-        通过用户 ID 列表，删除用户，支持批量删除，可以选择指定用户 ID 类型等。
-
-        Attributes:
-            user_ids (list): 用户 ID 列表
-            options (dict): 可选参数
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/delete-users-batch",
-            json={
-                "userIds": user_ids,
-                "options": options,
-            },
-        )
-
     def get_user_mfa_info(self, user_id, user_id_type=None):
         """获取用户 MFA 绑定信息
 
@@ -636,308 +928,6 @@ class ManagementClient(object):
                 "email": email,
                 "phone": phone,
                 "externalId": external_id,
-            },
-        )
-
-    def create_user(
-        self,
-        status=None,
-        email=None,
-        password_encrypt_type=None,
-        phone=None,
-        phone_country_code=None,
-        username=None,
-        external_id=None,
-        name=None,
-        nickname=None,
-        photo=None,
-        gender=None,
-        email_verified=None,
-        phone_verified=None,
-        birthdate=None,
-        country=None,
-        province=None,
-        city=None,
-        address=None,
-        street_address=None,
-        postal_code=None,
-        company=None,
-        browser=None,
-        device=None,
-        given_name=None,
-        family_name=None,
-        middle_name=None,
-        profile=None,
-        preferred_username=None,
-        website=None,
-        zoneinfo=None,
-        locale=None,
-        formatted=None,
-        region=None,
-        department_ids=None,
-        custom_data=None,
-        password=None,
-        salt=None,
-        tenant_ids=None,
-        otp=None,
-        identities=None,
-        options=None,
-    ):
-        """创建用户
-
-        创建用户，邮箱、手机号、用户名必须包含其中一个，邮箱、手机号、用户名、externalId 用户池内唯一，此接口将以管理员身份创建用户因此不需要进行手机号验证码检验等安全检测。
-
-        Attributes:
-            status (str): 账户当前状态
-            email (str): 邮箱，不区分大小写
-            password_encrypt_type (str): 密码加密类型，支持 sm2 和 rsa
-            phone (str): 手机号，不带区号。如果是国外手机号，请在 phoneCountryCode 参数中指定区号。
-            phone_country_code (str): 手机区号，中国大陆手机号可不填。Authing 短信服务暂不内置支持国际手机号，你需要在 Authing 控制台配置对应的国际短信服务。完整的手机区号列表可参阅 https://en.wikipedia.org/wiki/List_of_country_calling_codes。
-            username (str): 用户名，用户池内唯一
-            external_id (str): 第三方外部 ID
-            name (str): 用户真实名称，不具备唯一性
-            nickname (str): 昵称
-            photo (str): 头像链接
-            gender (str): 性别
-            email_verified (bool): 邮箱是否验证
-            phone_verified (bool): 手机号是否验证
-            birthdate (str): 出生日期
-            country (str): 所在国家
-            province (str): 所在省份
-            city (str): 所在城市
-            address (str): 所处地址
-            street_address (str): 所处街道地址
-            postal_code (str): 邮政编码号
-            company (str): 所在公司
-            browser (str): 最近一次登录时使用的浏览器 UA
-            device (str): 最近一次登录时使用的设备
-            given_name (str): 名
-            family_name (str): 姓
-            middle_name (str): 中间名
-            profile (str): Preferred Username
-            preferred_username (str): Preferred Username
-            website (str): 用户个人网页
-            zoneinfo (str): 用户时区信息
-            locale (str): Locale
-            formatted (str): 标准的完整地址
-            region (str): 用户所在区域
-            department_ids (list): 用户所属部门 ID 列表
-            custom_data (dict): 自定义数据，传入的对象中的 key 必须先在用户池定义相关自定义字段
-            password (str): 密码。可选加密方式进行加密，通过 passwordEncryptType 参数进行加密方法选择，默认为未加密
-            salt (str): 加密用户密码的盐
-            tenant_ids (list): 租户 ID
-            otp (dict): 用户的 OTP 验证器
-            identities (list): 第三方身份源（建议调用绑定接口进行绑定）
-            options (dict): 可选参数
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/create-user",
-            json={
-                "status": status,
-                "email": email,
-                "passwordEncryptType": password_encrypt_type,
-                "phone": phone,
-                "phoneCountryCode": phone_country_code,
-                "username": username,
-                "externalId": external_id,
-                "name": name,
-                "nickname": nickname,
-                "photo": photo,
-                "gender": gender,
-                "emailVerified": email_verified,
-                "phoneVerified": phone_verified,
-                "birthdate": birthdate,
-                "country": country,
-                "province": province,
-                "city": city,
-                "address": address,
-                "streetAddress": street_address,
-                "postalCode": postal_code,
-                "company": company,
-                "browser": browser,
-                "device": device,
-                "givenName": given_name,
-                "familyName": family_name,
-                "middleName": middle_name,
-                "profile": profile,
-                "preferredUsername": preferred_username,
-                "website": website,
-                "zoneinfo": zoneinfo,
-                "locale": locale,
-                "formatted": formatted,
-                "region": region,
-                "departmentIds": department_ids,
-                "customData": custom_data,
-                "password": password,
-                "salt": salt,
-                "tenantIds": tenant_ids,
-                "otp": otp,
-                "identities": identities,
-                "options": options,
-            },
-        )
-
-    def create_users_batch(self, list, options=None):
-        """批量创建用户
-
-        批量创建用户，邮箱、手机号、用户名必须包含其中一个，邮箱、手机号、用户名、externalId 用户池内唯一，此接口将以管理员身份批量创建用户因此不需要进行手机号验证码检验等安全检测。
-
-        Attributes:
-            list (list): 用户列表
-            options (dict): 可选参数
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/create-users-batch",
-            json={
-                "list": list,
-                "options": options,
-            },
-        )
-
-    def update_user(
-        self,
-        user_id,
-        phone_country_code=None,
-        name=None,
-        nickname=None,
-        photo=None,
-        external_id=None,
-        status=None,
-        email_verified=None,
-        phone_verified=None,
-        birthdate=None,
-        country=None,
-        province=None,
-        city=None,
-        address=None,
-        street_address=None,
-        postal_code=None,
-        gender=None,
-        username=None,
-        password_encrypt_type=None,
-        email=None,
-        phone=None,
-        password=None,
-        company=None,
-        browser=None,
-        device=None,
-        given_name=None,
-        family_name=None,
-        middle_name=None,
-        profile=None,
-        preferred_username=None,
-        website=None,
-        zoneinfo=None,
-        locale=None,
-        formatted=None,
-        region=None,
-        custom_data=None,
-        options=None,
-    ):
-        """修改用户资料
-
-        通过用户 ID，修改用户资料，邮箱、手机号、用户名、externalId 用户池内唯一，此接口将以管理员身份修改用户资料因此不需要进行手机号验证码检验等安全检测。
-
-        Attributes:
-            user_id (str): 用户唯一标志，可以是用户 ID、用户名、邮箱、手机号、外部 ID、在外部身份源的 ID。
-            phone_country_code (str): 手机区号，中国大陆手机号可不填。Authing 短信服务暂不内置支持国际手机号，你需要在 Authing 控制台配置对应的国际短信服务。完整的手机区号列表可参阅 https://en.wikipedia.org/wiki/List_of_country_calling_codes。
-            name (str): 用户真实名称，不具备唯一性
-            nickname (str): 昵称
-            photo (str): 头像链接
-            external_id (str): 第三方外部 ID
-            status (str): 账户当前状态
-            email_verified (bool): 邮箱是否验证
-            phone_verified (bool): 手机号是否验证
-            birthdate (str): 出生日期
-            country (str): 所在国家
-            province (str): 所在省份
-            city (str): 所在城市
-            address (str): 所处地址
-            street_address (str): 所处街道地址
-            postal_code (str): 邮政编码号
-            gender (str): 性别
-            username (str): 用户名，用户池内唯一
-            password_encrypt_type (str): 密码加密类型，支持 sm2 和 rsa
-            email (str): 邮箱，不区分大小写
-            phone (str): 手机号，不带区号。如果是国外手机号，请在 phoneCountryCode 参数中指定区号。
-            password (str): 密码。可选加密方式进行加密，通过 passwordEncryptType 参数进行加密方法选择，默认为未加密
-            company (str): 所在公司
-            browser (str): 最近一次登录时使用的浏览器 UA
-            device (str): 最近一次登录时使用的设备
-            given_name (str): 名
-            family_name (str): 姓
-            middle_name (str): 中间名
-            profile (str): Preferred Username
-            preferred_username (str): Preferred Username
-            website (str): 用户个人网页
-            zoneinfo (str): 用户时区信息
-            locale (str): Locale
-            formatted (str): 标准的完整地址
-            region (str): 用户所在区域
-            custom_data (dict): 自定义数据，传入的对象中的 key 必须先在用户池定义相关自定义字段
-            options (dict): 可选参数
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/update-user",
-            json={
-                "userId": user_id,
-                "phoneCountryCode": phone_country_code,
-                "name": name,
-                "nickname": nickname,
-                "photo": photo,
-                "externalId": external_id,
-                "status": status,
-                "emailVerified": email_verified,
-                "phoneVerified": phone_verified,
-                "birthdate": birthdate,
-                "country": country,
-                "province": province,
-                "city": city,
-                "address": address,
-                "streetAddress": street_address,
-                "postalCode": postal_code,
-                "gender": gender,
-                "username": username,
-                "passwordEncryptType": password_encrypt_type,
-                "email": email,
-                "phone": phone,
-                "password": password,
-                "company": company,
-                "browser": browser,
-                "device": device,
-                "givenName": given_name,
-                "familyName": family_name,
-                "middleName": middle_name,
-                "profile": profile,
-                "preferredUsername": preferred_username,
-                "website": website,
-                "zoneinfo": zoneinfo,
-                "locale": locale,
-                "formatted": formatted,
-                "region": region,
-                "customData": custom_data,
-                "options": options,
-            },
-        )
-
-    def update_user_batch(self, list, options=None):
-        """修改用户资料
-
-        通过用户 ID，修改用户资料，邮箱、手机号、用户名、externalId 用户池内唯一，此接口将以管理员身份修改用户资料因此不需要进行手机号验证码检验等安全检测。
-
-        Attributes:
-            list (list): 用户列表
-            options (dict): 可选参数
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/update-user-batch",
-            json={
-                "list": list,
-                "options": options,
             },
         )
 
@@ -1270,9 +1260,9 @@ class ManagementClient(object):
     def list_organizations(
         self, page=None, limit=None, fetch_all=None, with_custom_data=None
     ):
-        """获取顶层组织机构列表
+        """获取组织机构列表
 
-        获取顶层组织机构列表，支持分页。
+        获取组织机构列表，支持分页。
 
         Attributes:
             page (int): 当前页数，从 1 开始
@@ -1299,7 +1289,7 @@ class ManagementClient(object):
         open_department_id=None,
         i18n=None,
     ):
-        """创建顶层组织机构
+        """创建组织机构
 
         创建组织机构，会创建一个只有一个节点的组织机构，可以选择组织描述信息、根节点自定义 ID、多语言等。
 
@@ -1332,9 +1322,9 @@ class ManagementClient(object):
         organization_new_code=None,
         organization_name=None,
     ):
-        """修改顶层组织机构
+        """修改组织机构
 
-        通过组织 code，修改顶层组织机构，可以选择部门描述、新组织 code、组织名称等。
+        通过组织 code，修改组织机构，可以选择部门描述、新组织 code、组织名称等。
 
         Attributes:
             organization_code (str): 组织 code
@@ -1378,9 +1368,9 @@ class ManagementClient(object):
     def search_organizations(
         self, keywords, page=None, limit=None, with_custom_data=None
     ):
-        """搜索顶层组织机构列表
+        """搜索组织机构列表
 
-        通过搜索关键词，搜索顶层组织机构列表，支持分页。
+        通过搜索关键词，搜索组织机构列表，支持分页。
 
         Attributes:
             keywords (str): 搜索关键词，如组织机构名称
@@ -1894,15 +1884,15 @@ class ManagementClient(object):
             },
         )
 
-    def update_group(self, description, name, code, new_code=None):
+    def update_group(self, description, code, name=None, new_code=None):
         """修改分组
 
         通过分组 code，修改分组，可以修改此分组的 code。
 
         Attributes:
             description (str): 分组描述
-            name (str): 分组名称
             code (str): 分组 code
+            name (str): 分组名称
             new_code (str): 分组新的 code
         """
         return self.http_client.request(
@@ -1910,8 +1900,8 @@ class ManagementClient(object):
             url="/api/v3/update-group",
             json={
                 "description": description,
-                "name": name,
                 "code": code,
+                "name": name,
                 "newCode": new_code,
             },
         )
@@ -2185,7 +2175,7 @@ class ManagementClient(object):
         获取角色列表，支持分页。
 
         Attributes:
-            keywords (str): 搜索角色 code
+            keywords (str): 用于根据角色的 code 进行模糊搜索，可选。
             namespace (str): 所属权限分组的 code
             page (int): 当前页数，从 1 开始
             limit (int): 每页数目，最大不能超过 50，默认为 10
@@ -2428,31 +2418,33 @@ class ManagementClient(object):
             },
         )
 
-    def change_conn_state(self, app_ids, app_id, enabled, id, tenant_id=None):
+    def change_ext_idp_conn_state(
+        self, app_id, enabled, id, tenant_id=None, app_ids=None
+    ):
         """身份源连接开关
 
         身份源连接开关，可以打开或关闭身份源连接。
 
         Attributes:
-            app_ids (str): 应用 ID
             app_id (str): 应用 ID
             enabled (bool): 是否开启身份源连接
             id (str): 身份源连接 ID
             tenant_id (str): 租户 ID
+            app_ids (list): 应用 ID 列表
         """
         return self.http_client.request(
             method="POST",
-            url="/api/v3/enable-ext-idp-conn",
+            url="/api/v3/change-ext-idp-conn-state",
             json={
-                "appIds": app_ids,
                 "appId": app_id,
                 "enabled": enabled,
                 "id": id,
                 "tenantId": tenant_id,
+                "appIds": app_ids,
             },
         )
 
-    def change_association_state(self, association, id, tenant_id=None):
+    def change_ext_idp_conn_association_state(self, association, id, tenant_id=None):
         """租户关联身份源
 
         租户可以关联或取消关联身份源连接。
@@ -2464,7 +2456,7 @@ class ManagementClient(object):
         """
         return self.http_client.request(
             method="POST",
-            url="/api/v3/association-ext-idp",
+            url="/api/v3/change-ext-idp-conn-association-state",
             json={
                 "association": association,
                 "id": id,
@@ -2483,8 +2475,8 @@ class ManagementClient(object):
             tenantId (str): 租户 ID
             appId (str): 应用 ID
             type (str): 身份源类型
-            page (str): 页码
-            limit (str): 每页获取的数据量
+            page (int): 当前页数，从 1 开始
+            limit (int): 每页数目，最大不能超过 50，默认为 10
         """
         return self.http_client.request(
             method="GET",
@@ -2553,10 +2545,15 @@ class ManagementClient(object):
     def get_custom_fields(self, target_type):
         """获取自定义字段列表
 
-        通过主体类型，获取用户、部门或角色的自定义字段列表。
+                通过主体类型，获取用户、部门或角色的自定义字段列表。
 
-        Attributes:
-            targetType (str): 主体类型，目前支持用户、角色、分组、部门
+                Attributes:
+                    targetType (str): 目标对象类型：
+        - `USER`: 用户
+        - `ROLE`: 角色
+        - `GROUP`: 分组
+        - `DEPARTMENT`: 部门
+            ;该接口暂不支持分组(GROUP)
         """
         return self.http_client.request(
             method="GET",
@@ -2585,13 +2582,23 @@ class ManagementClient(object):
     def set_custom_data(self, list, target_identifier, target_type, namespace=None):
         """设置自定义字段的值
 
-        给用户、角色或部门设置自定义字段的值，如果存在则更新，不存在则创建。
+                给用户、角色或部门设置自定义字段的值，如果存在则更新，不存在则创建。
 
-        Attributes:
-            list (list): 自定义数据列表
-            target_identifier (str): 主体类型的唯一标志符。如果是用户则为用户 ID，角色为角色的 code，部门为部门的 ID
-            target_type (str): 主体类型，目前支持用户、角色、分组、部门
-            namespace (str): 所属权限分组的 code，当 target_type 为角色的时候需要填写，否则可以忽略
+                Attributes:
+                    list (list): 自定义数据列表
+                    target_identifier (str): 目标对象的唯一标志符：
+        - 如果是用户，为用户的 ID，如 `6343b98b7cfxxx9366e9b7c`
+        - 如果是角色，为角色的 code，如 `admin`
+        - 如果是分组，为分组的 code，如 `developer`
+        - 如果是部门，为部门的 ID，如 `6343bafc019xxxx889206c4c`
+
+                    target_type (str): 目标对象类型：
+        - `USER`: 用户
+        - `ROLE`: 角色
+        - `GROUP`: 分组
+        - `DEPARTMENT`: 部门
+
+                    namespace (str): 所属权限分组的 code，当 target_type 为角色的时候需要填写，否则可以忽略
         """
         return self.http_client.request(
             method="POST",
@@ -2607,12 +2614,22 @@ class ManagementClient(object):
     def get_custom_data(self, target_type, target_identifier, namespace=None):
         """获取用户、分组、角色、组织机构的自定义字段值
 
-        通过筛选条件，获取用户、分组、角色、组织机构的自定义字段值。
+                通过筛选条件，获取用户、分组、角色、组织机构的自定义字段值。
 
-        Attributes:
-            targetType (str): 主体类型，目前支持用户、角色、分组、部门
-            targetIdentifier (str): 目标对象唯一标志符
-            namespace (str): 所属权限分组的 code，当 targetType 为角色的时候需要填写，否则可以忽略
+                Attributes:
+                    targetType (str): 目标对象类型：
+        - `USER`: 用户
+        - `ROLE`: 角色
+        - `GROUP`: 分组
+        - `DEPARTMENT`: 部门
+
+                    targetIdentifier (str): 目标对象的唯一标志符：
+        - 如果是用户，为用户的 ID，如 `6343b98b7cfxxx9366e9b7c`
+        - 如果是角色，为角色的 code，如 `admin`
+        - 如果是分组，为分组的 code，如 `developer`
+        - 如果是部门，为部门的 ID，如 `6343bafc019xxxx889206c4c`
+
+                    namespace (str): 所属权限分组的 code，当 targetType 为角色的时候需要填写，否则可以忽略
         """
         return self.http_client.request(
             method="GET",
@@ -2621,6 +2638,208 @@ class ManagementClient(object):
                 "targetType": target_type,
                 "targetIdentifier": target_identifier,
                 "namespace": namespace,
+            },
+        )
+
+    def create_resource(
+        self,
+        type,
+        code,
+        description=None,
+        actions=None,
+        api_identifier=None,
+        namespace=None,
+    ):
+        """创建资源
+
+        创建资源，可以设置资源的描述、定义的操作类型、URL 标识等。
+
+        Attributes:
+            type (str): 资源类型，如数据、API、按钮、菜单
+            code (str): 资源唯一标志符
+            description (str): 资源描述
+            actions (list): 资源定义的操作类型
+            api_identifier (str): API 资源的 URL 标识
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/create-resource",
+            json={
+                "type": type,
+                "code": code,
+                "description": description,
+                "actions": actions,
+                "apiIdentifier": api_identifier,
+                "namespace": namespace,
+            },
+        )
+
+    def create_resources_batch(self, list, namespace=None):
+        """批量创建资源
+
+        批量创建资源，可以设置资源的描述、定义的操作类型、URL 标识等。
+
+        Attributes:
+            list (list): 资源列表
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/create-resources-batch",
+            json={
+                "list": list,
+                "namespace": namespace,
+            },
+        )
+
+    def get_resource(self, code, namespace=None):
+        """获取资源详情
+
+        根据筛选条件，获取资源详情。
+
+        Attributes:
+            code (str): 资源唯一标志符
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="GET",
+            url="/api/v3/get-resource",
+            params={
+                "code": code,
+                "namespace": namespace,
+            },
+        )
+
+    def get_resources_batch(self, code_list, namespace=None):
+        """批量获取资源详情
+
+        根据筛选条件，批量获取资源详情。
+
+        Attributes:
+            codeList (str): 资源 code 列表，批量可以使用逗号分隔
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="GET",
+            url="/api/v3/get-resources-batch",
+            params={
+                "namespace": namespace,
+                "codeList": code_list,
+            },
+        )
+
+    def list_resources(self, namespace=None, type=None, page=None, limit=None):
+        """分页获取资源列表
+
+        根据筛选条件，分页获取资源详情列表。
+
+        Attributes:
+            namespace (str): 所属权限分组的 code
+            type (str): 资源类型
+            page (int): 当前页数，从 1 开始
+            limit (int): 每页数目，最大不能超过 50，默认为 10
+        """
+        return self.http_client.request(
+            method="GET",
+            url="/api/v3/list-resources",
+            params={
+                "namespace": namespace,
+                "type": type,
+                "page": page,
+                "limit": limit,
+            },
+        )
+
+    def update_resource(
+        self,
+        code,
+        description=None,
+        actions=None,
+        api_identifier=None,
+        namespace=None,
+        type=None,
+    ):
+        """修改资源
+
+        修改资源，可以设置资源的描述、定义的操作类型、URL 标识等。
+
+        Attributes:
+            code (str): 资源唯一标志符
+            description (str): 资源描述
+            actions (list): 资源定义的操作类型
+            api_identifier (str): API 资源的 URL 标识
+            namespace (str): 所属权限分组的 code
+            type (str): 资源类型，如数据、API、按钮、菜单
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/update-resource",
+            json={
+                "code": code,
+                "description": description,
+                "actions": actions,
+                "apiIdentifier": api_identifier,
+                "namespace": namespace,
+                "type": type,
+            },
+        )
+
+    def delete_resource(self, code, namespace=None):
+        """删除资源
+
+        通过资源唯一标志符以及所属权限分组，删除资源。
+
+        Attributes:
+            code (str): 资源唯一标志符
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/delete-resource",
+            json={
+                "code": code,
+                "namespace": namespace,
+            },
+        )
+
+    def delete_resources_batch(self, code_list, namespace=None):
+        """批量删除资源
+
+        通过资源唯一标志符以及所属权限分组，批量删除资源
+
+        Attributes:
+            code_list (list): 资源 code 列表
+            namespace (str): 所属权限分组的 code
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/delete-resources-batch",
+            json={
+                "codeList": code_list,
+                "namespace": namespace,
+            },
+        )
+
+    def associate_tenant_resource(self, app_id, association, code, tenant_id=None):
+        """关联/取消关联应用资源到租户
+
+        通过资源唯一标识以及权限分组，关联或取消关联资源到租户
+
+        Attributes:
+            app_id (str): 应用 ID
+            association (bool): 是否关联应用资源
+            code (str): 资源 Code
+            tenant_id (str): 租户 ID
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/associate-tenant-resource",
+            json={
+                "appId": app_id,
+                "association": association,
+                "code": code,
+                "tenantId": tenant_id,
             },
         )
 
@@ -2775,23 +2994,33 @@ class ManagementClient(object):
     ):
         """获取某个主体被授权的资源列表
 
-        根据筛选条件，获取某个主体被授权的资源列表。
+                根据筛选条件，获取某个主体被授权的资源列表。
 
-        Attributes:
-            targetType (str): 目标对象类型
-            targetIdentifier (str): 目标对象唯一标志符
-            namespace (str): 所属权限分组的 code
-            resourceType (str): 限定资源类型，如数据、API、按钮、菜单
-            resourceList (str): 限定查询的资源列表，如果指定，只会返回所指定的资源列表。
-            withDenied (bool): 是否获取被拒绝的资源
+                Attributes:
+                    targetType (str): 目标对象类型：
+        - `USER`: 用户
+        - `ROLE`: 角色
+        - `GROUP`: 分组
+        - `DEPARTMENT`: 部门
+
+                    targetIdentifier (str): 目标对象的唯一标志符：
+        - 如果是用户，为用户的 ID，如 `6343b98b7cfxxx9366e9b7c`
+        - 如果是角色，为角色的 code，如 `admin`
+        - 如果是分组，为分组的 code，如 `developer`
+        - 如果是部门，为部门的 ID，如 `6343bafc019xxxx889206c4c`
+
+                    namespace (str): 所属权限分组的 code
+                    resourceType (str): 限定资源类型，如数据、API、按钮、菜单
+                    resourceList (str): 限定查询的资源列表，如果指定，只会返回所指定的资源列表。
+                    withDenied (bool): 是否获取被拒绝的资源
         """
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-authorized-resources",
             params={
-                "namespace": namespace,
                 "targetType": target_type,
                 "targetIdentifier": target_identifier,
+                "namespace": namespace,
                 "resourceType": resource_type,
                 "resourceList": resource_list,
                 "withDenied": with_denied,
@@ -2820,34 +3049,34 @@ class ManagementClient(object):
             },
         )
 
-    def get_authorized_targets(
-        self,
-        resource,
-        namespace=None,
-        resource_type=None,
-        target_type=None,
-        actions=None,
+    def get_resource_authorized_targets(
+        self, resource, namespace=None, target_type=None, page=None, limit=None
     ):
         """获取资源被授权的主体
 
-        获取资源被授权的主体
+                获取资源被授权的主体
 
-        Attributes:
-            resource (str): 资源
-            namespace (str): 权限分组
-            resource_type (str): 资源类型
-            target_type (str): 主体类型
-            actions (dict): Action 列表
+                Attributes:
+                    resource (str): 资源
+                    namespace (str): 权限分组
+                    target_type (str): 目标对象类型：
+        - `USER`: 用户
+        - `ROLE`: 角色
+        - `GROUP`: 分组
+        - `DEPARTMENT`: 部门
+
+                    page (int): 当前页数，从 1 开始
+                    limit (int): 每页数目，最大不能超过 50，默认为 10
         """
         return self.http_client.request(
             method="POST",
-            url="/api/v3/get-authorized-targets",
+            url="/api/v3/get-resource-authorized-targets",
             json={
                 "resource": resource,
                 "namespace": namespace,
-                "resourceType": resource_type,
                 "targetType": target_type,
-                "actions": actions,
+                "page": page,
+                "limit": limit,
             },
         )
 
@@ -2890,9 +3119,9 @@ class ManagementClient(object):
         field_mapping,
         sync_task_trigger,
         sync_task_flow,
+        client_config,
         sync_task_type,
         sync_task_name,
-        client_config=None,
         organization_code=None,
         provisioning_scope=None,
         timed_scheduler=None,
@@ -2912,6 +3141,7 @@ class ManagementClient(object):
         - `upstream`: 作为上游，将数据同步到 Authing
         - `downstream`: 作为下游，将 Authing 数据同步到此系统
 
+                    client_config (dict): 同步任务配置信息
                     sync_task_type (str): 同步任务类型:
         - `lark`: 飞书
         - `lark-international`: 飞书国际版
@@ -2928,7 +3158,6 @@ class ManagementClient(object):
         - `scim`: 自定义同步源
 
                     sync_task_name (str): 同步任务名称
-                    client_config (dict): 同步任务配置信息
                     organization_code (str): 此同步任务绑定的组织机构。针对上游同步，需执行一次同步任务之后才会绑定组织机构；针对下游同步，创建同步任务的时候就需要设置。
                     provisioning_scope (dict): 同步范围，**只针对下游同步任务有效**。为空表示同步整个组织机构。
                     timed_scheduler (dict): 定时同步时间设置
@@ -2940,9 +3169,9 @@ class ManagementClient(object):
                 "fieldMapping": field_mapping,
                 "syncTaskTrigger": sync_task_trigger,
                 "syncTaskFlow": sync_task_flow,
+                "clientConfig": client_config,
                 "syncTaskType": sync_task_type,
                 "syncTaskName": sync_task_name,
-                "clientConfig": client_config,
                 "organizationCode": organization_code,
                 "provisioningScope": provisioning_scope,
                 "timedScheduler": timed_scheduler,
@@ -3352,14 +3581,19 @@ class ManagementClient(object):
         )
 
     def preview_email_template(
-        self, sender, type, content=None, subject=None, expires_in=None, tpl_engine=None
+        self,
+        type,
+        content=None,
+        subject=None,
+        sender=None,
+        expires_in=None,
+        tpl_engine=None,
     ):
         """预览邮件模版
 
                 预览邮件模版
 
                 Attributes:
-                    sender (str): 邮件发件人名称，可选，如果不传默认使用用户池配置的邮件模版进行渲染。
                     type (str): 模版类型:
         - `WELCOME_EMAIL`: 欢迎邮件
         - `FIRST_CREATED_USER`: 首次创建用户通知
@@ -3379,6 +3613,7 @@ class ManagementClient(object):
 
                     content (str): 邮件内容模版，可选，如果不传默认使用用户池配置的邮件模版进行渲染。
                     subject (str): 邮件主题，可选，如果不传默认使用用户池配置的邮件模版进行渲染。
+                    sender (str): 邮件发件人名称，可选，如果不传默认使用用户池配置的邮件模版进行渲染。
                     expires_in (int): 验证码/邮件有效时间，只有验证类邮件才有有效时间。可选，如果不传默认使用用户池配置的邮件模版进行渲染。
                     tpl_engine (str): 模版渲染引擎。Authing 邮件模版目前支持两种渲染引擎：
         - `handlebar`: 详细使用方法请见：[handlebars 官方文档](https://handlebarsjs.com/)
@@ -3391,10 +3626,10 @@ class ManagementClient(object):
             method="POST",
             url="/api/v3/preview-email-template",
             json={
-                "sender": sender,
                 "type": type,
                 "content": content,
                 "subject": subject,
+                "sender": sender,
                 "expiresIn": expires_in,
                 "tplEngine": tpl_engine,
             },
@@ -3411,7 +3646,7 @@ class ManagementClient(object):
         """
         return self.http_client.request(
             method="GET",
-            url="/api/v3/get-email-provier",
+            url="/api/v3/get-email-provider",
         )
 
     def config_email_provider(
@@ -3429,9 +3664,9 @@ class ManagementClient(object):
 
                 Attributes:
                     type (str): 第三方邮件服务商类型:
-        - `smtp`: 标准 SMTP 邮件服务
+        - `custom`: 自定义 SMTP 邮件服务
         - `ali`: [阿里企业邮箱](https://www.ali-exmail.cn/Land/)
-        - `tencent`: [腾讯企业邮箱](https://work.weixin.qq.com/mail/)
+        - `qq`: [腾讯企业邮箱](https://work.weixin.qq.com/mail/)
         - `sendgrid`: [SendGrid 邮件服务](https://sendgrid.com/)
 
                     enabled (bool): 是否启用，如果不启用，将默认使用 Authing 内置的邮件服务
@@ -3442,7 +3677,7 @@ class ManagementClient(object):
         """
         return self.http_client.request(
             method="POST",
-            url="/api/v3/config-email-provier",
+            url="/api/v3/config-email-provider",
             json={
                 "type": type,
                 "enabled": enabled,
@@ -3476,7 +3711,7 @@ class ManagementClient(object):
         is_integrate_app=None,
         is_self_built_app=None,
         sso_enabled=None,
-        keyword=None,
+        keywords=None,
     ):
         """获取应用列表
 
@@ -3488,7 +3723,7 @@ class ManagementClient(object):
             isIntegrateApp (bool): 是否为集成应用
             isSelfBuiltApp (bool): 是否为自建应用
             ssoEnabled (bool): 是否开启单点登录
-            keyword (str): 模糊搜索字符串
+            keywords (str): 模糊搜索字符串
         """
         return self.http_client.request(
             method="GET",
@@ -3499,7 +3734,7 @@ class ManagementClient(object):
                 "isIntegrateApp": is_integrate_app,
                 "isSelfBuiltApp": is_self_built_app,
                 "ssoEnabled": sso_enabled,
-                "keyword": keyword,
+                "keywords": keywords,
             },
         )
 
@@ -3526,7 +3761,7 @@ class ManagementClient(object):
         is_integrate_app=None,
         is_self_built_app=None,
         sso_enabled=None,
-        keyword=None,
+        keywords=None,
     ):
         """获取应用简单信息列表
 
@@ -3538,7 +3773,7 @@ class ManagementClient(object):
             isIntegrateApp (bool): 是否为集成应用
             isSelfBuiltApp (bool): 是否为自建应用
             ssoEnabled (bool): 是否开启单点登录
-            keyword (str): 模糊搜索字符串
+            keywords (str): 模糊搜索字符串
         """
         return self.http_client.request(
             method="GET",
@@ -3549,7 +3784,7 @@ class ManagementClient(object):
                 "isIntegrateApp": is_integrate_app,
                 "isSelfBuiltApp": is_self_built_app,
                 "ssoEnabled": sso_enabled,
-                "keyword": keyword,
+                "keywords": keywords,
             },
         )
 
@@ -3738,7 +3973,7 @@ class ManagementClient(object):
     def authorize_application_access(self, list, app_id):
         """授权应用访问权限
 
-        给用户、分组、组织或角色授权应用访问权限
+        给用户、分组、组织或角色授权应用访问权限，如果用户、分组、组织或角色不存在，则跳过，进行下一步授权，不返回报错
 
         Attributes:
             list (list): 授权主体列表，最多 10 条
@@ -3746,7 +3981,7 @@ class ManagementClient(object):
         """
         return self.http_client.request(
             method="POST",
-            url="/api/v3/add-application-permission-record",
+            url="/api/v3/authorize-application-access",
             json={
                 "list": list,
                 "appId": app_id,
@@ -3756,7 +3991,7 @@ class ManagementClient(object):
     def revoke_application_access(self, list, app_id):
         """删除应用访问授权记录
 
-        取消给用户、分组、组织或角色的应用访问权限授权
+        取消给用户、分组、组织或角色的应用访问权限授权,如果传入数据不存在，则返回数据不报错处理。
 
         Attributes:
             list (list): 授权主体列表，最多 10 条
@@ -3764,7 +3999,7 @@ class ManagementClient(object):
         """
         return self.http_client.request(
             method="POST",
-            url="/api/v3/delete-application-permission-record",
+            url="/api/v3/revoke-application-access",
             json={
                 "list": list,
                 "appId": app_id,
@@ -3798,7 +4033,7 @@ class ManagementClient(object):
         """
         return self.http_client.request(
             method="GET",
-            url="/api/v3/update-security-settings",
+            url="/api/v3/get-security-settings",
         )
 
     def update_security_settings(
@@ -3879,7 +4114,7 @@ class ManagementClient(object):
     def update_global_mfa_settings(self, enabled_factors):
         """修改全局多因素认证配置
 
-        传入 MFA 认证因素列表进行修改
+        传入 MFA 认证因素列表进行开启,
 
         Attributes:
             enabled_factors (list): 开启的 MFA 认证因素列表
@@ -3892,205 +4127,113 @@ class ManagementClient(object):
             },
         )
 
-    def create_resource(
+    def get_current_package_info(
         self,
-        type,
-        code,
-        description=None,
-        actions=None,
-        api_identifier=None,
-        namespace=None,
     ):
-        """创建资源
+        """获取套餐详情
 
-        创建资源，可以设置资源的描述、定义的操作类型、URL 标识等。
-
-        Attributes:
-            type (str): 资源类型，如数据、API、按钮、菜单
-            code (str): 资源唯一标志符
-            description (str): 资源描述
-            actions (list): 资源定义的操作类型
-            api_identifier (str): API 资源的 URL 标识
-            namespace (str): 所属权限分组的 code
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/create-resource",
-            json={
-                "type": type,
-                "code": code,
-                "description": description,
-                "actions": actions,
-                "apiIdentifier": api_identifier,
-                "namespace": namespace,
-            },
-        )
-
-    def create_resources_batch(self, list, namespace=None):
-        """批量创建资源
-
-        批量创建资源，可以设置资源的描述、定义的操作类型、URL 标识等。
+        获取当前用户池套餐详情。
 
         Attributes:
-            list (list): 资源列表
-            namespace (str): 所属权限分组的 code
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/create-resources-batch",
-            json={
-                "list": list,
-                "namespace": namespace,
-            },
-        )
-
-    def get_resource(self, code, namespace=None):
-        """获取资源详情
-
-        根据筛选条件，获取资源详情。
-
-        Attributes:
-            code (str): 资源唯一标志符
-            namespace (str): 所属权限分组的 code
         """
         return self.http_client.request(
             method="GET",
-            url="/api/v3/get-resource",
-            params={
-                "code": code,
-                "namespace": namespace,
-            },
+            url="/api/v3/get-current-package-info",
         )
 
-    def get_resources_batch(self, code_list, namespace=None):
-        """批量获取资源详情
+    def get_usage_info(
+        self,
+    ):
+        """获取用量详情
 
-        根据筛选条件，批量获取资源详情。
+        获取当前用户池用量详情。
 
         Attributes:
-            codeList (str): 资源 code 列表，批量可以使用逗号分隔
-            namespace (str): 所属权限分组的 code
         """
         return self.http_client.request(
             method="GET",
-            url="/api/v3/get-resources-batch",
+            url="/api/v3/get-usage-info",
+        )
+
+    def get_mau_period_usage_history(self, start_time, end_time):
+        """获取 MAU 使用记录
+
+        获取当前用户池 MAU 使用记录
+
+        Attributes:
+            startTime (str): 起始时间（年月日）
+            endTime (str): 截止时间（年月日）
+        """
+        return self.http_client.request(
+            method="GET",
+            url="/api/v3/get-mau-period-usage-history",
             params={
-                "namespace": namespace,
-                "codeList": code_list,
+                "startTime": start_time,
+                "endTime": end_time,
             },
         )
 
-    def list_resources(self, namespace=None, type=None, page=None, limit=None):
-        """分页获取资源列表
+    def get_all_rights_item(
+        self,
+    ):
+        """获取所有权益
 
-        根据筛选条件，分页获取资源详情列表。
+        获取当前用户池所有权益
 
         Attributes:
-            namespace (str): 所属权限分组的 code
-            type (str): 资源类型
+        """
+        return self.http_client.request(
+            method="GET",
+            url="/api/v3/get-all-rights-items",
+        )
+
+    def get_orders(self, page=None, limit=None):
+        """获取订单列表
+
+        获取当前用户池订单列表
+
+        Attributes:
             page (int): 当前页数，从 1 开始
             limit (int): 每页数目，最大不能超过 50，默认为 10
         """
         return self.http_client.request(
             method="GET",
-            url="/api/v3/list-resources",
+            url="/api/v3/get-orders",
             params={
-                "namespace": namespace,
-                "type": type,
                 "page": page,
                 "limit": limit,
             },
         )
 
-    def update_resource(
-        self,
-        code,
-        description=None,
-        actions=None,
-        api_identifier=None,
-        namespace=None,
-        type=None,
-    ):
-        """修改资源
+    def get_order_detail(self, order_no):
+        """获取订单详情
 
-        修改资源，可以设置资源的描述、定义的操作类型、URL 标识等。
+        获取当前用户池订单详情
 
         Attributes:
-            code (str): 资源唯一标志符
-            description (str): 资源描述
-            actions (list): 资源定义的操作类型
-            api_identifier (str): API 资源的 URL 标识
-            namespace (str): 所属权限分组的 code
-            type (str): 资源类型，如数据、API、按钮、菜单
+            orderNo (str): 订单号
         """
         return self.http_client.request(
-            method="POST",
-            url="/api/v3/update-resource",
-            json={
-                "code": code,
-                "description": description,
-                "actions": actions,
-                "apiIdentifier": api_identifier,
-                "namespace": namespace,
-                "type": type,
+            method="GET",
+            url="/api/v3/get-order-detail",
+            params={
+                "orderNo": order_no,
             },
         )
 
-    def delete_resource(self, code, namespace=None):
-        """删除资源
+    def get_order_pay_detail(self, order_no):
+        """获取订单支付明细
 
-        通过资源唯一标志符以及所属权限分组，删除资源。
-
-        Attributes:
-            code (str): 资源唯一标志符
-            namespace (str): 所属权限分组的 code
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/delete-resource",
-            json={
-                "code": code,
-                "namespace": namespace,
-            },
-        )
-
-    def delete_resources_batch(self, code_list, namespace=None):
-        """批量删除资源
-
-        通过资源唯一标志符以及所属权限分组，批量删除资源
+        获取当前用户池订单支付明细
 
         Attributes:
-            code_list (list): 资源 code 列表
-            namespace (str): 所属权限分组的 code
+            orderNo (str): 订单号
         """
         return self.http_client.request(
-            method="POST",
-            url="/api/v3/delete-resources-batch",
-            json={
-                "codeList": code_list,
-                "namespace": namespace,
-            },
-        )
-
-    def association_resources(self, app_id, association, code, tenant_id=None):
-        """关联/取消关联应用资源到租户
-
-        通过资源唯一标识以及权限分组，关联或取消关联资源到租户
-
-        Attributes:
-            app_id (str): 应用 ID
-            association (bool): 是否关联应用资源
-            code (str): 资源 Code
-            tenant_id (str): 租户 ID
-        """
-        return self.http_client.request(
-            method="POST",
-            url="/api/v3/associate-tenant-resource",
-            json={
-                "appId": app_id,
-                "association": association,
-                "code": code,
-                "tenantId": tenant_id,
+            method="GET",
+            url="/api/v3/get-order-pay-detail",
+            params={
+                "orderNo": order_no,
             },
         )
 
@@ -4123,7 +4266,7 @@ class ManagementClient(object):
                     func_name (str): 函数名称
                     func_description (str): 函数描述
                     is_asynchronous (bool): 是否异步执行。设置为异步执行的函数不会阻塞整个流程的执行，适用于异步通知的场景，比如飞书群通知、钉钉群通知等。
-                    timeout (int): 函数运行超时时间，最短为 1 秒，最长为 60 秒，默认为 3 秒。
+                    timeout (int): 函数运行超时时间，要求必须为整数，最短为 1 秒，最长为 60 秒，默认为 3 秒。
                     terminate_on_timeout (bool): 如果函数运行超时，是否终止整个流程，默认为否。
                     enabled (bool): 是否启用此 Pipeline
         """
@@ -4274,7 +4417,7 @@ class ManagementClient(object):
         """
         return self.http_client.request(
             method="GET",
-            url="/api/v3/list-pipeline-function",
+            url="/api/v3/list-pipeline-functions",
             params={
                 "scene": scene,
             },
@@ -4386,7 +4529,7 @@ class ManagementClient(object):
     def delete_webhook(self, webhook_ids):
         """删除 Webhook
 
-        通过指定多个 webhookId，以数组的形式进行 webhook 的删除
+        通过指定多个 webhookId,以数组的形式进行 webhook 的删除,如果 webhookId 不存在,不提示报错
 
         Attributes:
             webhook_ids (list): webhookId 数组
@@ -4402,7 +4545,7 @@ class ManagementClient(object):
     def get_webhook_logs(self, webhook_id, page=None, limit=None):
         """获取 Webhook 日志
 
-        通过指定 webhookId，可选 page 和 limit 来获取 webhook 日志
+        通过指定 webhookId，可选 page 和 limit 来获取 webhook 日志,如果 webhookId 不存在,不返回报错信息
 
         Attributes:
             webhook_id (str): Webhook ID

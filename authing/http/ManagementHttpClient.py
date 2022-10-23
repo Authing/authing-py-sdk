@@ -26,9 +26,8 @@ class ManagementHttpClient(object):
             json = {k: v for k, v in json.items() if v is not None}
         token, userpool_id = self.token_provider.get_access_token()
         headers = {
-            "x-authing-sdk-version": "python:%s" % __version__,
+            "x-authing-sdk-version": "authing-py-sdk:%s" % __version__,
             "x-authing-userpool-id": userpool_id if userpool_id else None,
-            "x-authing-request-from": "sdk",
             'x-authing-lang': self.lang or ''
         }
         if token:

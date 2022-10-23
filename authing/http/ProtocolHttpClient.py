@@ -10,7 +10,7 @@ class ProtocolHttpClient(object):
         self.host = host
         self.use_unverified_ssl = use_unverified_ssl or FALSE
 
-    def request(self, method, url, basic_token=None, json=None, **kwargs):
+    def request(self, method, url, basic_token=None, raw_content=False, json=None, **kwargs):
         url = "%s%s" % (self.host, url)
         headers = {}
         if basic_token:
@@ -22,5 +22,5 @@ class ProtocolHttpClient(object):
         r = requests.request(
             method=method, url=url, json=json, headers=headers, verify=verify, **kwargs
         )
-        data = r.json()
+        data = r.json() if not raw_content else r.text
         return data
