@@ -10,11 +10,13 @@ class ProtocolHttpClient(object):
         self.host = host
         self.use_unverified_ssl = use_unverified_ssl or FALSE
 
-    def request(self, method, url, basic_token=None, raw_content=False, json=None, **kwargs):
+    def request(self, method, url, basic_token=None, bearer_token=None, raw_content=False, json=None, **kwargs):
         url = "%s%s" % (self.host, url)
         headers = {}
         if basic_token:
             headers["authorization"] = "Basic %s" % basic_token
+        if bearer_token:
+            headers["authorization"] = "Bearer %s" % bearer_token
         # 把 json 中为 null 的去掉
         if json:
             json = {k: v for k, v in json.items() if v is not None}
