@@ -201,7 +201,7 @@ class AuthenticationClient(object):
         data = self.protocol_http_client.request(
             method='POST',
             url=url,
-            token=access_token
+            bearer_token=access_token
         )
         return data
 
