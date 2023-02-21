@@ -1,6 +1,12 @@
 # coding: utf-8
 
-from .http.ManagementHttpClient import ManagementHttpClient
+#from .http.ManagementHttpClient import ManagementHttpClient
+
+import base64
+import hmac
+import hashlib
+import asyncio
+import websockets
 
 
 class ManagementClient(object):
@@ -21,13 +27,10 @@ class ManagementClient(object):
         self.timeout = timeout
         self.lang = lang
         self.use_unverified_ssl = use_unverified_ssl
-        self.http_client = ManagementHttpClient(
-            host=self.host,
-            lang=self.lang,
-            use_unverified_ssl=self.use_unverified_ssl,
-            access_key_id=self.access_key_id,
-            access_key_secret=self.access_key_secret,
-        )
+        self.http_client = None
+        self.ws_map = {}
+        self.event_bus = {}
+        self.socketHost = "ws://sxy21.cn:30301/events"
 
     def list_users(self, keywords=None, advanced_filter=None, options=None):
         """获取/搜索用户列表
@@ -4611,3 +4614,87 @@ class ManagementClient(object):
             method="GET",
             url="/api/v3/get-webhook-event-list",
         )
+    
+    def _build_authorization(self, method, uri_pattern, headers={}, query={}):
+        def filter(value):
+            if isinstance(value, str):
+                return value.replace("\t", "").replace("\n", "").replace("\r", "").replace("\f", " ")
+            return str(value)
+
+        keys = headers.keys()
+        canonicalized_keys = []
+        for key in keys:
+            if key.startswith("x-authing-") or key == "date":
+                canonicalized_keys.append(key)
+        canonicalized_keys.sort()
+
+        result = ""
+        for key in canonicalized_keys:
+            result += f"{key}:{filter(headers[key]).strip()}\n"
+
+        header = f"{method}\n"
+        canonicalized_headers = result
+
+        keys = sorted(query.keys())
+        result = []
+        for key in keys:
+            value = query[key]
+            if value is None:
+                continue
+            if isinstance(value, dict):
+                value = json.dumps(value)
+            result.append(f"{key}={value}")
+
+        canonicalized_resource = f"{uri_pattern}?{'&'.join(result)}"
+        string_to_sign = f"{header}{canonicalized_headers}{canonicalized_resource}"
+        signature = hmac.new(self.access_key_secret.encode(), string_to_sign.encode(), hashlib.sha1).digest()
+        signature = base64.b64encode(signature)
+        return f"authing {self.access_key_id}:{signature.decode()}"
+
+    async def init_websocket(self, event_name, retry=False):
+        if event_name not in self.ws_map or retry:
+            self.ws_map[event_name] = {}
+            self.ws_map[event_name]['socket'] = await websockets.connect(f"{self.socketHost}?code={event_name}", extra_headers={
+                "authorization": self._build_authorization("websocket", self.socketHost)
+            })
+            self.ws_map[event_name]['time_connect'] = 0 if not retry else self.ws_map[event_name].get('time_connect', 0)
+            self.ws_map[event_name]['lock_connect'] = False
+        return self.ws_map[event_name]['socket']
+
+    async def reconnect(self, event_name):
+        if event_name not in self.ws_map:
+            return
+        if self.ws_map[event_name]['time_connect'] < self.options.retry_times:
+            if not self.ws_map[event_name]['lock_connect']:
+                self.ws_map[event_name]['lock_connect'] = True
+                self.ws_map[event_name]['time_connect'] += 1
+                print(f"WS 第 {self.ws_map[event_name]['time_connect']} 次重连。")
+                await asyncio.sleep(2)
+                self.ws_map[event_name]['lock_connect'] = False
+                await self.init_websocket(event_name, True)
+        else:
+            raise Exception("socket 服务器连接超时")
+
+    async def sub(self, event_name, callback, err_callback):
+        if not isinstance(event_name, str):
+            raise TypeError("订阅事件名称为 string 类型")
+        if not callable(callback):
+            raise TypeError("订阅事件回调函数需要为 function 类型")
+
+        socket = await self.init_websocket(event_name)
+        if event_name in self.event_bus:
+            self.event_bus[event_name].append([callback, err_callback])
+        else:
+            self.event_bus[event_name] = [[callback, err_callback]]
+
+        while True:
+            try:
+                data = await socket.recv()
+            except websockets.exceptions.ConnectionClosed as e:
+                await self.reconnect(event_name)
+            else:
+                if event_name in self.event_bus:
+                    for cb, _ in self.event_bus[event_name]:
+                        cb(data)
+                else:
+                    print(f"未订阅的事件：{event_name}")
