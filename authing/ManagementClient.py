@@ -4658,32 +4658,32 @@ class ManagementClient(object):
         signature = base64.b64encode(signature)
         return f"authing {self.access_key_id}:{signature.decode()}"
 
-    async def init_websocket(self, event_name, retry=False):
-        if event_name not in self.ws_map or retry:
-            self.ws_map[event_name] = {}
-            self.ws_map[event_name]['socket'] = await websockets.connect(f"{self.socketHost}?code={event_name}", extra_headers={
+    async def init_websocket(self, event_code, retry=False):
+        if event_code not in self.ws_map or retry:
+            self.ws_map[event_code] = {}
+            self.ws_map[event_code]['socket'] = await websockets.connect(f"{self.socketHost}?code={event_code}", extra_headers={
                 "authorization": self._build_authorization("websocket", self.socketHost)
             })
-            self.ws_map[event_name]['time_connect'] = 0 if not retry else self.ws_map[event_name].get('time_connect', 0)
-            self.ws_map[event_name]['lock_connect'] = False
-        return self.ws_map[event_name]['socket']
+            self.ws_map[event_code]['time_connect'] = 0 if not retry else self.ws_map[event_code].get('time_connect', 0)
+            self.ws_map[event_code]['lock_connect'] = False
+        return self.ws_map[event_code]['socket']
 
-    async def reconnect(self, event_name):
-        if event_name not in self.ws_map:
+    async def reconnect(self, event_code):
+        if event_code not in self.ws_map:
             return
-        if self.ws_map[event_name]['time_connect'] < self.options.retry_times:
-            if not self.ws_map[event_name]['lock_connect']:
-                self.ws_map[event_name]['lock_connect'] = True
-                self.ws_map[event_name]['time_connect'] += 1
-                print(f"WS 第 {self.ws_map[event_name]['time_connect']} 次重连。")
+        if self.ws_map[event_code]['time_connect'] < self.options.retry_times:
+            if not self.ws_map[event_code]['lock_connect']:
+                self.ws_map[event_code]['lock_connect'] = True
+                self.ws_map[event_code]['time_connect'] += 1
+                print(f"WS 第 {self.ws_map[event_code]['time_connect']} 次重连。")
                 await asyncio.sleep(2)
-                self.ws_map[event_name]['lock_connect'] = False
-                await self.init_websocket(event_name, True)
+                self.ws_map[event_code]['lock_connect'] = False
+                await self.init_websocket(event_code, True)
         else:
             raise Exception("socket 服务器连接超时")
 
-    async def sub(self, event_name, callback, err_callback, delay=10000):
-        if not isinstance(event_name, str):
+    async def sub(self, event_code, callback, err_callback, delay=10000):
+        if not isinstance(event_code, str):
             raise TypeError("订阅事件名称为 string 类型")
         if not callable(callback):
             raise TypeError("订阅事件回调函数需要为 function 类型")
@@ -4691,22 +4691,22 @@ class ManagementClient(object):
             print("请先配置 websocket uri")
             return
 
-        socket = await self.init_websocket(event_name)
-        if event_name in self.event_bus:
-            self.event_bus[event_name].append([callback, err_callback])
+        socket = await self.init_websocket(event_code)
+        if event_code in self.event_bus:
+            self.event_bus[event_code].append([callback, err_callback])
         else:
-            self.event_bus[event_name] = [[callback, err_callback]]
+            self.event_bus[event_code] = [[callback, err_callback]]
 
         while True:
             try:
                 data = await socket.recv()
             except websockets.exceptions.ConnectionClosed as e:
                 print("与 Authing 的 ws 连接已断开！")
-                await self.reconnect(event_name)
+                await self.reconnect(event_code)
             else:
-                if event_name in self.event_bus:
-                    for cb, _ in self.event_bus[event_name]:
+                if event_code in self.event_bus:
+                    for cb, _ in self.event_bus[event_code]:
                         cb(data)
                 else:
-                    print(f"未订阅的事件：{event_name}")
+                    print(f"未订阅的事件：{event_code}")
             await asyncio.sleep(delay / 1000)
