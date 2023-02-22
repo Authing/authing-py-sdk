@@ -1,6 +1,6 @@
 # coding: utf-8
 
-#from .http.ManagementHttpClient import ManagementHttpClient
+from .http.ManagementHttpClient import ManagementHttpClient
 
 import base64
 import hmac
@@ -28,7 +28,13 @@ class ManagementClient(object):
         self.timeout = timeout
         self.lang = lang
         self.use_unverified_ssl = use_unverified_ssl
-        self.http_client = None
+        self.http_client = ManagementHttpClient(
+            host=self.host,
+            lang=self.lang,
+            use_unverified_ssl=self.use_unverified_ssl,
+            access_key_id=self.access_key_id,
+            access_key_secret=self.access_key_secret,
+        )
         self.ws_map = {}
         self.event_bus = {}
         self.socketHost = socket_host
