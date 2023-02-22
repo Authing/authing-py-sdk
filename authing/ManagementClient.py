@@ -20,6 +20,7 @@ class ManagementClient(object):
         timeout=10.0,
         lang=None,
         use_unverified_ssl=False,
+        socket_host=None
     ):
         self.access_key_id = access_key_id
         self.access_key_secret = access_key_secret
@@ -30,7 +31,7 @@ class ManagementClient(object):
         self.http_client = None
         self.ws_map = {}
         self.event_bus = {}
-        self.socketHost = "ws://sxy21.cn:30301/events"
+        self.socketHost = socket_host
 
     def list_users(self, keywords=None, advanced_filter=None, options=None):
         """获取/搜索用户列表
@@ -4675,11 +4676,14 @@ class ManagementClient(object):
         else:
             raise Exception("socket 服务器连接超时")
 
-    async def sub(self, event_name, callback, err_callback):
+    async def sub(self, event_name, callback, err_callback, delay=10000):
         if not isinstance(event_name, str):
             raise TypeError("订阅事件名称为 string 类型")
         if not callable(callback):
             raise TypeError("订阅事件回调函数需要为 function 类型")
+        if not self.socketHost:
+            print("请先配置 websocket uri")
+            return
 
         socket = await self.init_websocket(event_name)
         if event_name in self.event_bus:
@@ -4691,6 +4695,7 @@ class ManagementClient(object):
             try:
                 data = await socket.recv()
             except websockets.exceptions.ConnectionClosed as e:
+                print("与 Authing 的 ws 连接已断开！")
                 await self.reconnect(event_name)
             else:
                 if event_name in self.event_bus:
@@ -4698,3 +4703,4 @@ class ManagementClient(object):
                         cb(data)
                 else:
                     print(f"未订阅的事件：{event_name}")
+            await asyncio.sleep(delay / 1000)
