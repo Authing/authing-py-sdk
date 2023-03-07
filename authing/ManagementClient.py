@@ -4635,7 +4635,7 @@ class ManagementClient(object):
         # print("authorization:"+authorization)
         eventUri = self.websocket_host + self.websocket_endpoint + "?code="+ event_code
         # print("eventUri:"+eventUri)
-        handleMessage(authorization,eventUri,callback)
+        handleMessage(eventUri,callback,authorization)
 
     def put_event(self,event_code,data):
         """发布自定义事件
