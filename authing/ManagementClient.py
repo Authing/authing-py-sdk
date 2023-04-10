@@ -1,6 +1,9 @@
 # coding: utf-8
+import json
 
 from .http.ManagementHttpClient import ManagementHttpClient
+from .utils.signatureComposer import getAuthorization
+from .utils.wss import handleMessage
 
 
 class ManagementClient(object):
@@ -14,6 +17,8 @@ class ManagementClient(object):
         timeout=10.0,
         lang=None,
         use_unverified_ssl=False,
+        websocket_host = None,
+        websocket_endpoint = None
     ):
         self.access_key_id = access_key_id
         self.access_key_secret = access_key_secret
@@ -21,6 +26,8 @@ class ManagementClient(object):
         self.timeout = timeout
         self.lang = lang
         self.use_unverified_ssl = use_unverified_ssl
+        self.websocket_host = websocket_host or "wss://events.authing.cn"
+        self.websocket_endpoint = websocket_endpoint or "/events/v1/management/sub"
         self.http_client = ManagementHttpClient(
             host=self.host,
             lang=self.lang,
@@ -4610,4 +4617,40 @@ class ManagementClient(object):
         return self.http_client.request(
             method="GET",
             url="/api/v3/get-webhook-event-list",
+        )
+
+
+    def sub_event(self,event_code,callback):
+        """订阅事件
+
+        订阅 authing 公共事件或自定义事件
+
+        Attributes:
+            eventCode (str): 事件编码
+            callback (callable): 回调函数
+        """
+        assert event_code,"eventCode 不能为空"
+        assert callable(callback),"callback 必须为可执行函数"
+        authorization = getAuthorization(self.access_key_id,self.access_key_secret)
+        # print("authorization:"+authorization)
+        eventUri = self.websocket_host + self.websocket_endpoint + "?code="+ event_code
+        # print("eventUri:"+eventUri)
+        handleMessage(eventUri,callback,authorization)
+
+    def put_event(self,event_code,data):
+        """发布自定义事件
+
+        发布事件
+
+        Attributes:
+            event_code (str): 事件编码
+            data (json): 事件体
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/pub-event",
+            json={
+                "eventType": event_code,
+                "eventData": json.dumps(data)
+            },
         )

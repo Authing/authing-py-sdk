@@ -9,6 +9,9 @@ import hashlib
 import json
 import jwt
 
+from .utils.wss import handleMessage
+
+
 class AuthenticationClient(object):
     """Authing Authentication Client"""
 
@@ -26,7 +29,9 @@ class AuthenticationClient(object):
         redirect_uri=None,
         post_logout_redirect_uri=None,
         use_unverified_ssl=False,
-        lang=None
+        lang=None,
+        websocket_host=None,
+        websocket_endpoint=None
     ):
 
         """
@@ -50,7 +55,7 @@ class AuthenticationClient(object):
             raise Exception('Please provide app_id')
 
         self.app_id = app_id
-        self.app_host = app_host
+        self.app_host = app_host or "https://api.authing.cn"
         self.timeout = timeout
         self.access_token = access_token
         self.lang = lang
@@ -62,8 +67,9 @@ class AuthenticationClient(object):
         self.redirect_uri = redirect_uri
         self.use_unverified_ssl = use_unverified_ssl
         self.post_logout_redirect_uri = post_logout_redirect_uri
-
-        # V3 API 接口使用的 HTTP Client
+        self.websocket_host = websocket_host or "wss://events.authing.cn"
+        self.websocket_endpoint = websocket_endpoint or "/events/v1/authentication/sub"
+            # V3 API 接口使用的 HTTP Client
         self.http_client = AuthenticationHttpClient(
             app_id=self.app_id,
             app_secret=self.app_secret,
@@ -416,7 +422,7 @@ class AuthenticationClient(object):
 
     def build_logout_url(self, redirect_uri=None, id_token=None, state=None):
         """拼接登出 URL
-        
+
         Attributes:
             redirect_uri(str): 登出完成后的重定向目标 URL
             id_token(str): 用户登录时获取的 ID Token，用于无效化用户 Token，建议传入
@@ -865,7 +871,7 @@ class AuthenticationClient(object):
     def sign_in_by_credentials(self, connection, password_payload=None, pass_code_payload=None, ad_payload=None, ldap_payload=None, options=None, client_id=None, client_secret=None ):
         """使用用户凭证登录
 
-        
+
     此端点为基于直接 API 调用形式的登录端点，适用于你需要自建登录页面的场景。**此端点暂时不支持 MFA、信息补全、首次密码重置等流程，如有需要，请使用 OIDC 标准协议认证端点。**
 
 
@@ -913,7 +919,7 @@ class AuthenticationClient(object):
 
     </details>
 
-    
+
 
         Attributes:
             connection (str): 认证方式：
@@ -921,7 +927,7 @@ class AuthenticationClient(object):
     - `PASSCODE`: 使用一次性临时验证码进行认证。
     - `LDAP`: 基于 LDAP 用户目录进行认证。
     - `AD`: 基于 Windows AD 用户目录进行认证。
-        
+
             password_payload (dict): 当认证方式为 `PASSWORD` 时此参数必填。
             pass_code_payload (dict): 当认证方式为 `PASSCODE` 时此参数必填
             ad_payload (dict): 当认证方式为 `AD` 时此参数必填
@@ -948,7 +954,7 @@ class AuthenticationClient(object):
     def sign_in_by_mobile(self, ext_idp_connidentifier, connection, wechat_payload=None, apple_payload=None, alipay_payload=None, wechatwork_payload=None, wechatwork_agency_payload=None, lark_public_payload=None, lark_internal_payload=None, yidun_payload=None, wechat_mini_program_code_payload=None, wechat_mini_program_phone_payload=None, google_payload=None, options=None, client_id=None, client_secret=None ):
         """使用移动端社会化登录
 
-        
+
     此端点为移动端社会化登录接口，使用第三方移动社会化登录返回的临时凭证登录，并换取用户的 `id_token` 和 `access_token`。请先阅读相应社会化登录的接入流程。
 
 
@@ -996,7 +1002,7 @@ class AuthenticationClient(object):
 
     </details>
 
-    
+
 
         Attributes:
             ext_idp_connidentifier (str): 外部身份源连接标志符
@@ -1113,7 +1119,7 @@ class AuthenticationClient(object):
     def exchange_token_set_with_qr_code_ticket(self, ticket, client_id=None, client_secret=None ):
         """使用二维码 ticket 换取 TokenSet
 
-        
+
     此端点为使用二维码的 ticket 换取用户的 `access_token` 和 `id_token`。
 
 
@@ -1161,7 +1167,7 @@ class AuthenticationClient(object):
 
     </details>
 
-        
+
 
         Attributes:
             ticket (str): 当二维码状态为已授权时返回。如果在控制台应用安全 - 通用安全 - 登录安全 - APP 扫码登录 Web 安全中未开启「Web 轮询接口返回完整用户信息」（默认处于关闭状态），会返回此 ticket，用于换取完整的用户信息。
@@ -1188,7 +1194,7 @@ class AuthenticationClient(object):
     - `SCAN`: 修改二维码状态为已扫码状态，当移动 APP 扫了码之后，应当立即执行此操作；
     - `CONFIRM`: 修改二维码状态为已授权，执行此操作前必须先执行 `SCAN 操作；
     - `CANCEL`: 修改二维码状态为已取消，执行此操作前必须先执行 `SCAN 操作；
-        
+
             qrcode_id (str): 二维码唯一 ID
         """
         return self.http_client.request(
@@ -1215,10 +1221,10 @@ class AuthenticationClient(object):
     - `CHANNEL_BIND_MFA`: 用于绑定 MFA
     - `CHANNEL_VERIFY_MFA`: 用于验证 MFA
     - `CHANNEL_UNBIND_MFA`: 用于解绑 MFA
-    - `CHANNEL_COMPLETE_PHONE`: 用于在注册/登录时补全手机号信息  
+    - `CHANNEL_COMPLETE_PHONE`: 用于在注册/登录时补全手机号信息
     - `CHANNEL_IDENTITY_VERIFICATION`: 用于进行用户实名认证
     - `CHANNEL_DELETE_ACCOUNT`: 用于注销账号
-        
+
             phone_number (str): 手机号，不带区号。如果是国外手机号，请在 phoneCountryCode 参数中指定区号。
             phone_country_code (str): 手机区号，中国大陆手机号可不填。Authing 短信服务暂不内置支持国际手机号，你需要在 Authing 控制台配置对应的国际短信服务。完整的手机区号列表可参阅 https://en.wikipedia.org/wiki/List_of_country_calling_codes。
         """
@@ -1248,7 +1254,7 @@ class AuthenticationClient(object):
     - `CHANNEL_UNBIND_EMAIL`: 用于解绑邮箱
     - `CHANNEL_VERIFY_MFA`: 用于验证 MFA
     - `CHANNEL_UNLOCK_ACCOUNT`: 用于自助解锁
-    - `CHANNEL_COMPLETE_EMAIL`: 用于注册/登录时补全邮箱信息   
+    - `CHANNEL_COMPLETE_EMAIL`: 用于注册/登录时补全邮箱信息
     - `CHANNEL_DELETE_ACCOUNT`: 用于注销账号
 
             email (str): 邮箱，不区分大小写
@@ -1418,7 +1424,7 @@ class AuthenticationClient(object):
     - `none`: 不对密码进行加密，使用明文进行传输。
     - `rsa`: 使用 RSA256 算法对密码进行加密，需要使用 Authing 服务的 RSA 公钥进行加密，请阅读**介绍**部分了解如何获取 Authing 服务的 RSA256 公钥。
     - `sm2`: 使用 [国密 SM2 算法](https://baike.baidu.com/item/SM2/15081831) 对密码进行加密，需要使用 Authing 服务的 SM2 公钥进行加密，请阅读**介绍**部分了解如何获取 Authing 服务的 SM2 公钥。
-    
+
         """
         return self.http_client.request(
             method='POST',
@@ -1439,7 +1445,7 @@ class AuthenticationClient(object):
             email_pass_code_payload (dict): 使用邮箱验证码方式验证的数据
             verify_method (str): 修改当前邮箱使用的验证手段：
     - `EMAIL_PASSCODE`: 通过邮箱验证码进行验证，当前只支持这种验证方式。
-        
+
         """
         return self.http_client.request(
             method='POST',
@@ -1476,7 +1482,7 @@ class AuthenticationClient(object):
             phone_pass_code_payload (dict): 使用手机号验证码方式验证的数据
             verify_method (str): 修改手机号的验证方式：
     - `PHONE_PASSCODE`: 使用短信验证码的方式进行验证，当前仅支持这一种方式。
-        
+
         """
         return self.http_client.request(
             method='POST',
@@ -1513,7 +1519,7 @@ class AuthenticationClient(object):
             verify_method (str): 忘记密码请求使用的验证手段：
     - `EMAIL_PASSCODE`: 通过邮箱验证码进行验证
     - `PHONE_PASSCODE`: 通过手机号验证码进行验证
-        
+
             phone_pass_code_payload (dict): 使用手机号验证码验证的数据
             email_pass_code_payload (dict): 使用邮箱验证码验证的数据
         """
@@ -1539,7 +1545,7 @@ class AuthenticationClient(object):
     - `none`: 不对密码进行加密，使用明文进行传输。
     - `rsa`: 使用 RSA256 算法对密码进行加密，需要使用 Authing 服务的 RSA 公钥进行加密，请阅读**介绍**部分了解如何获取 Authing 服务的 RSA256 公钥。
     - `sm2`: 使用 [国密 SM2 算法](https://baike.baidu.com/item/SM2/15081831) 对密码进行加密，需要使用 Authing 服务的 SM2 公钥进行加密，请阅读**介绍**部分了解如何获取 Authing 服务的 SM2 公钥。
-    
+
         """
         return self.http_client.request(
             method='POST',
@@ -1561,7 +1567,7 @@ class AuthenticationClient(object):
     - `PHONE_PASSCODE`: 使用手机号验证码方式进行验证。
     - `EMAIL_PASSCODE`: 使用邮箱验证码方式进行验证。
     - `PASSWORD`: 如果用户既没有绑定手机号又没有绑定邮箱，可以使用密码作为验证手段。
-        
+
             phone_pass_code_payload (dict): 使用手机号验证码验证的数据
             email_pass_code_payload (dict): 使用邮箱验证码验证的数据
             password_payload (dict): 使用密码验证的数据
@@ -1649,7 +1655,7 @@ class AuthenticationClient(object):
     - `SMS`: 短信
     - `EMAIL`: 邮件
     - `FACE`: 人脸
-        
+
         """
         return self.http_client.request(
             method='POST',
@@ -1673,7 +1679,7 @@ class AuthenticationClient(object):
     - `SMS`: 短信
     - `EMAIL`: 邮件
     - `FACE`: 人脸
-        
+
         """
         return self.http_client.request(
             method='POST',
@@ -1744,9 +1750,9 @@ class AuthenticationClient(object):
     def generate_link_ext_idp_url(self, ext_idp_conn_identifier, app_id, id_token ):
         """生成绑定外部身份源的链接
 
-        
+
     此接口用于生成绑定外部身份源的链接，生成之后可以引导用户进行跳转。
-    
+
 
         Attributes:
             ext_idp_conn_identifier (str): 外部身份源连接唯一标志
@@ -1782,7 +1788,7 @@ class AuthenticationClient(object):
     def get_identities(self, ):
         """获取绑定的外部身份源
 
-        
+
     如在**介绍**部分中所描述的，一个外部身份源对应多个外部身份源连接，用户通过某个外部身份源连接绑定了某个外部身份源账号之后，
     用户会建立一条与此外部身份源之间的关联关系。此接口用于获取此用户绑定的所有外部身份源。
 
@@ -1817,7 +1823,7 @@ class AuthenticationClient(object):
     通过 `type` 可以区分出哪个是 `openid`，哪个是 `unionid`，以及具体的值（`userIdInIdp`）；他们都来自于同一个身份源连接（`originConnIds`）。
 
 
-    
+
 
         Attributes:
         """
@@ -1841,7 +1847,7 @@ class AuthenticationClient(object):
     def sign_up(self, connection, password_payload=None, pass_code_payload=None, profile=None, options=None ):
         """注册
 
-        
+
     此端点目前支持以下几种基于的注册方式：
 
     1. 基于密码（PASSWORD）：用户名 + 密码，邮箱 + 密码。
@@ -1854,7 +1860,7 @@ class AuthenticationClient(object):
             connection (str): 注册方式：
     - `PASSWORD`: 邮箱密码方式
     - `PASSCODE`: 邮箱/手机号验证码方式
-        
+
             password_payload (dict): 当注册方式为 `PASSWORD` 时此参数必填。
             pass_code_payload (dict): 当认证方式为 `PASSCODE` 时此参数必填
             profile (dict): 用户资料
@@ -1875,7 +1881,7 @@ class AuthenticationClient(object):
     def decrypt_wechat_mini_program_data(self, code, iv, encrypted_data, ext_idp_connidentifier ):
         """解密微信小程序数据
 
-        
+
 
         Attributes:
             code (str): `wx.login` 接口返回的用户 `code`
@@ -1897,7 +1903,7 @@ class AuthenticationClient(object):
     def get_wechat_miniprogram_phone(self, code, ext_idp_connidentifier ):
         """获取小程序的手机号
 
-        
+
 
         Attributes:
             code (str): `open-type=getphonecode` 接口返回的 `code`
@@ -1915,7 +1921,7 @@ class AuthenticationClient(object):
     def get_wechat_mp_access_token(self, app_secret, app_id ):
         """获取 Authing 服务器缓存的微信小程序、公众号 Access Token
 
-        
+
 
         Attributes:
             app_secret (str): 微信小程序或微信公众号的 AppSecret
@@ -2063,4 +2069,42 @@ class AuthenticationClient(object):
                 'resourceType': resource_type,
             },
         )
+
+    def sub_event(self,event_code,callback):
+        """订阅事件
+
+        订阅 authing 公共事件或自定义事件
+
+        Attributes:
+            eventCode (str): 事件编码
+            callback (callable): 回调函数
+        """
+        assert event_code,"eventCode 不能为空"
+        assert self.access_token,"access_token 不能为空"
+        assert callable(callback),"callback 必须为可执行函数"
+        eventUri = self.websocket_host + \
+                   self.websocket_endpoint + \
+                   "?code="+ event_code + \
+                   "&token="+self.access_token
+        print("eventUri:"+eventUri)
+        handleMessage(eventUri,callback)
+
+    def put_event(self,event_code,data):
+        """发布自定义事件
+
+        发布事件
+
+        Attributes:
+            event_code (str): 事件编码
+            data (json): 事件体
+        """
+        return self.http_client.request(
+            method="POST",
+            url="/api/v3/pub-userEvent",
+            json={
+                "eventType": event_code,
+                "eventData": json.dumps(data)
+            },
+        )
+
     # ==== AUTO GENERATED AUTHENTICATION METHODS END ====
