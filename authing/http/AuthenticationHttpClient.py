@@ -15,6 +15,7 @@ class AuthenticationHttpClient(object):
         lang,
         use_unverified_ssl,
         token_endpoint_auth_method,
+        real_ip
     ):
         self.app_id = app_id
         self.app_secret = app_secret
@@ -23,6 +24,7 @@ class AuthenticationHttpClient(object):
         self.use_unverified_ssl = use_unverified_ssl or FALSE
         self.access_token = None
         self.token_endpoint_auth_method = token_endpoint_auth_method
+        self.real_ip = real_ip
 
     def set_access_token(self, access_token):
         self.access_token = access_token
@@ -39,7 +41,10 @@ class AuthenticationHttpClient(object):
             "x-authing-app-id": self.app_id,
             "x-authing-lang": self.lang,
         }
-
+        
+        if self.real_ip:
+            headers['x-real-ip'] = self.real_ip
+        
         # 如果设置的 tokenEndPointAuthMethod 为 client_secret_basic 并且调用的是 /oidc 相关接口：
         # 1. 获取 token: /oidc(oauth)/token
         # 2. 撤销 token: /oidc(oauth)/token/revocation

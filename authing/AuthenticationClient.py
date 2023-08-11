@@ -31,7 +31,8 @@ class AuthenticationClient(object):
         use_unverified_ssl=False,
         lang=None,
         websocket_host=None,
-        websocket_endpoint=None
+        websocket_endpoint=None,
+        real_ip=None
     ):
 
         """
@@ -50,6 +51,7 @@ class AuthenticationClient(object):
             revocation_endpoint_auth_method (str): 撤回 token 端点验证方式，可选值为 `client_secret_post`、`client_secret_basic`、`none`，默认为 `client_secret_post`。
             redirect_uri (str): 认证完成后的重定向目标 URL。可选，默认使用控制台中配置的第一个回调地址。
             post_logout_redirect_uri(str): 登出完成后的重定向目标 URL
+            real_ip (str): 客户端真实 ip，如果不传的话将一直使用服务器的 ip 作为请求 ip，这可能会影响发送验证码等接口的限流策略。
         """
         if not app_id:
             raise Exception('Please provide app_id')
@@ -69,6 +71,8 @@ class AuthenticationClient(object):
         self.post_logout_redirect_uri = post_logout_redirect_uri
         self.websocket_host = websocket_host or "wss://events.authing.cn"
         self.websocket_endpoint = websocket_endpoint or "/events/v1/authentication/sub"
+        self.real_ip = real_ip
+        
             # V3 API 接口使用的 HTTP Client
         self.http_client = AuthenticationHttpClient(
             app_id=self.app_id,
@@ -76,7 +80,8 @@ class AuthenticationClient(object):
             host=self.app_host,
             lang=self.lang,
             use_unverified_ssl=self.use_unverified_ssl,
-            token_endpoint_auth_method=token_endpoint_auth_method
+            token_endpoint_auth_method=token_endpoint_auth_method,
+            real_ip=real_ip
         )
         if self.access_token:
             self.http_client.set_access_token(self.access_token)
